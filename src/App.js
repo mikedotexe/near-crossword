@@ -26,7 +26,7 @@ const App = ({ nearConfig, data }) => {
   const [needsNewAccount, setNeedsNewAccount] = useState(false);
   const [claimError, setClaimError] = useState("");
   const [showForm, setShowForm] = useState(false);
-  
+
   useEffect(() => {
     ApiManager.instance().then((apiInstance) => {
       if (apiInstance.isSignedIn() && window.location.pathname === "/success") {
@@ -74,7 +74,7 @@ const App = ({ nearConfig, data }) => {
     } else if (!data && !solvedPuzzle) {
       return <NoCrosswordsPage/>
     } else {
-      return <div>email me, something weird happened. mike@near.org</div>
+      return <div>email me, something weird happened. mikedotexe@gmail.com</div>
     }
   }
 

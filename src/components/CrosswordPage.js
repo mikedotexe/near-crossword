@@ -21,6 +21,7 @@ const CrosswordPage = ({ data, onCrosswordComplete }) => {
         >
           <Crossword data={data} onCrosswordComplete={onCrosswordComplete} />
         </ThemeProvider>
+        <div class="bottom"></div>
       </div>
     </div>
   );

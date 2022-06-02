@@ -424,10 +424,16 @@ input[type="submit"]:hover,
   display: flex;
   justify-content: center;
   padding: 60px 0;
+  margin: 0 auto;
+  max-width: 90%;
+  border-radius: 19px;
+  box-shadow: 6px 6px lightslategrey;
+  border: 1px solid lightslategray;
 }
 .main-area .clues .direction {
   margin: 0 6px;
   font-size: 14px;
+  width: 50%;
 }
 .main-area .clues .direction h3 {
   font-size: 14px;
@@ -575,4 +581,8 @@ input[type="submit"]:hover,
   line-height: 22px;
   text-align: center;
   color: #262626;
+}
+
+div.bottom {
+  min-height: 19px;
 }
