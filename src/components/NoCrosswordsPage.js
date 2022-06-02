@@ -16,7 +16,7 @@ const NoCrosswordsPage = () => {
         <div className="success-link">
           <div className="bridge-text">For Developers </div>
           <a
-            href="https://examples.near.org?from=crossword"
+            href="https://examples.near.org"
             className="near-link"
             target="_blank"
           >
