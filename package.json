@@ -14,7 +14,7 @@
     "near-cli": "^2.1.1",
     "near-seed-phrase": "github:near/near-seed-phrase",
     "react": "^16.13.1",
-    "react-crossword": "mikedotexe/react-crossword#with-dist",
+    "react-crossword": "mikedotexe/react-crossword#svg-with-dist",
     "react-dom": "^16.13.1",
     "react-fullpage-custom-loader": "^0.1.6",
     "react-is": ">= 16.8.0",
