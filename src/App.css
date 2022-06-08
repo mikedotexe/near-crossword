@@ -416,11 +416,34 @@ body {
   .successful-page-title {
     margin-top: 0;
   }
+  .no-crosswords .above-right-label .half.right {
+    float: none;
+    margin: 0 auto;
+  }
+  .no-crosswords .bottom-label, .above-right-label {
+    position: relative !important;
+  }
+  .no-crosswords .main-area {
+    margin-top: 0;
+  }
 }
 /* end small */
 
 /* begin medium */
 @media (min-width: 769px) and (max-width: 1024px) {
+  .no-crosswords .above-right-label .half.right {
+    float: none;
+    margin: 0 auto;
+  }
+  .no-crosswords .bottom-label, .above-right-label {
+    position: relative !important;
+  }
+  .no-crosswords .above-right-label .half {
+    position: relative;
+  }
+  .no-crosswords .main-area {
+    margin-top: 0;
+  }
   .successful-page-title {
     margin-top: 0;
   }
@@ -966,6 +989,7 @@ body .site-header {
 
 #make-crossword {
   width: 51%;
+  margin: 0 auto;
 }
 
 #make-crossword .field-group {
@@ -1031,4 +1055,16 @@ body .site-header {
 
 .crossword-won .site-header, .crossword-won .site-header .btn {
   visibility: hidden;
+}
+
+.no-crosswords .above-right-label .half {
+  width: 23%;
+  border: none;
+}
+.no-crosswords .above-right-label .half.right {
+  background: none;
+  padding-top: 30px;
+}
+.no-crosswords #above-right-context {
+  visibility: visible;
 }
