@@ -1,13 +1,35 @@
 import React from "react";
 const rainbowBridge = require("../img/rainbow-bridge.gif");
 
-const SuccessPage = () => {
+const SuccessPage = ({nearConfig, claimTxHash}) => {
+  const txHash = localStorage.getItem('claim-tx-hash');
+  let txExplorerLink;
+  if (nearConfig.networkId === 'testnet') {
+    txExplorerLink = `https://explorer.testnet.near.org/transactions/${txHash}`;
+  } else {
+    txExplorerLink = `https://explorer.near.org/transactions/${txHash}`;
+  }
+  const macroCosm = document.getElementById('macrocosm');
+  const macroCosmAgainDude = document.getElementById('even-more-macro');
+  let addClassName = "crossword-success";
+  macroCosm.classList.add(addClassName);
+  macroCosmAgainDude.classList.add(addClassName);
+  let removeClassName = "crossword-form";
+  macroCosm.classList.remove(removeClassName);
+  macroCosmAgainDude.classList.remove(removeClassName);
+  removeClassName = "no-crosswords";
+  macroCosm.classList.remove(removeClassName);
+  macroCosmAgainDude.classList.remove(removeClassName);
+  removeClassName = "crossword-intro";
+  macroCosm.classList.remove(removeClassName);
+  macroCosmAgainDude.classList.remove(removeClassName);
+
   return (
     <div className="successful-page">
       <div className="successful-page-title">Reward was claimed!</div>
 
       <div className="successful-text">
-        Transaction with reward was successfully sent.
+        <a href={txExplorerLink} target="_blank">Transaction</a> with reward was successfully sent.
       </div>
       <div className="successful-text">
         Check out what you can do with your prize money below.
@@ -15,6 +37,7 @@ const SuccessPage = () => {
       <div className="successful-text">
         Or, <a href="/">return to front page.</a>
       </div>
+      <div className="moral-ads"></div>
       <div className="arrows" />
       <div className="success-links">
         <div className="success-link">
@@ -55,11 +78,11 @@ const SuccessPage = () => {
             Check out NEAR projects, games, NFTs, comics…
           </div>
           <br />
-          <div>
+          <div className={"btn"}>
             <a
               href="https://awesomenear.com?from=crossword"
               target="_blank"
-              className="near-link"
+              className="near-linkzremovebrah"
             >
               Awesome NEAR
             </a>
@@ -73,7 +96,6 @@ const SuccessPage = () => {
             <a href="https://rainbowbridge.app?from=crossword" target="_blank">
               <img
                 src={rainbowBridge}
-                width="319"
                 alt="Image of Aurora's Rainbow Bridge where NEAR and Ethereum can bridge assets"
               />
             </a>

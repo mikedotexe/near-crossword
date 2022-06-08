@@ -13,6 +13,22 @@ const WonPage = ({
   const [inputMemo, setInputMemo] = useState("");
   const [inputName, setInputName] = useState("");
   const isButtonDisabled = !inputMemo || !inputName;
+
+  const macroCosm = document.getElementById('macrocosm');
+  const macroCosmAgainDude = document.getElementById('even-more-macro');
+  let addClassName = "crossword-won";
+  macroCosm.classList.add(addClassName);
+  macroCosmAgainDude.classList.add(addClassName);
+  let removeClassName = "crossword-form";
+  macroCosm.classList.remove(removeClassName);
+  macroCosmAgainDude.classList.remove(removeClassName);
+  removeClassName = "no-crosswords";
+  macroCosm.classList.remove(removeClassName);
+  macroCosmAgainDude.classList.remove(removeClassName);
+  removeClassName = "crossword-intro";
+  macroCosm.classList.remove(removeClassName);
+  macroCosmAgainDude.classList.remove(removeClassName);
+
   return (
     <div className="win-page">
       <div className="title">You won!</div>
@@ -83,7 +99,6 @@ const WonPage = ({
 
           <motion.div
             id="seed-phrase-wrapper"
-            className="field-group"
             animate={{
               opacity: needsNewAccount === true ? 1 : 0,
               transitionEnd: {

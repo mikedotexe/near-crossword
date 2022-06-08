@@ -29,9 +29,50 @@
 </head>
 
 <body>
-<noscript>You need to enable JavaScript to run this app.</noscript>
-<div id="root"></div>
-<script src="./index.js"></script>
+  <div id="even-more-macro">
+    <div id="macrocosm">
+      <div id="motion-wrapper">
+        <div class="motion-bg static">
+          <object type="image/svg+xml" data="assets/background-static.svg">
+            <img src="assets/background-static.svg" />
+          </object>
+        </div>
+        <div class="motion-bg upper">
+          <object type="image/svg+xml" data="assets/background-animated-upper.svg">
+            <img src="assets/background-animated-lower.svg" />
+          </object>
+        </div>
+        <div class="motion-bg lower">
+          <object type="image/svg+xml" data="assets/background-animated-lower.svg">
+            <img src="assets/background-animated-lower.svg" />
+          </object>
+        </div>
+      </div>
+      <noscript>You need to enable JavaScript to run this app.</noscript>
+      <div id="root"></div>
+      <script src="./index.js"></script>
+    </div>
+    <div id="below-s" class="hide-me">
+      <div class="bottom-label">
+        <p>sma11</p>
+        <div class="half left">left</div>
+        <div class="half right">right</div>
+      </div>
+    </div>
+    <div id="below-m" class="hide-me">
+      <div class="bottom-label">
+        <p>med1um</p>
+        <div class="half left">left</div>
+        <div class="half right">right</div>
+      </div>
+    </div>
+    <div id="below-l" class="hide-me">
+      <div class="bottom-label">
+        <p>1arge</p>
+        <div class="half left">left</div>
+        <div class="half right">right</div>
+      </div>
+    </div>
+  </div>
 </body>
-
 </html>

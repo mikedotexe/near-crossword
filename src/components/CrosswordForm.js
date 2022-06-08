@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { generateLayout } from 'crossword-layout-generator'
-import Crossword from 'react-crossword'
+import Crossword from 'react-crossword/dist/es/Crossword'
 import { mungeLocalCrossword } from '../utils'
 import { ThemeProvider } from 'styled-components'
 import { addNewPuzzle } from '../add-puzzle'
 
-const CrosswordForm = () => {
+const CrosswordForm = ({ contractName }) => {
   const blankClue = { clue: "", answer: "" }
   const [clueAnswerArray, setClueAnswerArray] = useState([blankClue])
   const [dimensions, setDimensions] = useState()
@@ -91,13 +91,25 @@ const CrosswordForm = () => {
     }
   }, [crosswordLayout])
 
+  const macroCosm = document.getElementById('macrocosm');
+  const macroCosmAgainDude = document.getElementById('even-more-macro');
+  let addClassName = "crossword-form";
+  macroCosm.classList.add(addClassName);
+  macroCosmAgainDude.classList.add(addClassName);
+  let removeClassName = "crossword-intro"
+  macroCosm.classList.remove(removeClassName);
+  macroCosmAgainDude.classList.remove(removeClassName);
+  removeClassName = "no-crosswords"
+  macroCosm.classList.remove(removeClassName);
+  macroCosmAgainDude.classList.remove(removeClassName);
+
   return (
-    <div>
+    <div id="make-crossword">
       <form className="crossword-form" onSubmit={(e) => e.preventDefault()}>
 
         {/* display if fewer than 3 valid clue answer pairs */}
         { JSON.parse(JSON.stringify(clueAnswerArray.filter(ca => ca.answer.length > 2 && ca.clue.length > 2))).length < 3 &&
-          <div className="form-text">Please add at least 3 valid clue answer pairs</div>
+          <div className="form-text">Please add at least 3 clues and answers:</div>
         }
 
         {
@@ -110,7 +122,7 @@ const CrosswordForm = () => {
                   onBlur={(e) => handleClueAnswerBlur(e)}
                   name={`clue-${key}`}
                   value={value.clue}
-                  placeholder="Some clue here"
+                  placeholder="clue: not alice but"
                 />
                 <input
                   type="text"
@@ -118,7 +130,7 @@ const CrosswordForm = () => {
                   onBlur={(e) => handleClueAnswerBlur(e)}
                   name={`answer-${key}`}
                   value={value.answer}
-                  placeholder="The clue's solution"
+                  placeholder="answer: bob"
                 />
               </div>
             )
@@ -147,47 +159,53 @@ const CrosswordForm = () => {
           </React.Fragment>
         }
 
-        { crosswordLayout && 
-          <ThemeProvider
-            theme={{
-              columnBreakpoint   : '9999px',
-              gridBackground     : '#fff',
-              cellBackground     : '#D5D5D5',
-              cellBorder         : '#D5D5D5',
-              textColor          : '#000000',
-              numberColor        : '#000000',
-              focusBackground    : 'rgba(170, 208, 85, 0.5)',
-              highlightBackground: 'rgba(255, 200, 96, 0.5)',
-            }}
-          >
-            <Crossword ref={crosswordRef} data={crosswordLayout} useStorage={false} />
-          </ThemeProvider>
-        }
+        <div id="hurry">
+          Sample crossword…
+          <div className="puzzle">
+            { crosswordLayout &&
+              <ThemeProvider
+                theme={{
+                  columnBreakpoint   : '9999px',
+                  gridBackground     : '#fff',
+                  cellBackground     : '#D5D5D5',
+                  cellBorder         : '#D5D5D5',
+                  textColor          : '#000000',
+                  numberColor        : 'pink',
+                  focusBackground    : 'rgba(170, 208, 85, 0.5)',
+                  highlightBackground: 'rgba(255, 200, 96, 0.5)',
+                }}
+              >
+                <Crossword ref={crosswordRef} data={crosswordLayout} useStorage={false} />
+              </ThemeProvider>
+            }
+          </div>
+          <div className="reward">
+            { crosswordLayout && generatedLayout && dimensions && !hasErrors &&
 
-        { crosswordLayout && generatedLayout && dimensions && !hasErrors &&
+              <React.Fragment>
+                <div className="field-group field-group-border-top">
+                  <label htmlFor="prize-field"> Include prize (in NEAR):</label>
 
-          <React.Fragment>
-            <div className="field-group field-group-border-top">
-              <label htmlFor="prize-field"> Include Prize (in NEAR):</label>
+                  <input
+                    type="number"
+                    id="prize-field"
+                    value={prizeDeposit}
+                    step="1"
+                    onChange={(e) => handlePrizeDepositChange(e)}
+                  />
+                </div>
 
-              <input
-                type="number"
-                id="prize-field"
-                value={prizeDeposit}
-                step="1"
-                onChange={(e) => handlePrizeDepositChange(e)}
-              />
-            </div>
+                <div className="field-group">
+                  <button
+                    className="win-button"
+                    onClick={() => addNewPuzzle(crosswordLayout, generatedLayout, dimensions, prizeDeposit, contractName)}
+                  >Create puzzle!</button>
+                </div>
+              </React.Fragment>
 
-            <div className="field-group">
-              <button
-                className="win-button"
-                onClick={() => addNewPuzzle(crosswordLayout, generatedLayout, dimensions, prizeDeposit)}
-              >Commit Puzzle to Smart Contract</button>
-            </div>
-          </React.Fragment>
-          
-        }
+            }
+          </div>
+        </div>
 
       </form>
     </div>

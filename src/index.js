@@ -37,11 +37,128 @@ async function initCrossword() {
 
 window.nearInitPromise = initCrossword()
   .then(({ nearConfig, data, creatorAccount }) => {
+    if (!process.env.CONTRACT_NAME) {
+      console.error('Could not find the CONTRACT_NAME environment variable, please set it. Love, Mike.')
+    }
+    if (!process.env.NEAR_ENV) {
+      console.error('Could not find the NEAR_ENV environment variable, please set it. Love, Mike.')
+    }
+    const maxNum = 19;
+    const cronMe = async (num) => {
+      setTimeout(async () => {
+        const macroCosm = document.getElementById('macrocosm');
+        const macroCosmAgainDude = document.getElementById('even-more-macro');
+        let a, r;
+        const onIntroPage = Array.from(macroCosm.classList).includes('crossword-intro');
+        const onCreateCrossword = Array.from(macroCosm.classList).includes('crossword-form');
+        const onNoCrosswords = Array.from(macroCosm.classList).includes('no-crosswords');
+        switch (num) {
+          case 1:
+            if (onIntroPage) {
+              a = "zoom-out";
+              macroCosm.classList.add(a);
+            }
+            break;
+          case 2:
+            if (onIntroPage) {
+              a = "zoom-out-done";
+              macroCosm.classList.add(a);
+              r = "zoom-out"
+              macroCosm.classList.remove(r);
+            }
+            break;
+          case 3:
+            if (onIntroPage) {
+              a = "zoom-in";
+              macroCosm.classList.add(a);
+            }
+            break;
+          case 4:
+            if (onIntroPage) {
+              a = "zoom-in-done";
+              macroCosm.classList.add(a);
+              a = "logo-bye";
+              macroCosm.classList.add(a);
+              r = "zoom-in";
+              macroCosm.classList.remove(r);
+            }
+            break;
+          case 5:
+            if (onIntroPage) {
+              a = "it-shrinks";
+              macroCosm.classList.add(a);
+              r = "logo-bye";
+              macroCosm.classList.remove(r);
+            }
+            break;
+          case 6:
+            if (onIntroPage) {
+              a = "it-shrinks-done";
+              macroCosm.classList.add(a);
+              a = "rezoom";
+              macroCosm.classList.add(a);
+              r = "it-shrinks";
+              macroCosm.classList.remove(r);
+            }
+            break;
+          case 7:
+            if (onIntroPage) {
+              a = "rezoom-done";
+              macroCosm.classList.add(a);
+              a = "grid-scaling";
+              macroCosm.classList.add(a);
+              r = "rezoom";
+              macroCosm.classList.remove(r);
+            }
+              break;
+          case 8:
+            if (onIntroPage) {
+              // Turn on the animations for the hands
+              a = "grid-scaling-done";
+              macroCosm.classList.add(a);
+              a = "new-thing";
+              macroCosm.classList.add(a);
+              r = "grid-scaling";
+              macroCosm.classList.remove(r);
+            }
+            break;
+          case 9:
+            break;
+          case 10:
+            break;
+          case 11:
+            break;
+          case 12:
+            break;
+          case 13:
+            if (onIntroPage) {
+              a = "new-thing-done";
+              macroCosm.classList.add(a);
+              a = "im-so-tired";
+              macroCosm.classList.add(a);
+              r = "new-thing";
+              macroCosm.classList.remove(r);
+            }
+            break;
+          default:
+            return;
+        }
+        macroCosmAgainDude.className = macroCosm.className;
+        if (num < maxNum) {
+          cronMe(num + 1)
+        }
+      }, 600);
+    }
+    cronMe(1)
+    let contractName = process.env.CONTRACT_NAME;
     ReactDOM.render(
-      <App
-        nearConfig={nearConfig}
-        data={data}
-        creatorAccount={creatorAccount}
-      />,
+      <>
+        <App
+          nearConfig={nearConfig}
+          data={data}
+          contractName={contractName}
+          creatorAccount={creatorAccount} // not sure if we need this
+        />
+      </>,
       document.getElementById('root'));
   });

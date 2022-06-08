@@ -161,10 +161,8 @@ span.important {
   border-radius: 12px;
   margin: 24px;
   padding: 27px;
-}
-
-.no-puzzles .btn {
-  height: 75px;
+  box-shadow: 6px 6px lightslategrey;
+  border: 1px solid lightslategray;
 }
 
 .no-puzzles .success-link {
@@ -194,6 +192,7 @@ span.important {
   text-align: center;
   margin: 0 0 10px;
   color: #262626;
+  padding-bottom: 19px;
 }
 
 .success-links {
@@ -206,4 +205,830 @@ span.important {
     flex-wrap: wrap;
     justify-content: center;
   }
+}
+
+.btn {
+  background-color: #ffffff;
+  box-shadow: 6px 6px lightslategray;
+  font-weight: 666;
+}
+
+.btn:hover a {
+  color: #ffffff;
+}
+
+.btn a {
+  text-decoration: none;
+  color: #000000;
+  font-size: 16px;
+}
+
+.btn a:hover {
+  color: #ffffff;
+}
+
+.motion-bg > object {
+  position: absolute;
+  z-index: -1;
+}
+
+.motion-bg.upper {
+  position: relative;
+  left: 0;
+  top: 0;
+  z-index: 0;
+}
+
+.motion-bg.lower {
+  position: relative;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+}
+
+.down-animation > object {
+  transform: rotate(270deg) scaleX(-1) translateY(47px) translateX(58px);
+}
+
+.across-animation > object {
+  position: absolute;
+  height: 19%;
+  bottom: 6px;
+}
+
+.main-area #small-stuff {
+  display: none;
+}
+
+.direction.down {
+  padding-right: 37px;
+}
+
+.clue {
+  visibility: hidden;
+}
+
+#below-s.hide-me, #below-m.hide-me, #below-l.hide-me {
+  display: none;
+}
+
+.wrapper {
+  position: relative;
+}
+
+.wrapper .nav, .wrapper .site-logo, .wrapper .prize {
+  position: absolute;
+  /*top: 19px;*/
+}
+
+.wrapper .site-logo {
+  top: 19%;
+  left: 39%;
+}
+
+.site-logo {
+  opacity: 0;
+  transform: scale(2.3);
+}
+
+.site-logo {
+  animation: hiLogo .6s;
+  visibility: visible;
+  opacity: 1;
+}
+
+.prize {
+  opacity: 0;
+  visibility: hidden;
+  background: rgba(255,255,255,.6);
+  border-radius: 13px;
+  border: 1px solid lightslategray;
+  padding: 6px;
+  left: 42%;
+  bottom: 37%;
+}
+
+.clues, .grid, .clue {
+  opacity: 0;
+}
+
+body {
+  background: linear-gradient(191deg, rgba(255,177,216,.666), transparent), linear-gradient(45deg, rgba(120,235,105,0.51), rgba(192,214,78,0.73));
+}
+
+.prize-deets {
+  font-size: 1.9em;
+  font-weight: 666;
+}
+
+.motion-bg.upper, .motion-bg.lower, .down-animation, .across-animation {
+  visibility: hidden;
+}
+
+.down-animation.static, .across-animation.static {
+  visibility: visible;
+}
+
+.motion-bg.static {
+  opacity: .6;
+  z-index: 3;
+}
+
+/* begin small */
+@media (max-width: 768px) {
+  .main-area #small-stuff {
+    display: block;
+  }
+  .main-area #small-stuff .direction.down {
+    width: auto;
+  }
+  .main-area #small-stuff .direction.down .clue {
+    margin-top: 0.5em;
+  }
+  .main-area .clues, .main-area #small-stuff {
+    padding: 0;
+    max-width: 95%;
+  }
+  .down-animation, .across-animation {
+    display: none;
+  }
+  body .main-area .clues, body .main-area #small-stuff {
+    background: white;
+    box-shadow: none;
+    border: none;
+    min-width: auto;
+    padding: 6px 0;
+    border-radius: 3px 0;
+  }
+  body .main-area .clues {
+    border-radius: 9px 9px 0px 0px;
+  }
+  body .main-area #small-stuff {
+    border-radius: 0px 0px 9px 9px;
+  }
+  .main-area .clues .direction.down {
+    display: none;
+  }
+  .main-area .clues .direction.across {
+    /*padding-left: 6px;*/
+    width: auto;
+    margin-bottom: 0;
+  }
+  h3 {
+    margin: 0;
+    text-align: center;
+  }
+  .site-logo  {
+    display: none;
+  }
+  #below-s {
+    display: block;
+  }
+  #below-m, #below-l {
+    display: none;
+  }
+  body .main-area #small-stuff .direction.down {
+    padding-right: 9px;
+  }
+  .crossword-intro.grid-scaling-done .clue, .grid, .clues {
+    opacity: 1;
+  }
+  .wrapper .prize {
+    position: relative;
+    text-align: center;
+    left: auto;
+    margin: 0 auto;
+  }
+  .prize-deets {
+    font-size: 1.3em;
+  }
+  .crossword-success .successful-page-title {
+    margin-top: 0;
+  }
+  .field-group {
+    max-width: none;
+    box-shadow: 6px 6px 0 0 lightslategrey;
+  }
+  .win-page {
+    margin-top: 0;
+    padding: 0;
+  }
+  .successful-page-title {
+    margin-top: 0;
+  }
+}
+/* end small */
+
+/* begin medium */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .successful-page-title {
+    margin-top: 0;
+  }
+  .win-page {
+    margin-top: 0;
+    padding: 0;
+  }
+  .crossword-success .successful-page-title {
+    margin-top: 0;
+  }
+  .site-logo {
+    display: none;
+  }
+  .down-animation, .across-animation {
+    display: none;
+  }
+  .main-area #small-stuff {
+    display: none;
+  }
+  body .main-area .clues {
+    max-width: 96%;
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+    border: none;
+    min-width: auto;
+  }
+  body .main-area .clues .direction {
+    background: linear-gradient(transparent, white 97%, transparent),linear-gradient(transparent, white, 66%, transparent);
+    padding: 13px 9px;
+  }
+  body .main-area .clues .direction.down {
+    padding-right: 9px;
+  }
+  #below-m {
+    display: block;
+  }
+  #below-s, #below-l {
+    display: none;
+  }
+  h3.header {
+    box-shadow: 0 6px 9px 0 rgb(0 0 0 / 60%);
+    padding: 6px;
+    text-align: center;
+    background: rgba(255,255,255,0.6);
+  }
+  .crossword-intro.grid-scaling-done .clue, .grid, .clues {
+    opacity: 1;
+  }
+  .wrapper .prize {
+    position: relative;
+    text-align: center;
+    left: auto;
+    margin: 0 auto;
+  }
+  .prize .prize-deets {
+    font-size: 1.3em;
+  }
+  .field-group {
+    max-width: none;
+    box-shadow: 6px 6px 0 0 lightslategrey;
+  }
+}
+/* end medium */
+
+/* begin large */
+@media (min-width: 1025px) and (max-width: 1200px) {
+  .down-animation > object {
+    transform: rotate(270deg) scaleX(-1) translateY(81px) translateX(58px);
+  }
+  .main-area #small-stuff {
+    display: none;
+  }
+  #below-l {
+    display: block;
+  }
+  #below-s, #below-m {
+    display: none;
+  }
+  .crossword-intro.grid-scaling-done .clue {
+    animation: showClues .6s;
+    opacity: 1;
+  }
+}
+
+/* large again */
+@media (min-width: 1201px) {
+  .down-animation > object {
+    transform: rotate(270deg) scaleX(-1) translateY(79px) translateX(58px);
+  }
+  #below-s, #below-m {
+    display: none;
+  }
+  #below-l {
+    display: block;
+  }
+  /* sheesh i doubled :/ this oh well */
+  .crossword-intro.grid-scaling-done .clue {
+    animation: showClues .6s;
+    opacity: 1;
+  }
+}
+/* end large */
+
+/* fiddly media queries */
+@media (max-width: 1196px) {
+  body {
+    background: white;
+  }
+  .motion-bg > object {
+    visibility: hidden;
+    opacity: 0;
+  }
+}
+
+@keyframes color-me-in {
+  0% {
+    background: #aed6d5;
+  }
+  100% {
+    background: linear-gradient(45deg, rgba(120,235,105,0.51), rgba(192,214,78,0.73));
+  }
+}
+
+.crossword-intro.zoom-out {
+  animation: scaleOut .6s forwards linear;
+}
+
+.crossword-intro.zoom-out-done {
+  transform: scale(.87);
+}
+
+.zoom-out-done .motion-bg > object {
+  animation: roundPaper .6s;
+}
+
+.crossword-intro.zoom-in {
+  animation: scaleIn .6s backwards linear;
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(.87);
+  }
+  to {
+    transform: scale(.91);
+  }
+}
+
+.crossword-intro.zoom-in .motion-bg > object {
+  box-shadow: 6px 6px 0 0 lightslategrey;
+  border-radius: 0 67px;
+}
+
+@keyframes roundPaper {
+  from {
+    border: 1px rgba(255,255,255,0.1);
+  }
+  to {
+    border-radius: 0 67px;
+    box-shadow: 6px 6px 0 0 lightslategrey;
+    border: 1px rgba(255,255,255,0.9);
+  }
+}
+
+.crossword-intro.zoom-in-done {
+  transform: scale(.91);
+}
+
+.it-shrinks-done .prize {
+  transition: opacity 1s, visibility 1s;
+  visibility: visible;
+  opacity: 1;
+}
+
+.crossword-intro.zoom-in-done .motion-bg > object {
+  box-shadow: 6px 6px 0 0 lightslategrey;
+  border-radius: 0 67px;
+}
+
+@keyframes scaleOut {
+  to {
+    transform: scale(.87);
+  }
+}
+
+@keyframes hiLogo {
+  from {
+    opacity: 0;
+    visibility: hidden;
+  }
+  to {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+.box {
+  position: relative;
+  margin: 0 auto;
+  background-color: #fff;
+  box-shadow: 0 0 6px rgb(183 140 22 / 6%), inset 0 0 13px rgb(183 140 22 / 57%);
+}
+
+.clue-highlight {
+  background: pink;
+  height: 3em;
+  position: absolute;
+  top: -1.3em;
+  left: -1.3em;
+  width: 3em;
+  filter: blur(3px);
+  border-radius: 23px;
+}
+
+.direction div.clue {
+  position: relative;
+  border-radius: 6px;
+}
+
+.bottom-label, .above-right-label {
+  text-align: center;
+  position: absolute;
+  width: 100%;
+}
+
+#above-right-context {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  z-index: 999;
+  visibility: hidden;
+}
+
+.bottom-label .half {
+  width: 43%;
+  height: 119px;
+  border: 19px dotted rgba(186,196,247,0.6);
+  border-bottom: none;
+}
+
+.above-right-label .half {
+  width: 31%;
+  height: 119px;
+  border: 19px dotted rgba(234,203,115,0.6);
+  border-top: none;
+  z-index: 668;
+}
+
+.above-right-label .half.right {
+  background: radial-gradient(circle at top right, rgba(247,258,254,1) , transparent, transparent, transparent);
+  float: right;
+  border-right: none;
+  border-bottom-left-radius: 23px;
+  pointer-events: all;
+}
+
+.bottom-label .half.left {
+  background: radial-gradient(ellipse at bottom, rgba(247,248,254,1) 19%, white, transparent),radial-gradient(ellipse at bottom, rgba(125,156,245,1) 31%, transparent);
+  float: left;
+  border-left: none;
+  border-top-right-radius: 23px;
+}
+.bottom-label .half.right {
+  background: radial-gradient(ellipse at bottom, rgba(247,248,254,1) 19%, white, transparent),radial-gradient(ellipse at bottom, rgba(233,192,78,1) 31%, transparent);
+  float: right;
+  border-right: none;
+  border-top-left-radius: 23px;
+}
+.above-right-label .half.left {
+  display: none;
+}
+
+/* The Shrinkage (great episode) */
+.crossword-intro.it-shrinks .motion-bg > object {
+  animation: shrinkEm .6s ease-in;
+}
+
+
+@keyframes shrinkEm {
+  to {
+    transform: scaleX(67%) scaleY(79%) translateY(-12%);
+  }
+}
+
+.crossword-intro.it-shrinks-done .motion-bg > object {
+  transform: scaleX(67%) scaleY(79%) translateY(-12%);
+}
+
+.crossword-intro.it-shrinks-done .btn {
+  animation: makePuzzleButtonBye0 .6s ease-out, .6s, makePuzzleButtonBye2 .6s;
+  transform: scaleX(6%);
+  opacity: .6;
+  box-shadow: none;
+  background-color: #000000;
+
+  /* trying css transition */
+  transition: visibility 3s, height 6s;
+  transition-delay: 1s, 0s;
+  visibility: hidden;
+  height: 6px;
+}
+
+@keyframes makePuzzleButtonBye0 {
+  from {
+    transform: scaleX(100%);
+    background-color: #ffffff;
+  }
+  to {
+    box-shadow: none;
+    transform: scaleX(6%);
+    background-color: #000000;
+  }
+}
+
+@keyframes makePuzzleButtonBye2 {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: .6;
+  }
+}
+
+.crossword-intro.it-shrinks-done .clue {
+  visibility: visible;
+}
+
+.crossword-intro.it-shrinks-done {
+  animation: resumeZoomGetIt .6s;
+  transform: scale(1);
+}
+.crossword-intro.it-shrinks-done .site-logo {
+  animation: fadeyOutUp 1.6s;
+  visibility: hidden;
+  opacity: 0;
+  z-index: 667;
+}
+
+@keyframes resumeZoomGetIt {
+  from {
+    transform: scale(.91);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+@keyframes showClues {
+  from {
+    opacity: 0;
+    transform: translateY(-19%);
+  }
+  to {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+}
+
+.crossword-intro.grid-scaling .grid {
+  animation: shrinkGrid .6s ease-in;
+}
+
+.crossword-intro.grid-scaling .clues {
+  animation: upALittleMore .6s;
+}
+@keyframes shrinkGrid {
+  to {
+    transform: scale(.9) translateY(-2.69%);
+    opacity: 1;
+  }
+}
+@keyframes upALittleMore {
+  to {
+    transform: translateY(-5.1%);
+    opacity: 1;
+  }
+}
+.crossword-intro.grid-scaling-done .grid {
+  transform: scale(.9) translateY(-2.69%);
+  opacity: 1;
+}
+.crossword-intro.grid-scaling-done .clues {
+  transform: translateY(-5.1%);
+  opacity: 1;
+}
+.crossword-intro.grid-scaling-done .motion-bg.upper, .crossword-intro.grid-scaling-done .motion-bg.lower {
+  animation: showCuteBackground 3.1s ease-in;
+  visibility: visible;
+  opacity: .3;
+}
+.crossword-intro.grid-scaling-done .down-animation.static {
+  animation: fadeyOut .6s;
+  visibility: hidden;
+  opacity: 0;
+}
+.crossword-intro.grid-scaling-done .across-animation.static {
+  animation: fadeyOut .6s;
+  visibility: hidden;
+  opacity: 0;
+}
+.crossword-intro.grid-scaling-done .down-animation.moving {
+  animation: fadeyIn .6s;
+  visibility: visible;
+  opacity: 1;
+}
+.crossword-intro.grid-scaling-done .across-animation.moving {
+  animation: fadeyIn .6s;
+  visibility: visible;
+  opacity: 1;
+}
+.crossword-intro.grid-scaling-done #above-right-context {
+  animation: aboveRightArea 3.1s;
+  visibility: visible;
+  opacity: 0;
+  z-index: 9999;
+}
+.crossword-intro.grid-scaling-done #above-right-context:hover {
+  opacity: .6;
+}
+
+.butt {
+  opacity: 0;
+}
+.wrapper .it-shrinks-done.grid-scaling-done #above-right-context:hover ~ .btn {
+  visibility: visible;
+
+  opacity: 1;
+  padding: 6px;
+  margin-top: 6%;
+  margin-right: 6%;
+}
+
+@keyframes aboveRightArea {
+  51% {
+    visibility: visible;
+  }
+  67% {
+    opacity: .9;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes showCuteBackground {
+  from {
+    visibility: hidden;
+    opacity: 0;
+  }
+  to {
+    visibility: visible;
+    opacity: .3;
+  }
+}
+@keyframes fadeyOut {
+  from {
+    visibility: visible;
+    opacity: 1;
+  }
+  to {
+    visibility: hidden;
+    opacity: 0;
+  }
+}
+@keyframes fadeyOutUp {
+  from {
+    visibility: visible;
+    opacity: 1;
+  }
+  to {
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(6%);
+  }
+}
+@keyframes fadeyIn {
+  from {
+    visibility: hidden;
+    opacity: 0;
+  }
+  to {
+    visibility: visible;
+    opacity: 1;
+  }
+}
+
+
+/* arg! */
+body .site-header {
+  height: 100px;
+  width: 100%;
+  z-index: 999;
+  pointer-events: none;
+}
+
+.main-area {
+  margin-top: -100px;
+}
+
+.it-shrinks-done.grid-scaling-done .btn {
+  visibility: visible;
+  opacity: 1;
+  transform: none;
+  height: auto;
+  width: auto;
+  animation: none;
+  background-color: #ffffff;
+  box-shadow: 6px 6px lightslategray;
+  font-weight: 666;
+  margin-top: 6%;
+  margin-right: 6%;
+  padding: 6px;
+}
+
+.it-shrinks-done.grid-scaling-done .btn:hover {
+  /* so hard to read when it turns white??? */
+  transition: color .23s, background-color .6s;
+  color: #eae7de;
+  font-weight: 600;
+  background-color: #7d9cf5;
+}
+
+.im-so-tired .prize {
+  animation: soTiredOfThis 3.1s;
+  opacity: 0;
+  transform: scale(1.9);
+}
+
+@keyframes soTiredOfThis {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  90% {
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.9);
+  }
+
+}
+
+#make-crossword {
+  width: 51%;
+}
+
+#make-crossword .field-group {
+  max-width: none;
+}
+
+.crossword-form .site-logo {
+  visibility: hidden;
+  z-index: -1;
+}
+
+.crossword-form .above-right-label .half {
+  width: 20%;
+}
+
+.crossword-form .grid {
+  opacity: 1;
+}
+
+.crossword-form .clues {
+  display: none;
+}
+
+#hurry {
+  background: floralwhite;
+  padding: 19px;
+  border-radius: 19px;
+}
+
+#even-more-macro.crossword-form {
+  transform: scale(.91);
+}
+
+.crossword-form .reward .field-group input {
+  font-size: 19px !important;
+  width: auto !important;
+  margin: 0 auto  !important;
+  text-align: center  !important;
+}
+
+.no-crosswords .site-logo, .crossword-success .site-logo, .crossword-won .site-logo {
+  top: 6%;
+  left: 44%;
+}
+.no-crosswords .site-logo > img, .crossword-success .site-logo > img, .crossword-won .site-logo > img {
+  width: 131px;
+}
+
+.no-crosswords .motion-bg.upper, .motion-bg.lower, .down-animation, .across-animation, .crossword-success .motion-bg.upper, .motion-bg.lower, .down-animation, .across-animation {
+  visibility: visible;
+  opacity: 0.6;
+}
+#even-more-macro.no-crosswords, #even-more-macro.crossword-success, #even-more-macro.crossword-won {
+  transform: scale(.91);
+}
+.no-crosswords .motion-bg > object, .crossword-form .motion-bg > object, .crossword-success .motion-bg > object, .crossword-won .motion-bg > object {
+  border-radius: 0 67px;
+  box-shadow: 6px 6px 0 0 lightslategrey;
+}
+.crossword-success img {
+  width: 100%;
+}
+
+.crossword-won .site-header, .crossword-won .site-header .btn {
+  visibility: hidden;
 }

@@ -14,9 +14,13 @@ import ApiManager from "./ApiManager";
 
 const logo = require("./img/logo_v2.png");
 
-const App = ({ nearConfig, data }) => {
+const App = ({ nearConfig, data, contractName }) => {
+  let reward = data?.reward;
   const [solvedPuzzle, setSolvedPuzzle] = useState(
     localStorage.getItem("playerSolvedPuzzle") || null
+  );
+  const [claimTxHash, setClaimTxHash] = useState(
+    localStorage.getItem("claim-tx-hash") || null
   );
   const playerKeyPair = JSON.parse(localStorage.getItem("playerKeyPair"));
   const crosswordSolutionPublicKey = localStorage.getItem(
@@ -26,6 +30,7 @@ const App = ({ nearConfig, data }) => {
   const [needsNewAccount, setNeedsNewAccount] = useState(false);
   const [claimError, setClaimError] = useState("");
   const [showForm, setShowForm] = useState(false);
+  let transaction;
 
   useEffect(() => {
     ApiManager.instance().then((apiInstance) => {
@@ -48,7 +53,9 @@ const App = ({ nearConfig, data }) => {
     if (showLoader) {
       return <SimpleDark />
     } else if (showForm) {
-      return <CrosswordForm />
+      return <CrosswordForm
+                contractName={contractName}
+              />
     } else if (data && solvedPuzzle === null) {
       return (
         <CrosswordPage
@@ -67,10 +74,15 @@ const App = ({ nearConfig, data }) => {
           claimPrize={claimPrize}
           playerKeyPair={playerKeyPair}
           nearConfig={nearConfig}
+          tx={transaction}
         />
       )
     } else if (solvedPuzzle === false && claimError === '') {
-      return <SuccessPage/>
+      return <SuccessPage
+        tx={transaction}
+        nearConfig={nearConfig}
+        claimTxHash={claimTxHash}
+      />
     } else if (!data && !solvedPuzzle) {
       return <NoCrosswordsPage/>
     } else {
@@ -78,7 +90,7 @@ const App = ({ nearConfig, data }) => {
     }
   }
 
-  async function claimPrize(e) {
+  const claimPrize = async (e) => {
     e.preventDefault();
     const winner_account_id = document
       .getElementById("claim-account-id")
@@ -97,8 +109,8 @@ const App = ({ nearConfig, data }) => {
     const near = await nearAPI.connect(nearConfig);
     const crosswordAccount = await near.account(nearConfig.contractName);
 
-    let transaction;
     try {
+      // leftoff need to make sure background is on a macro* div
       setShowLoader(true);
 
       // Call a different method depending on if the user wants to create an account or not
@@ -197,6 +209,10 @@ const App = ({ nearConfig, data }) => {
         ) {
           console.log("Transaction hash:", transaction.transaction.hash);
         }
+        // Learn a lesson from me, kiddo. this is what happens
+        // when you get desperate
+        localStorage.setItem('claim-tx-hash', transaction.transaction.hash);
+        setClaimTxHash(transaction.transaction.hash);
       }
     }
   }
@@ -233,7 +249,6 @@ const App = ({ nearConfig, data }) => {
       let playerPublicKey = playerKeyPair.publicKey;
       console.log("Unique public key for you as the player: ", playerPublicKey);
 
-      let transaction;
       try {
         setShowLoader(true);
         transaction = await crosswordAccount.functionCall({
@@ -279,20 +294,29 @@ const App = ({ nearConfig, data }) => {
 
   return (
     <div className="wrapper">
-      <header className="site-header">
-        <div className="nav">
-          <button className="btn" onClick={handleCrosswordFormButton}>
-            { showForm ? 'Return to Crossword' : 'Make a Crossword Puzzle' }
-          </button>
+      <div className="site-logo">
+        <img src={logo} alt="NEAR Crossword Puzzle"/>
+      </div>
+      <div className="prize">
+          <span className="prize-deets">Prize:</span>
+          <span id="prize-val" className="prize-deets">{reward}</span>
+          <span className="prize-deets"> NEAR</span>
+      </div>
+      <div className="site-header">
+        <div id="above-right-context">
+          <div className="above-right-label">
+            <div className="half left">left</div>
+            <div className="half right">
+              <button className="btn" onClick={handleCrosswordFormButton}>
+                { showForm ? 'Return to Crossword' : 'Make a Crossword Puzzle' }
+              </button>
+              <div className="butt">my butt</div>
+            </div>
+          </div>
         </div>
-        <div className="site-logo">
-          <a href="#">
-            <img src={logo} width="271" alt="Near Crossword Puzzle"/>
-          </a>
-        </div>
-      </header>
+      </div>
       <main className="main-area">
-        { renderPage() }
+        { renderPage(transaction) }
       </main>
     </div>
   )

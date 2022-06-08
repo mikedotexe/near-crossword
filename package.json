@@ -5,6 +5,8 @@
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^12.1.10",
+    "assets": "^3.0.1",
+    "bn.js": "^5.2.1",
     "crossword-layout-generator": "^0.1.1",
     "env-cmd": "^10.1.0",
     "framer-motion": "^5.2.1",
@@ -15,8 +17,9 @@
     "react-crossword": "mikedotexe/react-crossword#with-dist",
     "react-dom": "^16.13.1",
     "react-fullpage-custom-loader": "^0.1.6",
+    "react-is": ">= 16.8.0",
     "react-scripts": "4.0.3",
-    "styled-components": "^5.3.3",
+    "styled-components": "^5.3.5",
     "web-vitals": "^1.0.1"
   },
   "scripts": {
@@ -49,6 +52,7 @@
     ]
   },
   "devDependencies": {
-    "parcel-bundler": "^1.12.5"
+    "parcel-bundler": "^1.12.5",
+    "regenerator-runtime": "^0.13.9"
   }
 }
