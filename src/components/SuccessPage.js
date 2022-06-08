@@ -23,6 +23,9 @@ const SuccessPage = ({nearConfig, claimTxHash}) => {
   removeClassName = "crossword-intro";
   macroCosm.classList.remove(removeClassName);
   macroCosmAgainDude.classList.remove(removeClassName);
+  removeClassName = "crossword-won";
+  macroCosm.classList.remove(removeClassName);
+  macroCosmAgainDude.classList.remove(removeClassName);
 
   return (
     <div className="successful-page">

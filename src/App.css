@@ -971,6 +971,7 @@ body .site-header {
   animation: soTiredOfThis 3.1s;
   opacity: 0;
   transform: scale(1.9);
+  z-index: 667;
 }
 
 @keyframes soTiredOfThis {
@@ -1067,4 +1068,12 @@ body .site-header {
 }
 .no-crosswords #above-right-context {
   visibility: visible;
+}
+
+.crossword-won.loader {
+  /* ainokea */
+  transform: scale(1) !important;
+}
+.crossword-won .prize {
+  visibility: hidden;
 }

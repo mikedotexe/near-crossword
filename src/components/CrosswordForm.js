@@ -102,6 +102,12 @@ const CrosswordForm = ({ contractName }) => {
   removeClassName = "no-crosswords"
   macroCosm.classList.remove(removeClassName);
   macroCosmAgainDude.classList.remove(removeClassName);
+  removeClassName = "crossword-won"
+  macroCosm.classList.remove(removeClassName);
+  macroCosmAgainDude.classList.remove(removeClassName);
+  removeClassName = "crossword-success"
+  macroCosm.classList.remove(removeClassName);
+  macroCosmAgainDude.classList.remove(removeClassName);
 
   return (
     <div id="make-crossword">

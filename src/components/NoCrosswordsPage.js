@@ -12,6 +12,12 @@ const NoCrosswordsPage = () => {
   removeClassName = "crossword-form"
   macroCosm.classList.remove(removeClassName);
   macroCosmAgainDude.classList.remove(removeClassName);
+  removeClassName = "crossword-success"
+  macroCosm.classList.remove(removeClassName);
+  macroCosmAgainDude.classList.remove(removeClassName);
+  removeClassName = "crossword-won"
+  macroCosm.classList.remove(removeClassName);
+  macroCosmAgainDude.classList.remove(removeClassName);
 
   return (
     <div className="container no-puzzles">

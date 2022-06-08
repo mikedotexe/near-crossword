@@ -90,6 +90,14 @@ const App = ({ nearConfig, data, contractName }) => {
     }
   }
 
+  function toggleLoader() {
+    const macroCosm = document.getElementById('macrocosm');
+    const macroCosmAgainDude = document.getElementById('even-more-macro');
+    let className = "loader";
+    macroCosm.classList.toggle(className);
+    macroCosmAgainDude.classList.add(className);
+  }
+
   const claimPrize = async (e) => {
     e.preventDefault();
     const winner_account_id = document
@@ -110,7 +118,7 @@ const App = ({ nearConfig, data, contractName }) => {
     const crosswordAccount = await near.account(nearConfig.contractName);
 
     try {
-      // leftoff need to make sure background is on a macro* div
+      toggleLoader();
       setShowLoader(true);
 
       // Call a different method depending on if the user wants to create an account or not
@@ -153,6 +161,7 @@ const App = ({ nearConfig, data, contractName }) => {
         console.log("Oof, that's rough, someone already solved this.");
       }
     } finally {
+      toggleLoader();
       setShowLoader(false);
       // See if the transaction succeeded during transfer
       // or succeeded when creating a new account.

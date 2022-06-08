@@ -28,6 +28,9 @@ const WonPage = ({
   removeClassName = "crossword-intro";
   macroCosm.classList.remove(removeClassName);
   macroCosmAgainDude.classList.remove(removeClassName);
+  removeClassName = "crossword-success";
+  macroCosm.classList.remove(removeClassName);
+  macroCosmAgainDude.classList.remove(removeClassName);
 
   return (
     <div className="win-page">
