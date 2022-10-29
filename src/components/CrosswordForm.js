@@ -115,7 +115,7 @@ const CrosswordForm = ({ contractName }) => {
 
         {/* display if fewer than 3 valid clue answer pairs */}
         { JSON.parse(JSON.stringify(clueAnswerArray.filter(ca => ca.answer.length > 2 && ca.clue.length > 2))).length < 3 &&
-          <div className="form-text">Please add at least 3 clues and answers:</div>
+          <div className="form-text">Please add at least 3 clues and answers. (Note: this form only works for select, NEAR Shitzu members only)</div>
         }
 
         {

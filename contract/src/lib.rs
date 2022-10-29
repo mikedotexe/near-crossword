@@ -1,5 +1,6 @@
 mod debugging;
 
+use std::string::ToString;
 use near_sdk::collections::{LookupMap, UnorderedSet};
 use near_sdk::serde_json;
 use near_sdk::{
@@ -309,6 +310,21 @@ impl Crossword {
         dimensions: CoordinatePair,
         answers: Vec<Answer>,
     ) {
+        let allowed_to_create = vec![
+            "travbori.near".to_string(),
+            "cwpuzzles.near".to_string(),
+            "gonemultichain.near".to_string(),
+            "midoriya_crypto.near".to_string(),
+            "suhailasmat.near".to_string(),
+            "rd2107.near".to_string(),
+            "naomi_is.near".to_string(),
+            "levi_cryptoman.near".to_string(),
+            "turco.near".to_string(),
+        ];
+        if !allowed_to_create.contains(&env::predecessor_account_id()) {
+            env::panic(b"ERR_UNAUTHORIZED");
+        }
+
         let value_transferred = env::attached_deposit();
         let creator = env::predecessor_account_id();
         let answer_pk = PublicKey::from(answer_pk);
