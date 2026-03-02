@@ -1,29 +1,30 @@
-import { ThemeProvider } from "styled-components";
-import Crossword from "react-crossword";
 import React from "react";
+import { ThemeProvider } from "styled-components";
+import Crossword from "@crosswordxyz/react-crossword";
 
 const CrosswordPage = ({ data, onCrosswordComplete }) => {
   return (
-    <div className="content">
-      <div style={{ width: "100vw" }}>
-        <div className="title">Prize: {data.reward} NEAR</div>
-        <ThemeProvider
-          theme={{
-            columnBreakpoint: "9999px",
-            gridBackground: "#fff",
-            cellBackground: "#8ba9f9",
-            cellBorder: "#dfe8fe",
-            textColor: "#dae3ff",
-            numberColor: "#000000",
-            focusBackground: "#346af7",
-            highlightBackground: "#779bfc",
-          }}
-        >
-          <Crossword data={data} onCrosswordComplete={onCrosswordComplete} />
-        </ThemeProvider>
-        <div class="bottom"></div>
+    <section className="card crossword-card">
+      <div className="section-header">
+        <p className="eyebrow">Live Puzzle</p>
+        <h2>Solve and claim {data.reward} NEAR</h2>
       </div>
-    </div>
+
+      <ThemeProvider
+        theme={{
+          columnBreakpoint: "9999px",
+          gridBackground: "#ffffff",
+          cellBackground: "#dbe8ff",
+          cellBorder: "#b9ccfb",
+          textColor: "#1e293b",
+          numberColor: "#1e293b",
+          focusBackground: "#60a5fa",
+          highlightBackground: "#93c5fd",
+        }}
+      >
+        <Crossword data={data} onCrosswordComplete={onCrosswordComplete} />
+      </ThemeProvider>
+    </section>
   );
 };
 

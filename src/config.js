@@ -1,4 +1,6 @@
-const CONTRACT_NAME = process.env.CONTRACT_NAME || 'your-crossword-account.testnet';
+const CONTRACT_NAME =
+  process.env.NEXT_PUBLIC_CONTRACT_NAME ||
+  'your-crossword-account.testnet';
 
 function getConfig(env) {
   switch(env) {
@@ -6,7 +8,7 @@ function getConfig(env) {
     case 'mainnet':
       return {
         networkId: 'mainnet',
-        nodeUrl: 'https://rpc.mainnet.near.org',
+        nodeUrl: 'https://rpc.mainnet.fastnear.com',
         contractName: CONTRACT_NAME,
         walletUrl: 'https://wallet.near.org',
         helperUrl: 'https://helper.mainnet.near.org'
@@ -15,7 +17,7 @@ function getConfig(env) {
     case 'testnet':
       return {
         networkId: 'testnet',
-        nodeUrl: 'https://rpc.testnet.near.org',
+        nodeUrl: 'https://rpc.testnet.fastnear.com',
         contractName: CONTRACT_NAME,
         walletUrl: 'https://wallet.testnet.near.org',
         helperUrl: 'https://helper.testnet.near.org'

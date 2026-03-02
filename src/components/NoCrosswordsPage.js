@@ -1,40 +1,27 @@
 import React from "react";
+import Link from "next/link";
 
 const NoCrosswordsPage = () => {
   return (
-    <div className="container no-puzzles">
-      <div className="successful-page-title">All puzzles have been solved</div>
-
-      <div className="successful-text">
-        Sorry friend, no crossword puzzles available at this time.
-      </div>
-      <div className="successful-text">
-        In the meantime, check out the links below.
-      </div>
-      <div className="arrows" />
-      <div className="success-links">
-        <div className="success-link">
-          <div className="bridge-text">For Developers </div>
-          <a
-            href="https://examples.near.org"
-            className="near-link"
-            target="_blank"
-          >
-            NEAR Examples
-          </a>
+    <section className="page-grid">
+      <article className="card">
+        <p className="eyebrow">No Active Puzzle</p>
+        <h2>All current puzzles are solved.</h2>
+        <p>
+          Publish a new campaign puzzle to keep your audience engaged with
+          product learning challenges.
+        </p>
+        <div className="button-row">
+          <Link className="button button-primary" href="/create">
+            Publish a Puzzle
+          </Link>
+          <Link className="button button-secondary" href="/">
+            Back to Home
+          </Link>
         </div>
-        <div className="success-link">
-          <div className="bridge-text">DeFi, NFTs, games, comics, etc. </div>
-          <a
-            href="https://awesomenear.com?from=crossword"
-            className="near-link"
-            target="_blank"
-          >
-            Awesome NEAR projects
-          </a>
-        </div>
-      </div>
-    </div>
+      </article>
+    </section>
   );
 };
+
 export default NoCrosswordsPage;

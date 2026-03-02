@@ -1,40 +1,83 @@
 import getConfig from "./config";
-import { connect, keyStores, WalletConnection } from "near-api-js";
+import * as near from "@fastnear/api";
+import * as nearWallet from "@fastnear/wallet";
+import fastnearWalletManifest from "./fastnearWalletManifest";
 
 class ApiManager {
-  constructor() {}
+  constructor() {
+    this.restorePromise = Promise.resolve(null);
+  }
 
   async setUp() {
-    const nearConfig = getConfig(process.env.NEAR_ENV || 'testnet');
-    const keyStore = new keyStores.BrowserLocalStorageKeyStore();
-    nearConfig.keyStore = keyStore;
-    this.near = await connect(nearConfig);
-    this.wallet = new WalletConnection(this.near);
+    this.nearConfig = getConfig(
+      process.env.NEXT_PUBLIC_NEAR_ENV || "testnet"
+    );
+
+    if (
+      this.nearConfig.networkId !== "mainnet" &&
+      this.nearConfig.networkId !== "testnet"
+    ) {
+      throw new Error(
+        `FastNear wallet login only supports mainnet/testnet. Current network is "${this.nearConfig.networkId}".`
+      );
+    }
+
+    near.config({
+      networkId: this.nearConfig.networkId,
+      nodeUrl: this.nearConfig.nodeUrl,
+    });
+    near.useWallet(nearWallet);
+
+    this.walletOptions = {
+      network: this.nearConfig.networkId,
+      contractId: this.nearConfig.contractName,
+      methodNames: ["new_puzzle"],
+      manifest: fastnearWalletManifest,
+      walletConnect: { projectId: "4b2c7201ce4c03e0fb59895a2c251110" },
+    };
+
+    this.restorePromise = nearWallet
+      .restore(this.walletOptions)
+      .catch((error) => {
+        console.warn("FastNear wallet restore failed:", error);
+        return null;
+      });
   }
 
-  static _instance
+  static _instance;
 
   static async instance() {
-    if (this._instance) { return this._instance }
-    this._instance = new ApiManager()
-    await this._instance.setUp()
-    return this._instance
+    if (this._instance) {
+      return this._instance;
+    }
+    this._instance = new ApiManager();
+    await this._instance.setUp();
+    return this._instance;
   }
 
-  signIn() {
-    if (!this.wallet.isSignedIn()) {
-      this.wallet.requestSignIn({
-        contractId: process.env.CONTRACT_NAME,
-        methodNames: ['new_puzzle'],
-        successUrl: window.location + 'success',
-        failureUrl: window.location + 'fail'
-      });
-      return
+  async ready() {
+    await this.restorePromise;
+  }
+
+  async signIn() {
+    await this.ready();
+    if (nearWallet.isConnected()) {
+      return true;
     }
+    const result = await nearWallet.connect(this.walletOptions);
+    return Boolean(result && nearWallet.isConnected());
   }
 
   isSignedIn() {
-    return this.wallet.isSignedIn()
+    return nearWallet.isConnected();
+  }
+
+  accountId() {
+    return nearWallet.accountId();
+  }
+
+  async sendTransaction(params) {
+    return nearWallet.sendTransaction(params);
   }
 }
 

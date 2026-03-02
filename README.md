@@ -1,6 +1,110 @@
 NEAR Crossword
 ==================
 
+Wallet Login (FastNear)
+=======================
+
+Crossword auth and transaction flows now use FastNear:
+
+- `@fastnear/api` + `@fastnear/wallet` are used for wallet session restore/connect/tx.
+- Wallet options are supplied by a bundled manifest in [src/fastnearWalletManifest.js](/Users/mikepurvis/other/near-crossword/src/fastnearWalletManifest.js).
+- Wallet login support is limited to `mainnet` and `testnet`.
+- Solve/claim local signing for `submit_solution`, `claim_reward`, and `claim_reward_new_account` now uses `@fastnear/api` local key mode (`near.state.update` + `near.sendTx`).
+- `near-seed-phrase` is intentionally retained for crossword seed phrase compatibility.
+
+Crossword Package Fork
+======================
+
+- The crossword UI package is now consumed from your fork package scope: `@crosswordxyz/react-crossword`.
+- The app consumes the published npm package (`@crosswordxyz/react-crossword@^6.0.0`).
+- The app imports the stable utility entrypoint `@crosswordxyz/react-crossword/util` (no private `dist/*` imports).
+
+Runtime and Package Manager
+===========================
+
+- Node is pinned to `20.x` (see [.nvmrc](/Users/mikepurvis/other/near-crossword/.nvmrc)).
+- Package manager is Yarn Berry (`4.x`) in compatibility mode via [/.yarnrc.yml](/Users/mikepurvis/other/near-crossword/.yarnrc.yml) with `nodeLinker: node-modules`.
+- Dependency lockfile is [yarn.lock](/Users/mikepurvis/other/near-crossword/yarn.lock).
+- `package-lock.json` is intentionally ignored.
+- `near-cli` is intentionally **not** a project dependency. Install it globally for local deploy workflows.
+- Frontend runtime now uses **Next.js** (`pages` router) instead of Parcel.
+- FastNear packages are pinned to exact versions in `package.json`:
+  `@fastnear/api@0.9.13`, `@fastnear/wallet@0.9.13`,
+  `@fastnear/near-connect@0.10.6`, and `@fastnear/utils@0.9.13`.
+
+Frontend Routes
+================
+
+The app now uses native Next.js path routing:
+
+- `/` marketing landing page
+- `/play` live puzzle play flow
+- `/create` wallet-gated puzzle creator flow
+- `/claim` reward claim flow after solving
+- `/claimed` claim success page
+- `/empty` no-active-puzzle state
+- `/ai-studio` AI campaign planning stub
+
+Legacy compatibility bridge:
+
+- Old hash links like `/#/create` and `/#/play` are redirected to the new path routes.
+- Hash redirect usage is tracked with the `hash_bridge_redirect` analytics event during migration.
+- Default transition policy: keep this bridge for two release cycles, then remove once usage is negligible.
+
+AI Studio Stub Config
+=====================
+
+The current AI studio flow is frontend-only and stores drafts in localStorage (`aiCrosswordDraft`).
+Smart contract and backend AI integration changes are intentionally deferred to a later phase.
+
+Optional env vars:
+
+- `NEXT_PUBLIC_NEAR_AI_ENABLED` (`false` by default)
+- `NEXT_PUBLIC_MARKET_NEAR_AI_URL` (`https://market.near.ai` by default)
+- `NEXT_PUBLIC_NEAR_AI_AGENT_ID` (optional placeholder)
+
+Next.js Client Env Vars
+========================
+
+For browser-side NEAR config in Next.js, use:
+
+- `NEXT_PUBLIC_NEAR_ENV` (`testnet` by default)
+- `NEXT_PUBLIC_CONTRACT_NAME` (contract account id)
+- `NEXT_PUBLIC_NEAR_AI_ENABLED` (`false` by default)
+- `NEXT_PUBLIC_MARKET_NEAR_AI_URL` (`https://market.near.ai` by default)
+- `NEXT_PUBLIC_NEAR_AI_AGENT_ID` (optional placeholder)
+
+Client env precedence:
+
+- Frontend runtime uses `NEXT_PUBLIC_NEAR_ENV` only (with `testnet` default).
+- Shell-only envs like `NEAR_ENV` and `CONTRACT_NAME` are not used by browser-side routing/query flows.
+- Prefer `.env.local` for local app config (see [.env.example](/Users/mikepurvis/other/near-crossword/.env.example)).
+
+Missing contract behavior:
+
+- If the configured contract account is missing or does not expose crossword view methods, landing (`/`) still renders.
+- Task routes (`/play`, `/claim`, `/create`) show a concise configuration warning with setup guidance.
+- Non-recoverable RPC/network failures still surface as initialization errors.
+
+Analytics Events
+================
+
+The frontend tracks funnel events via `src/lib/analytics.js`:
+
+- `landing_cta_create_click`
+- `landing_cta_play_click`
+- `hash_bridge_redirect`
+- `create_connect_wallet_click`
+- `wallet_connect_success`
+- `wallet_connect_cancel_or_fail`
+- `create_preview_generate`
+- `create_commit_initiated`
+- `create_commit_success`
+- `create_commit_cancel_or_fail`
+- `play_view_loaded`
+- `claim_submit`
+- `claim_success`
+
 How to play with this contract
 ===============================
 1. Clone the repo.
@@ -92,10 +196,18 @@ Quick Start
 
 To run this project locally:
 
-1. Prerequisites: Make sure you've installed [Node.js] ≥ 12
+1. Prerequisites: Make sure you've installed [Node.js] 20.x and global `near-cli`
 2. Install dependencies: `yarn install`
-3. Run the local development server: `yarn dev` (see `package.json` for a
+3. Optional (recommended): copy [.env.example](/Users/mikepurvis/other/near-crossword/.env.example) to `.env.local` and set `NEXT_PUBLIC_CONTRACT_NAME`.
+4. Run the local full-stack workflow (dev deploy + frontend): `yarn dev:full`
+5. Or run frontend only: `yarn dev`
+6. Build production frontend: `yarn build` and serve with `yarn start`
+7. See `package.json` for a
    full list of `scripts` you can run with `yarn`)
+
+Frontend-only quick start with explicit contract:
+
+- `NEXT_PUBLIC_CONTRACT_NAME=<your-contract.testnet> NEXT_PUBLIC_NEAR_ENV=testnet yarn dev`
 
 Now you'll have a local development environment backed by the NEAR TestNet!
 
@@ -106,29 +218,25 @@ Exploring The Code
 
 1. The "backend" code lives in the `/contract` folder. See the README there for
    more info.
-2. The frontend code lives in the `/src` folder. `/src/index.html` is a great
-   place to start exploring. Note that it loads in `/src/index.js`, where you
-   can learn how the frontend connects to the NEAR blockchain.
+2. The frontend uses Next.js `pages` routes (`/pages/index.js`, `/pages/play.js`, etc.).
+   Shared app state and transaction flow helpers live in `/src/lib/appFlow.js`.
 3. Tests: there are different kinds of tests for the frontend and the smart
    contract. See `contract/README` for info about how it's tested. The frontend
-   code gets tested with [jest]. You can run both of these at once with `yarn
-   run test`.
+   test script is currently a placeholder.
 
 Deploy
 ======
 
-Every smart contract in NEAR has its [own associated account][NEAR accounts]. When you run `yarn dev`, your smart contract gets deployed to NEAR TestNet with a throwaway account. When you're ready to make it permanent, here's how.
+Every smart contract in NEAR has its [own associated account][NEAR accounts]. When you run `yarn dev:full`, your smart contract gets deployed to NEAR TestNet with a throwaway account. When you're ready to make it permanent, here's how.
 
-Step 0: Install near-cli (optional)
+Step 0: Install near-cli (required for local deploy scripts)
 -------------------------------------
 
-[near-cli] is a command line interface (CLI) for interacting with the NEAR blockchain. It was installed to the local `node_modules` folder when you ran `yarn install`, but for best ergonomics you may want to install it globally:
+[near-cli] is a command line interface (CLI) for interacting with the NEAR blockchain. This repo expects it to be installed globally:
 
-    yarn install --global near-cli
+    npm install -g near-cli
 
-Or, if you'd rather use the locally-installed version, you can prefix all `near` commands with `npx`
-
-Ensure that it's installed with `near --version` (or `npx near --version`)
+Ensure that it's installed with `near --version`
 
 Step 1: Create an account for the contract
 ------------------------------------------
@@ -146,21 +254,23 @@ Each account on NEAR can have at most one contract deployed to it. If you've alr
 Step 2: set contract name in code
 ---------------------------------
 
-Modify the line in `src/config.js` that sets the account name of the contract. Set it to the account id you used above.
+Set `NEXT_PUBLIC_CONTRACT_NAME` (and optionally `NEXT_PUBLIC_NEAR_ENV`) for the frontend, preferably in `.env.local`.
 
-    const CONTRACT_NAME = process.env.CONTRACT_NAME || 'crossword.YOUR-NAME.testnet'
+Example:
+
+    NEXT_PUBLIC_CONTRACT_NAME=crossword.YOUR-NAME.testnet
+    NEXT_PUBLIC_NEAR_ENV=testnet
 
 Step 3: deploy!
 ---------------
 
-One command:
+Build frontend with:
 
-    yarn deploy
+    yarn build
 
-As you can see in `package.json`, this does two things:
+Then serve the production app with:
 
-1. builds & deploys smart contract to NEAR TestNet
-2. builds & deploys frontend code to GitHub using [gh-pages]. This will only work if the project already has a repository set up on GitHub. Feel free to modify the `deploy` script in `package.json` to deploy elsewhere.
+    yarn start
 
 Troubleshooting
 ===============
@@ -175,4 +285,3 @@ On Windows, if you're seeing an error containing `EPERM` it may be related to sp
   [NEAR accounts]: https://docs.near.org/docs/concepts/account
   [NEAR Wallet]: https://wallet.testnet.near.org/
   [near-cli]: https://github.com/near/near-cli
-  [gh-pages]: https://github.com/tschaub/gh-pages
