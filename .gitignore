@@ -10,3 +10,4 @@
 /.parcel-cache
 .env*
 !.env.example
+worker/dist/

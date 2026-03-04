@@ -42,7 +42,7 @@ export default function ClaimRoute() {
   if (initLoading) {
     return (
       <AppShell
-        contextMessage="Claim your reward after solving the puzzle."
+        contextMessage="Almost there — claim your reward."
         contextCtaHref="/play"
         contextCtaLabel="Back to Play"
         warningMessage={configWarning}
@@ -55,7 +55,7 @@ export default function ClaimRoute() {
   if (initError) {
     return (
       <AppShell
-        contextMessage="Claim your reward after solving the puzzle."
+        contextMessage="Almost there — claim your reward."
         contextCtaHref="/play"
         contextCtaLabel="Back to Play"
         warningMessage={configWarning}
@@ -70,7 +70,7 @@ export default function ClaimRoute() {
   if (holdRedirectForConfigWarning) {
     return (
       <AppShell
-        contextMessage="Claim your reward after solving the puzzle."
+        contextMessage="Almost there — claim your reward."
         contextCtaHref="/play"
         contextCtaLabel="Back to Play"
         warningMessage={configWarning}
@@ -85,7 +85,7 @@ export default function ClaimRoute() {
   if (redirectPath || !nearConfig || !playerKeyPair) {
     return (
       <AppShell
-        contextMessage="Claim your reward after solving the puzzle."
+        contextMessage="Almost there — claim your reward."
         contextCtaHref="/play"
         contextCtaLabel="Back to Play"
         warningMessage={configWarning}
@@ -97,7 +97,7 @@ export default function ClaimRoute() {
 
   return (
     <AppShell
-      contextMessage="Claim your reward after solving the puzzle."
+      contextMessage="Almost there — claim your reward."
       contextCtaHref="/play"
       contextCtaLabel="Back to Play"
       warningMessage={configWarning}

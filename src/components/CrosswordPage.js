@@ -1,8 +1,35 @@
 import React from "react";
 import { ThemeProvider } from "styled-components";
+import { useTheme } from "next-themes";
 import Crossword from "@crosswordxyz/react-crossword";
 
+const lightCrosswordTheme = {
+  columnBreakpoint: "9999px",
+  gridBackground: "#ffffff",
+  cellBackground: "#e8ecf8",
+  cellBorder: "#c7ceeb",
+  textColor: "#1a1d2e",
+  numberColor: "#4b5675",
+  focusBackground: "#818cf8",
+  highlightBackground: "#a5b4fc",
+};
+
+const darkCrosswordTheme = {
+  columnBreakpoint: "9999px",
+  gridBackground: "#161a2e",
+  cellBackground: "#1e2340",
+  cellBorder: "#272d45",
+  textColor: "#eef0f6",
+  numberColor: "#6b7394",
+  focusBackground: "#6366f1",
+  highlightBackground: "#312e81",
+};
+
 const CrosswordPage = ({ data, onCrosswordComplete }) => {
+  const { resolvedTheme } = useTheme();
+  const crosswordTheme =
+    resolvedTheme === "dark" ? darkCrosswordTheme : lightCrosswordTheme;
+
   return (
     <section className="card crossword-card">
       <div className="section-header">
@@ -10,18 +37,7 @@ const CrosswordPage = ({ data, onCrosswordComplete }) => {
         <h2>Solve and claim {data.reward} NEAR</h2>
       </div>
 
-      <ThemeProvider
-        theme={{
-          columnBreakpoint: "9999px",
-          gridBackground: "#ffffff",
-          cellBackground: "#dbe8ff",
-          cellBorder: "#b9ccfb",
-          textColor: "#1e293b",
-          numberColor: "#1e293b",
-          focusBackground: "#60a5fa",
-          highlightBackground: "#93c5fd",
-        }}
-      >
+      <ThemeProvider theme={crosswordTheme}>
         <Crossword data={data} onCrosswordComplete={onCrosswordComplete} />
       </ThemeProvider>
     </section>

@@ -52,7 +52,7 @@ export default function PlayRoute() {
   if (initLoading) {
     return (
       <AppShell
-        contextMessage="Solve active puzzles and claim rewards."
+        contextMessage="Solve the puzzle to win."
         contextCtaHref="/create"
         contextCtaLabel="Create a Puzzle"
         warningMessage={configWarning}
@@ -65,7 +65,7 @@ export default function PlayRoute() {
   if (initError) {
     return (
       <AppShell
-        contextMessage="Solve active puzzles and claim rewards."
+        contextMessage="Solve the puzzle to win."
         contextCtaHref="/create"
         contextCtaLabel="Create a Puzzle"
         warningMessage={configWarning}
@@ -80,7 +80,7 @@ export default function PlayRoute() {
   if (holdRedirectForConfigWarning) {
     return (
       <AppShell
-        contextMessage="Solve active puzzles and claim rewards."
+        contextMessage="Solve the puzzle to win."
         contextCtaHref="/create"
         contextCtaLabel="Create a Puzzle"
         warningMessage={configWarning}
@@ -95,7 +95,7 @@ export default function PlayRoute() {
   if (redirectPath || !data) {
     return (
       <AppShell
-        contextMessage="Solve active puzzles and claim rewards."
+        contextMessage="Solve the puzzle to win."
         contextCtaHref="/create"
         contextCtaLabel="Create a Puzzle"
         warningMessage={configWarning}
@@ -107,7 +107,7 @@ export default function PlayRoute() {
 
   return (
     <AppShell
-      contextMessage="Solve active puzzles and claim rewards."
+      contextMessage="Solve the puzzle to win."
       contextCtaHref="/create"
       contextCtaLabel="Create a Puzzle"
       warningMessage={configWarning}

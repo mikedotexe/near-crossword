@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 
 import logo from "../../img/logo_v2.png";
+import ThemeToggle from "../ThemeToggle";
 
 const links = [
   { href: "/", label: "Home", exact: true },
@@ -47,6 +48,7 @@ const TopNav = ({ hasActivePuzzle }) => {
           <span className={`status-pill ${hasActivePuzzle ? "live" : "idle"}`}>
             {hasActivePuzzle ? "Puzzle Live" : "No Active Puzzle"}
           </span>
+          <ThemeToggle />
         </div>
       </nav>
     </header>

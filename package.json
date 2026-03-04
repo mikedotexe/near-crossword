@@ -6,6 +6,7 @@
     "node": "20.x"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
     "@babel/runtime": "^7.28.6",
     "@crosswordxyz/react-crossword": "^6.0.0",
     "@fastnear/api": "0.9.13",
@@ -13,20 +14,25 @@
     "@fastnear/utils": "0.9.13",
     "@fastnear/wallet": "0.9.13",
     "crossword-layout-generator": "^0.1.1",
+    "dotenv": "^16.4.7",
     "env-cmd": "^11.0.0",
+    "near-api-js": "^5.1.1",
     "near-seed-phrase": "github:near/near-seed-phrase",
     "next": "15.5.12",
+    "next-themes": "^0.4.6",
     "prop-types": "^15.8.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-is": "^18.3.1",
-    "styled-components": "^5.3.11"
+    "styled-components": "^5.3.11",
+    "twitter-api-v2": "^1.29.0",
+    "youtube-caption-extractor": "^1.9.1"
   },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint pages src scripts --ext .js,.jsx",
+    "lint": "eslint pages src scripts worker --ext .js,.jsx,.ts",
     "contract:build": "node scripts/build-contract.js",
     "predev:full": "node scripts/check-near-cli.js",
     "dev:full": "node scripts/dev-workflow.js",
@@ -34,7 +40,9 @@
     "predev:deploy": "node scripts/check-near-cli.js",
     "dev:deploy": "near dev-deploy contract/res/crossword.wasm",
     "postdev:deploy": "env-cmd -f ./neardev/dev-account.env node new-puzzle.js",
-    "test": "echo 'No frontend tests configured'"
+    "test": "echo 'No frontend tests configured'",
+    "worker:build": "tsc --project worker/tsconfig.json",
+    "worker:start": "yarn worker:build && node worker/dist/agent.js"
   },
   "browserslist": {
     "production": [

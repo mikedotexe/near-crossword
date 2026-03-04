@@ -24,9 +24,9 @@ export default function ClaimedRoute() {
   if (initLoading || redirectPath) {
     return (
       <AppShell
-        contextMessage="Your reward claim status is shown here."
+        contextMessage="Your reward has been claimed."
         contextCtaHref="/create"
-        contextCtaLabel="Create Campaign"
+        contextCtaLabel="Create a Puzzle"
       >
         <section className="card">
           <p>Loading claim status...</p>
@@ -38,9 +38,9 @@ export default function ClaimedRoute() {
   if (initError) {
     return (
       <AppShell
-        contextMessage="Your reward claim status is shown here."
+        contextMessage="Your reward has been claimed."
         contextCtaHref="/create"
-        contextCtaLabel="Create Campaign"
+        contextCtaLabel="Create a Puzzle"
       >
         <section className="card">
           <p className="error-msg">{initError}</p>
@@ -51,9 +51,9 @@ export default function ClaimedRoute() {
 
   return (
     <AppShell
-      contextMessage="Your reward claim status is shown here."
+      contextMessage="Your reward has been claimed."
       contextCtaHref="/create"
-      contextCtaLabel="Create Campaign"
+      contextCtaLabel="Create a Puzzle"
     >
       <SuccessPage />
     </AppShell>

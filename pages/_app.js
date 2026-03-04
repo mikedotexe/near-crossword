@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import Head from "next/head";
 import Script from "next/script";
 import { useRouter } from "next/router";
+import { ThemeProvider } from "next-themes";
 import "../src/css/normalize.css";
 import "../src/css/main.css";
 import "../src/App.css";
@@ -56,10 +57,12 @@ export default function RootApp({ Component, pageProps }) {
         `}
       </Script>
 
-      <AppFlowProvider>
-        <RouteAnalytics />
-        <Component {...pageProps} />
-      </AppFlowProvider>
+      <ThemeProvider attribute="class" defaultTheme="light">
+        <AppFlowProvider>
+          <RouteAnalytics />
+          <Component {...pageProps} />
+        </AppFlowProvider>
+      </ThemeProvider>
     </>
   );
 }

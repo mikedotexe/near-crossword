@@ -26,7 +26,7 @@ export default function EmptyRoute() {
   if (initLoading || redirectPath) {
     return (
       <AppShell
-        contextMessage="No live puzzle currently. Publish one in creator mode."
+        contextMessage="No puzzle live right now."
         contextCtaHref="/create"
         contextCtaLabel="Create Puzzle"
       >
@@ -40,7 +40,7 @@ export default function EmptyRoute() {
   if (initError) {
     return (
       <AppShell
-        contextMessage="No live puzzle currently. Publish one in creator mode."
+        contextMessage="No puzzle live right now."
         contextCtaHref="/create"
         contextCtaLabel="Create Puzzle"
       >
@@ -53,7 +53,7 @@ export default function EmptyRoute() {
 
   return (
     <AppShell
-      contextMessage="No live puzzle currently. Publish one in creator mode."
+      contextMessage="No puzzle live right now."
       contextCtaHref="/create"
       contextCtaLabel="Create Puzzle"
     >

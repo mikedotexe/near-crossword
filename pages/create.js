@@ -16,7 +16,7 @@ export default function CreateRoute() {
 
   return (
     <AppShell
-      contextMessage="Create and commit a new puzzle campaign."
+      contextMessage="Create a new puzzle."
       contextCtaHref="/play"
       contextCtaLabel="View Live Puzzle"
       warningMessage={configWarning}

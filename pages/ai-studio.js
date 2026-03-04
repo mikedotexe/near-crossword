@@ -13,7 +13,7 @@ const AIStudioPage = dynamic(() => import("../src/components/pages/AIStudioPage"
 export default function AIStudioRoute() {
   return (
     <AppShell
-      contextMessage="Plan AI-assisted crossword campaigns from project resources."
+      contextMessage="Generate puzzle clues with AI."
       contextCtaHref="/create"
       contextCtaLabel="Back to Create"
     >

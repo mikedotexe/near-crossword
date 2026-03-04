@@ -35,6 +35,22 @@ const AppShell = ({
       ) : null}
       <main className="app-main app-container">{children}</main>
       {showLoader ? <Loader /> : null}
+      <footer className="site-footer">
+        <p>
+          Built on{" "}
+          <a href="https://near.org" target="_blank" rel="noreferrer">
+            NEAR Protocol
+          </a>
+          {" · "}
+          <a
+            href="https://github.com/mikedotexe/near-crossword"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Source
+          </a>
+        </p>
+      </footer>
     </div>
   );
 };

@@ -15,22 +15,20 @@ const WonPage = ({
 
   return (
     <section className="card claim-card">
-      <p className="eyebrow">Winner Flow</p>
-      <h2>You solved the puzzle. Claim your reward.</h2>
+      <p className="eyebrow">Congratulations!</p>
+      <h2>You solved it! Claim your reward.</h2>
       <p>
         Add your memo and destination account. If needed, you can create a new
         account with your generated seed phrase.
       </p>
 
-      <form onSubmit={claimPrize}>
+      <form className="crossword-form" onSubmit={claimPrize}>
         <div id="claim-status" className={claimStatusClasses}>
           <p>{claimError}</p>
         </div>
 
         <div className="field-group">
-          <label htmlFor="claim-memo" className="sr-only">
-            Enter your winning memo
-          </label>
+          <label htmlFor="claim-memo">Winning memo</label>
           <input
             type="text"
             id="claim-memo"
@@ -80,14 +78,12 @@ const WonPage = ({
         ) : null}
 
         <div className="field-group">
-          <label htmlFor="claim-account-id" className="sr-only">
-            Enter account name
-          </label>
+          <label htmlFor="claim-account-id">Destination account</label>
           <input
             type="text"
             id="claim-account-id"
             name="claim-account-id"
-            placeholder="Enter account name"
+            placeholder="e.g. yourname.near"
             value={inputName}
             onChange={(event) => setInputName(event.target.value)}
           />
@@ -95,7 +91,7 @@ const WonPage = ({
 
         <button
           type="submit"
-          className={`button button-primary ${isButtonDisabled ? "disabled" : ""}`}
+          className="button button-primary"
           disabled={isButtonDisabled}
         >
           Submit Claim

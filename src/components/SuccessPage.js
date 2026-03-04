@@ -5,15 +5,15 @@ const SuccessPage = () => {
   return (
     <section className="page-grid">
       <article className="card">
-        <p className="eyebrow">Reward Claimed</p>
-        <h2>Your reward transfer was successful.</h2>
+        <p className="eyebrow">Reward Sent</p>
+        <h2>Your NEAR tokens are on the way!</h2>
         <p>
-          Want similar engagement for your own project? Launch a crossword
-          campaign and reward users for learning key product concepts.
+          Enjoyed the puzzle? Create one for your own community and reward your
+          users for learning.
         </p>
         <div className="button-row">
           <Link className="button button-primary" href="/create">
-            Create Your Campaign
+            Create a Puzzle
           </Link>
           <Link className="button button-secondary" href="/ai-studio">
             Open AI Studio

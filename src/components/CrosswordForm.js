@@ -20,6 +20,20 @@ const CrosswordForm = () => {
   const [commitError, setCommitError] = useState("");
   const crosswordRef = useRef(null);
 
+  useEffect(() => {
+    const stored = localStorage.getItem("aiGeneratedClues");
+    if (!stored) return;
+    try {
+      const pairs = JSON.parse(stored);
+      if (Array.isArray(pairs) && pairs.length > 0) {
+        setClueAnswerArray(pairs.filter((p) => p.clue && p.answer));
+      }
+    } catch (err) {
+      console.warn("Failed to parse AI-generated clues:", err);
+    }
+    localStorage.removeItem("aiGeneratedClues");
+  }, []);
+
   const validClueAnswers = useMemo(
     () =>
       clueAnswerArray.filter(
@@ -216,13 +230,13 @@ const CrosswordForm = () => {
           <ThemeProvider
             theme={{
               columnBreakpoint: "9999px",
-              gridBackground: "#fff",
-              cellBackground: "#e2e8f0",
-              cellBorder: "#cbd5e1",
-              textColor: "#0f172a",
-              numberColor: "#0f172a",
-              focusBackground: "rgba(59, 130, 246, 0.35)",
-              highlightBackground: "rgba(96, 165, 250, 0.35)",
+              gridBackground: "#ffffff",
+              cellBackground: "#e8ecf8",
+              cellBorder: "#c7ceeb",
+              textColor: "#1a1d2e",
+              numberColor: "#4b5675",
+              focusBackground: "rgba(99, 102, 241, 0.4)",
+              highlightBackground: "rgba(165, 180, 252, 0.4)",
             }}
           >
             <Crossword

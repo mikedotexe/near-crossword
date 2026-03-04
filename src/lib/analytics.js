@@ -12,6 +12,11 @@ const TRACKED_EVENTS = new Set([
   "play_view_loaded",
   "claim_submit",
   "claim_success",
+  "ai_pdf_upload_start",
+  "ai_pdf_upload_success",
+  "ai_pdf_upload_error",
+  "ai_youtube_upload_start",
+  "ai_variation_selected",
 ]);
 
 let lastTrackedPath = null;

@@ -72,11 +72,11 @@ const CreatePage = () => {
       <section className="card form-card">
         <div className="section-header">
           <p className="eyebrow">Creator Mode</p>
-          <h2>Create a branded crossword campaign</h2>
+          <h2>Create a new puzzle</h2>
           <ol className="step-list compact-list">
-            <li>Connect wallet</li>
-            <li>Build puzzle clues</li>
-            <li>Commit on-chain transaction</li>
+            <li>Write your clues and answers</li>
+            <li>Set a reward amount</li>
+            <li>Publish</li>
           </ol>
         </div>
         <CrosswordForm />
@@ -86,16 +86,10 @@ const CreatePage = () => {
 
   return (
     <section className="card create-gate">
-      <p className="eyebrow">Wallet Required</p>
-      <h2>Connect a wallet to publish new puzzles</h2>
-      <ol className="step-list compact-list">
-        <li>Connect wallet</li>
-        <li>Build puzzle clues</li>
-        <li>Commit on-chain transaction</li>
-      </ol>
+      <p className="eyebrow">Get Started</p>
+      <h2>Connect your wallet to create puzzles</h2>
       <p>
-        Publishing a puzzle submits an on-chain transaction (`new_puzzle`) from
-        your account.
+        You&apos;ll need a NEAR wallet to publish puzzles and attach rewards.
       </p>
       <button
         className="button button-primary"
