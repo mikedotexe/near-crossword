@@ -18,7 +18,7 @@ body,
 
 body {
   margin: 0;
-  font-family: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: "Manrope", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: var(--foreground);
   background: var(--background);
   line-height: 1.55;
@@ -26,21 +26,50 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-body::before {
+body::after {
   content: "";
   position: fixed;
-  inset: 0;
+  top: -10%;
+  right: -5%;
+  width: 55%;
+  height: 60%;
   z-index: -1;
-  background:
-    radial-gradient(ellipse 900px 500px at 85% -5%, rgba(99, 102, 241, 0.1), transparent 70%),
-    radial-gradient(ellipse 700px 400px at 10% 15%, rgba(37, 99, 235, 0.07), transparent 65%);
+  background: linear-gradient(135deg, rgba(95, 138, 250, 0.28), rgba(200, 120, 255, 0.18));
+  clip-path: polygon(25% 0%, 100% 0%, 100% 75%, 80% 100%, 30% 85%, 0% 40%);
+  filter: blur(60px);
+  pointer-events: none;
+  animation: blob-drift 20s ease-in-out infinite alternate;
+}
+
+.app-shell::before {
+  content: "";
+  position: fixed;
+  bottom: -8%;
+  left: -8%;
+  width: 45%;
+  height: 50%;
+  z-index: -1;
+  background: linear-gradient(160deg, rgba(255, 88, 93, 0.18), rgba(200, 120, 255, 0.12));
+  clip-path: polygon(0% 20%, 60% 0%, 100% 35%, 85% 100%, 20% 100%, 0% 65%);
+  filter: blur(60px);
   pointer-events: none;
 }
 
-.dark body::before {
-  background:
-    radial-gradient(ellipse 900px 500px at 85% -5%, rgba(99, 102, 241, 0.12), transparent 70%),
-    radial-gradient(ellipse 700px 400px at 10% 15%, rgba(37, 99, 235, 0.06), transparent 65%);
+.dark body::after {
+  background: linear-gradient(135deg, rgba(95, 138, 250, 0.17), rgba(200, 120, 255, 0.11));
+}
+
+.dark .app-shell::before {
+  background: linear-gradient(160deg, rgba(255, 88, 93, 0.11), rgba(200, 120, 255, 0.07));
+}
+
+@keyframes blob-drift {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    transform: translate(-3%, 4%) scale(1.05);
+  }
 }
 
 a {
@@ -48,7 +77,7 @@ a {
 }
 
 h1, h2, h3, h4 {
-  font-family: "Plus Jakarta Sans", "DM Sans", sans-serif;
+  font-family: "Manrope", "Inter", sans-serif;
   font-weight: 700;
   letter-spacing: -0.01em;
 }
@@ -80,7 +109,16 @@ h1, h2, h3, h4 {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   background: var(--surface-overlay);
-  border-bottom: 1px solid var(--border);
+}
+
+.top-nav-wrap::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--border) 8%, var(--border) 92%, transparent);
 }
 
 .top-nav {
@@ -118,21 +156,22 @@ h1, h2, h3, h4 {
 
 .top-nav-link:hover {
   color: var(--foreground);
-  background: rgba(99, 102, 241, 0.06);
+  background: rgba(255, 88, 93, 0.06);
 }
 
 .dark .top-nav-link:hover {
-  background: rgba(129, 140, 248, 0.08);
+  background: rgba(255, 122, 126, 0.08);
 }
 
 .top-nav-link.is-active {
   color: var(--accent);
-  background: rgba(99, 102, 241, 0.1);
+  background: rgba(255, 88, 93, 0.14);
   font-weight: 600;
+  box-shadow: 0 0 8px rgba(255, 88, 93, 0.15);
 }
 
 .dark .top-nav-link.is-active {
-  background: rgba(129, 140, 248, 0.12);
+  background: rgba(255, 122, 126, 0.16);
 }
 
 .top-nav-status {
@@ -176,43 +215,54 @@ h1, h2, h3, h4 {
 .campaign-banner {
   margin-top: 1rem;
   margin-bottom: 1.25rem;
-  padding: 1.5rem 1.6rem;
+  padding: 1.75rem 2rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1.5rem;
-  border-radius: var(--radius-lg);
-  border: 1px solid rgba(99, 102, 241, 0.15);
-  background:
-    linear-gradient(135deg, rgba(99, 102, 241, 0.04), rgba(37, 99, 235, 0.02)),
-    var(--card-background);
-  box-shadow: var(--shadow-sm);
+  border-radius: 0;
+  border: none;
+  border-top: 1px solid rgba(95, 138, 250, 0.18);
+  border-bottom: 1px solid rgba(95, 138, 250, 0.08);
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 3%, black 97%, transparent);
+  mask-image: linear-gradient(to right, transparent, black 3%, black 97%, transparent);
 }
 
 .dark .campaign-banner {
-  border-color: rgba(129, 140, 248, 0.12);
+  border-top-color: rgba(255, 122, 126, 0.12);
+  border-bottom-color: rgba(255, 122, 126, 0.05);
+  background: rgba(22, 26, 46, 0.6);
 }
 
 .campaign-kicker {
   margin: 0;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.14em;
   font-weight: 700;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   color: var(--accent);
 }
 
 .campaign-banner h1 {
-  font-family: "Plus Jakarta Sans", "DM Sans", sans-serif;
-  margin: 0.3rem 0 0.45rem;
-  font-size: clamp(1.25rem, 2.2vw, 1.65rem);
-  line-height: 1.2;
+  font-family: "Manrope", "Inter", sans-serif;
+  margin: 0.25rem 0 0.5rem;
+  font-size: clamp(1.35rem, 2.5vw, 1.85rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .campaign-banner p {
   margin: 0;
   color: var(--secondary);
-  font-size: 0.95rem;
+  font-size: 0.93rem;
+  line-height: 1.5;
 }
 
 .campaign-actions {
@@ -227,15 +277,18 @@ h1, h2, h3, h4 {
 .context-strip {
   margin-top: 0.75rem;
   margin-bottom: 1rem;
-  padding: 0.65rem 1rem;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border);
+  padding: 0.65rem 1.25rem;
+  border-radius: 0;
+  border: none;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
   background: var(--surface-raised);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  box-shadow: var(--shadow-sm);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 3%, black 97%, transparent);
+  mask-image: linear-gradient(to right, transparent, black 3%, black 97%, transparent);
 }
 
 .dark .context-strip {
@@ -253,14 +306,19 @@ h1, h2, h3, h4 {
 .warning-strip {
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
-  padding: 0.7rem 1rem;
-  border-radius: var(--radius-md);
-  border: 1px solid rgba(245, 158, 11, 0.35);
+  padding: 0.7rem 1.25rem;
+  border-radius: 0;
+  border: none;
+  border-top: 1px solid rgba(245, 158, 11, 0.35);
+  border-bottom: 1px solid rgba(245, 158, 11, 0.15);
   background: rgba(254, 243, 199, 0.6);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 3%, black 97%, transparent);
+  mask-image: linear-gradient(to right, transparent, black 3%, black 97%, transparent);
 }
 
 .dark .warning-strip {
-  border-color: rgba(245, 158, 11, 0.25);
+  border-top-color: rgba(245, 158, 11, 0.25);
+  border-bottom-color: rgba(245, 158, 11, 0.1);
   background: rgba(245, 158, 11, 0.08);
 }
 
@@ -289,45 +347,67 @@ h1, h2, h3, h4 {
 .card {
   grid-column: span 12;
   background: var(--card-background);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 1.5rem;
+  border: none;
+  border-radius: 0;
+  padding: 1.75rem 2rem;
   box-shadow: var(--shadow-md);
+  transition: transform var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
+  -webkit-mask-image: linear-gradient(to right, transparent, black 2%, black 98%, transparent);
+  mask-image: linear-gradient(to right, transparent, black 2%, black 98%, transparent);
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
 }
 
 .hero-card {
+  border-top: 2px solid var(--primary);
   background:
-    linear-gradient(145deg, var(--card-background) 60%, rgba(99, 102, 241, 0.04) 100%);
+    linear-gradient(145deg, var(--card-background) 40%, rgba(95, 138, 250, 0.12) 100%);
 }
 
 .dark .hero-card {
   background:
-    linear-gradient(145deg, var(--card-background) 60%, rgba(129, 140, 248, 0.04) 100%);
+    linear-gradient(145deg, var(--card-background) 40%, rgba(123, 163, 255, 0.10) 100%);
+}
+
+.page-grid .card:not(.hero-card) {
+  border-top: 2px solid var(--accent);
+  background:
+    linear-gradient(145deg, var(--card-background) 40%, rgba(250, 248, 209, 0.5) 100%);
+}
+
+.dark .page-grid .card:not(.hero-card) {
+  background:
+    linear-gradient(145deg, var(--card-background) 40%, rgba(120, 110, 50, 0.12) 100%);
 }
 
 .eyebrow {
   margin: 0;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  font-size: 0.68rem;
   font-weight: 700;
   color: var(--accent);
 }
 
 h2,
 h3 {
-  margin: 0.4rem 0 0.7rem;
-  line-height: 1.2;
+  margin: 0.35rem 0 0.75rem;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
 }
 
 h2 {
-  font-size: clamp(1.2rem, 2vw, 1.55rem);
+  font-size: clamp(1.25rem, 2.2vw, 1.6rem);
 }
 
 .card p {
   margin: 0.35rem 0;
   color: var(--secondary);
-  line-height: 1.6;
+  line-height: 1.65;
+  font-size: 0.95rem;
 }
 
 /* ── Buttons ─────────────────────────────────────────── */
@@ -364,23 +444,23 @@ h2 {
 .button-primary {
   color: #ffffff;
   background: var(--primary);
-  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.2);
+  box-shadow: 0 1px 3px rgba(95, 138, 250, 0.35);
 }
 
 .button-primary:hover {
   background: var(--primary-hover);
-  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.25);
+  box-shadow: 0 4px 14px rgba(95, 138, 250, 0.4);
 }
 
 .dark .button-primary {
   color: #0c0f1e;
   background: var(--primary);
-  box-shadow: 0 1px 3px rgba(129, 140, 248, 0.15);
+  box-shadow: 0 1px 3px rgba(123, 163, 255, 0.3);
 }
 
 .dark .button-primary:hover {
   background: var(--primary-hover);
-  box-shadow: 0 3px 10px rgba(129, 140, 248, 0.2);
+  box-shadow: 0 4px 14px rgba(123, 163, 255, 0.35);
 }
 
 .button-secondary {
@@ -391,12 +471,12 @@ h2 {
 
 .button-secondary:hover {
   background: var(--card-hover);
-  border-color: rgba(99, 102, 241, 0.3);
+  border-color: rgba(255, 88, 93, 0.3);
 }
 
 .dark .button-secondary:hover {
   background: var(--card-hover);
-  border-color: rgba(129, 140, 248, 0.2);
+  border-color: rgba(255, 122, 126, 0.2);
 }
 
 /* ── Step List ───────────────────────────────────────── */
@@ -516,7 +596,7 @@ h2 {
 
 .field-with-errors {
   border-color: var(--danger) !important;
-  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12) !important;
+  box-shadow: 0 0 0 3px rgba(255, 88, 93, 0.15) !important;
 }
 
 .field-group-border-top {
@@ -565,14 +645,14 @@ h2 {
 /* ── Seed Phrase Card ────────────────────────────────── */
 
 .seed-phrase-card {
-  border: 1px solid rgba(99, 102, 241, 0.2);
+  border: 1px solid rgba(95, 138, 250, 0.2);
   border-radius: var(--radius-md);
   background: var(--surface-inset);
   padding: 0.85rem 1rem;
 }
 
 .dark .seed-phrase-card {
-  border-color: rgba(129, 140, 248, 0.15);
+  border-color: rgba(123, 163, 255, 0.15);
 }
 
 #seed-phrase {
@@ -587,8 +667,8 @@ h2 {
 
 #claim-status {
   border-radius: var(--radius-md);
-  background: rgba(220, 38, 38, 0.08);
-  border: 1px solid rgba(220, 38, 38, 0.3);
+  background: rgba(255, 88, 93, 0.1);
+  border: 1px solid rgba(255, 88, 93, 0.3);
   margin-bottom: 0.75rem;
 }
 
@@ -791,9 +871,16 @@ h2 {
 
 .site-footer {
   margin-top: auto;
-  padding: 1.5rem 0;
+  padding: 2rem 0 1.5rem;
   border-top: 1px solid var(--border);
+  background: linear-gradient(180deg, transparent, rgba(95, 138, 250, 0.04) 40%, rgba(200, 120, 255, 0.03));
   text-align: center;
+  -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+  mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+}
+
+.dark .site-footer {
+  background: linear-gradient(180deg, transparent, rgba(95, 138, 250, 0.06) 40%, rgba(200, 120, 255, 0.05));
 }
 
 .site-footer p {
@@ -897,8 +984,7 @@ h2 {
   }
 
   .card {
-    padding: 1.15rem;
-    border-radius: var(--radius-md);
+    padding: 1.15rem 1.25rem;
   }
 
   .clue-answer-item {
@@ -915,7 +1001,7 @@ h2 {
   }
 
   .campaign-banner {
-    padding: 1.1rem;
+    padding: 1.25rem 1.35rem;
   }
 
   .button {
