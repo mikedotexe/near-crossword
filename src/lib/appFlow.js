@@ -24,7 +24,7 @@ import {
 
 const AppFlowContext = createContext(null);
 
-const envName = () => process.env.NEXT_PUBLIC_NEAR_ENV || "testnet";
+const envName = () => process.env.NEXT_PUBLIC_NEAR_NETWORK || "testnet";
 const DEFAULT_PLACEHOLDER_CONTRACT = "your-crossword-account.testnet";
 
 const loadSeedPhrase = async () => {
@@ -54,10 +54,10 @@ const getConfigWarningMessage = (nearConfig, error) => {
   const contract = nearConfig.contractName || "(unset)";
 
   if (error?.isMethodMissing) {
-    return `Crossword contract methods were not found on ${network}: ${contract}. Set NEXT_PUBLIC_CONTRACT_NAME (and optionally NEXT_PUBLIC_NEAR_ENV) or run yarn dev to deploy a local dev contract.`;
+    return `Crossword contract methods were not found on ${network}: ${contract}. Set NEXT_PUBLIC_CONTRACT_NAME (and optionally NEXT_PUBLIC_NEAR_NETWORK) or run yarn dev to deploy a local dev contract.`;
   }
 
-  return `Contract account not found on ${network}: ${contract}. Set NEXT_PUBLIC_CONTRACT_NAME (and optionally NEXT_PUBLIC_NEAR_ENV) or run yarn dev to deploy a local dev contract.`;
+  return `Contract account not found on ${network}: ${contract}. Set NEXT_PUBLIC_CONTRACT_NAME (and optionally NEXT_PUBLIC_NEAR_NETWORK) or run yarn dev to deploy a local dev contract.`;
 };
 
 export const AppFlowProvider = ({ children }) => {
@@ -140,7 +140,7 @@ export const AppFlowProvider = ({ children }) => {
       (!chainData.puzzles || chainData.puzzles.length === 0)
     ) {
       setConfigWarning(
-        `Contract account not found on ${config.networkId}: ${config.contractName}. Set NEXT_PUBLIC_CONTRACT_NAME (and optionally NEXT_PUBLIC_NEAR_ENV) or run yarn dev to deploy a local dev contract.`
+        `Contract account not found on ${config.networkId}: ${config.contractName}. Set NEXT_PUBLIC_CONTRACT_NAME (and optionally NEXT_PUBLIC_NEAR_NETWORK) or run yarn dev to deploy a local dev contract.`
       );
     }
   }, []);

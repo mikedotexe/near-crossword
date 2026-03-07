@@ -11,7 +11,7 @@ const WonPage = ({
 }) => {
   const [inputMemo, setInputMemo] = useState("");
   const [inputName, setInputName] = useState("");
-  const isButtonDisabled = !inputMemo || !inputName;
+  const isButtonDisabled = !inputName;
 
   return (
     <section className="card claim-card">
@@ -28,15 +28,16 @@ const WonPage = ({
         </div>
 
         <div className="field-group">
-          <label htmlFor="claim-memo">Winning memo</label>
+          <label htmlFor="claim-memo">Your winning message</label>
           <input
             type="text"
             id="claim-memo"
             name="claim-memo"
             value={inputMemo}
             onChange={(event) => setInputMemo(event.target.value)}
-            placeholder="Enter your winning memo"
+            placeholder="e.g. First solve! Great NEAR puzzle."
           />
+          <p className="form-text">This message is recorded on-chain with your reward claim.</p>
         </div>
 
         <div className="field-group radio-group">

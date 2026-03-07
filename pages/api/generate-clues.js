@@ -79,13 +79,14 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "ANTHROPIC_API_KEY is not configured on the server." });
   }
 
-  const { pdfBase64, youtubeUrl, tone, objective } = req.body;
+  const { pdfBase64, youtubeUrl, pastedText, tone, objective } = req.body;
 
   const hasPdf = pdfBase64 && typeof pdfBase64 === "string";
   const hasYoutube = youtubeUrl && typeof youtubeUrl === "string";
+  const hasText = pastedText && typeof pastedText === "string" && pastedText.trim().length >= 50;
 
-  if (!hasPdf && !hasYoutube) {
-    return res.status(400).json({ error: "Provide either pdfBase64 or youtubeUrl." });
+  if (!hasPdf && !hasYoutube && !hasText) {
+    return res.status(400).json({ error: "Provide pdfBase64, youtubeUrl, or pastedText." });
   }
 
   const toneText = tone || "educational";
@@ -106,6 +107,11 @@ export default async function handler(req, res) {
         source: { type: "base64", media_type: "application/pdf", data: pdfBase64 },
       },
       { type: "text", text: prompt },
+    ];
+  } else if (hasText) {
+    const prompt = buildPrompt("following text", toneText, objectiveLine);
+    messageContent = [
+      { type: "text", text: `${pastedText.trim()}\n\n${prompt}` },
     ];
   } else {
     const videoId = extractVideoId(youtubeUrl);

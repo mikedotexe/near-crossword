@@ -4,7 +4,7 @@ import { useTheme } from "next-themes";
 import Crossword from "@crosswordxyz/react-crossword";
 
 const lightCrosswordTheme = {
-  columnBreakpoint: "9999px",
+  columnBreakpoint: "768px",
   gridBackground: "#ffffff",
   cellBackground: "#e8ecf8",
   cellBorder: "#c7ceeb",
@@ -15,7 +15,7 @@ const lightCrosswordTheme = {
 };
 
 const darkCrosswordTheme = {
-  columnBreakpoint: "9999px",
+  columnBreakpoint: "768px",
   gridBackground: "#161a2e",
   cellBackground: "#1e2340",
   cellBorder: "#272d45",

@@ -51,9 +51,60 @@ export async function submitNewPuzzle(
   return (result as any).transaction.hash;
 }
 
+export async function reservePuzzle(
+  uuid: string,
+  rewardNear: string
+): Promise<string> {
+  const near = await getNearConnection();
+  const account = await near.account(config.nearAccountId);
+
+  const depositYocto = utils.format.parseNearAmount(rewardNear);
+
+  const result = await account.functionCall({
+    contractId: config.nearAccountId,
+    methodName: "reserve_puzzle",
+    args: { uuid },
+    gas: "300000000000000" as any,
+    attachedDeposit: depositYocto as any,
+  });
+
+  return (result as any).transaction.hash;
+}
+
+export async function activatePuzzle(
+  uuid: string,
+  answerPk: string,
+  dimensions: GridDimensions,
+  contractAnswers: ContractAnswer[]
+): Promise<string> {
+  const near = await getNearConnection();
+  const account = await near.account(config.nearAccountId);
+
+  const result = await account.functionCall({
+    contractId: config.nearAccountId,
+    methodName: "activate_puzzle",
+    args: {
+      uuid,
+      answer_pk: answerPk,
+      dimensions,
+      answers: contractAnswers,
+    },
+    gas: "300000000000000" as any,
+  });
+
+  return (result as any).transaction.hash;
+}
+
 export async function getAccountBalance(): Promise<string> {
   const near = await getNearConnection();
   const account = await near.account(config.nearAccountId);
   const balance = await account.getAccountBalance();
   return utils.format.formatNearAmount(balance.available, 2);
+}
+
+export async function getAccountBalanceYocto(): Promise<bigint> {
+  const near = await getNearConnection();
+  const account = await near.account(config.nearAccountId);
+  const state = await account.state();
+  return BigInt(state.amount);
 }

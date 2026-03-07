@@ -930,6 +930,10 @@ h2 {
   .page-grid .card:not(.hero-card) {
     grid-column: span 5;
   }
+
+  .page-grid .card.half-card {
+    grid-column: span 6;
+  }
 }
 
 /* ── Responsive: Tablet ──────────────────────────────── */
@@ -1008,6 +1012,100 @@ h2 {
     padding: 0.55rem 0.9rem;
     font-size: 0.88rem;
   }
+}
+
+/* ── User Menu (nav) ────────────────────────────────── */
+
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.user-menu-email {
+  font-size: 0.78rem;
+  color: var(--secondary);
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Login Card ─────────────────────────────────────── */
+
+.login-card {
+  max-width: 440px;
+  margin: 2rem auto;
+}
+
+/* ── Job List / Job Cards ───────────────────────────── */
+
+.job-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.job-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.15rem;
+  background: var(--surface-raised);
+  transition: border-color var(--duration-fast) ease;
+}
+
+.job-card:hover {
+  border-color: var(--accent);
+}
+
+.job-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.job-status {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-full);
+  padding: 0.15rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.job-status.pending { color: #92400e; background: rgba(245, 158, 11, 0.18); }
+.job-status.processing { color: #1e40af; background: rgba(59, 130, 246, 0.18); }
+.job-status.completed { color: #065f46; background: rgba(16, 185, 129, 0.18); }
+.job-status.failed { color: #991b1b; background: rgba(239, 68, 68, 0.18); }
+
+.dark .job-status.pending { color: #fbbf24; background: rgba(245, 158, 11, 0.12); }
+.dark .job-status.processing { color: #93c5fd; background: rgba(59, 130, 246, 0.12); }
+.dark .job-status.completed { color: #6ee7b7; background: rgba(16, 185, 129, 0.12); }
+.dark .job-status.failed { color: #fca5a5; background: rgba(239, 68, 68, 0.12); }
+
+/* ── Async Toggle (AI Studio) ───────────────────────── */
+
+.async-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+}
+
+.async-toggle input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--primary);
+}
+
+.async-toggle label {
+  font-size: 0.88rem;
+  color: var(--secondary);
+  cursor: pointer;
+  margin: 0;
 }
 
 /* ── Responsive: Small Mobile ────────────────────────── */

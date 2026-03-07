@@ -20,7 +20,15 @@ export interface PuzzleResult {
 }
 
 export type ConversationState =
-  "GENERATING" | "AWAITING_CHOICE" | "AWAITING_PAYMENT" | "COMMITTING" | "DELIVERED" | "ERROR";
+  | "GENERATING" | "AWAITING_CHOICE" | "AWAITING_PREVIEW_CONFIRM"
+  | "AWAITING_SCHEDULE" | "AWAITING_PAYMENT" | "RESERVING" | "AWAITING_ACTIVATION"
+  | "ACTIVATING" | "COMMITTING" | "DELIVERED" | "ERROR";
+
+export interface StorablePuzzleData {
+  contractAnswers: ContractAnswer[];
+  dimensions: GridDimensions;
+  answerPk: string;
+}
 
 export type Intent =
   | { intent: "choose"; variation: string }
@@ -28,6 +36,10 @@ export type Intent =
   | { intent: "edited_pairs"; pairs: CluePair[] }
   | { intent: "reward_amount"; amount: string }
   | { intent: "choice_and_reward"; variation: string; amount: string }
+  | { intent: "confirm_preview" }
+  | { intent: "reject_preview" }
+  | { intent: "provide_email"; email: string }
+  | { intent: "provide_schedule"; datetime: string }
   | { intent: "sent_confirmation" }
   | { intent: "unknown"; summary: string };
 

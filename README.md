@@ -35,15 +35,18 @@ Runtime and Package Manager
 Frontend Routes
 ================
 
-The app now uses native Next.js path routing:
+The app uses native Next.js path routing:
 
 - `/` marketing landing page
 - `/play` live puzzle play flow
 - `/create` wallet-gated puzzle creator flow
+- `/ai-studio` AI-assisted clue generation (sync + async modes)
+- `/login` sign in via Google OAuth or magic link email
+- `/check-email` post-magic-link confirmation
+- `/my-jobs` authenticated user's async AI Studio job dashboard
 - `/claim` reward claim flow after solving
 - `/claimed` claim success page
 - `/empty` no-active-puzzle state
-- `/ai-studio` AI campaign planning stub
 
 Legacy compatibility bridge:
 
@@ -51,13 +54,39 @@ Legacy compatibility bridge:
 - Hash redirect usage is tracked with the `hash_bridge_redirect` analytics event during migration.
 - Default transition policy: keep this bridge for two release cycles, then remove once usage is negligible.
 
-AI Studio Stub Config
-=====================
+Authentication (Optional)
+=========================
 
-The current AI studio flow is frontend-only and stores drafts in localStorage (`aiCrosswordDraft`).
-Smart contract and backend AI integration changes are intentionally deferred to a later phase.
+Optional sign-in via Google OAuth or magic link email, powered by NextAuth.js v4 with Postgres database sessions.
 
-Optional env vars:
+- **Unauthenticated users** retain the existing synchronous AI Studio flow (submit content, wait for clues).
+- **Authenticated users** unlock async mode: submit a job in the background, leave the page, and get emailed when clues are ready.
+- Auth state is shown in the top nav (email + sign out) and adds a "My Jobs" link.
+- Sessions are stored in Postgres (30-day expiry). The custom PG adapter uses snake_case columns.
+- All auth is optional — the app works fully without any NextAuth env vars configured.
+
+Required env vars for auth:
+
+- `NEXTAUTH_URL` — canonical app URL (e.g. `http://localhost:3000`)
+- `NEXTAUTH_SECRET` — session encryption secret (`openssl rand -base64 32`)
+- `NEXTAUTH_GOOGLE_CLIENT_ID` / `NEXTAUTH_GOOGLE_CLIENT_SECRET` — Google OAuth credentials
+- `RESEND_API_KEY` — for magic link emails (falls back to console.log if missing)
+- `NEXTAUTH_EMAIL_FROM` — sender address for magic link emails
+
+Database migration `003_auth_and_async_jobs.sql` must be applied for auth and async jobs to work.
+
+AI Studio
+=========
+
+AI Studio generates crossword clue/answer pairs from user-provided content (YouTube URL, PDF upload, or pasted text) using Claude.
+
+**Sync mode** (default, no auth required): User submits content, waits ~10s for Claude to generate 2 variations, picks one, then proceeds to `/create`.
+
+**Async mode** (requires sign-in): User checks "Submit in background and email me when ready", submits the job, and can leave. The worker picks up pending jobs from `puzzle_jobs`, calls Claude, stores results, and emails the user. Jobs are viewable at `/my-jobs` with auto-polling.
+
+Draft state is persisted in localStorage (`aiCrosswordDraft`). Selected variations are passed to `/create` via localStorage (`aiGeneratedClues`).
+
+NEAR AI env vars (for marketplace worker integration):
 
 - `NEXT_PUBLIC_NEAR_AI_ENABLED` (`false` by default)
 - `NEXT_PUBLIC_MARKET_NEAR_AI_URL` (`https://market.near.ai` by default)
@@ -104,6 +133,10 @@ The frontend tracks funnel events via `src/lib/analytics.js`:
 - `play_view_loaded`
 - `claim_submit`
 - `claim_success`
+- `ai_youtube_upload_start` / `ai_pdf_upload_start` / `ai_text_upload_start`
+- `ai_pdf_upload_success` / `ai_pdf_upload_error`
+- `ai_async_submit_success`
+- `ai_variation_selected`
 
 How to play with this contract
 ===============================

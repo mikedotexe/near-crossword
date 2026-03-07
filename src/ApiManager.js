@@ -10,7 +10,7 @@ class ApiManager {
 
   async setUp() {
     this.nearConfig = getConfig(
-      process.env.NEXT_PUBLIC_NEAR_ENV || "testnet"
+      process.env.NEXT_PUBLIC_NEAR_NETWORK || "testnet"
     );
 
     if (

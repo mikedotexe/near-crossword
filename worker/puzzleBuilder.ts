@@ -1,6 +1,6 @@
 import { generateLayout } from "crossword-layout-generator";
 import { parseSeedPhrase } from "near-seed-phrase";
-import type { CluePair, LayoutAnswer, PuzzleResult } from "./types.js";
+import type { CluePair, GridDimensions, LayoutAnswer, PuzzleResult } from "./types.js";
 
 function deriveSeedPhrase(mungedLayout: { across: Record<string, any>; down: Record<string, any> }): string {
   const allNums = Object.keys(mungedLayout.across)
@@ -70,4 +70,84 @@ export function buildPuzzle(clueAnswerPairs: CluePair[]): PuzzleResult {
     answerPk: publicKey,
     seedPhrase,
   };
+}
+
+export function renderAsciiPreview(answers: LayoutAnswer[], dims: GridDimensions): string {
+  // Build a 2D grid (1-indexed positions from layout generator)
+  const grid: string[][] = [];
+  for (let row = 0; row < dims.y; row++) {
+    grid[row] = new Array(dims.x).fill("·");
+  }
+
+  for (const a of answers) {
+    const dx = a.direction === "across" ? 1 : 0;
+    const dy = a.direction === "down" ? 1 : 0;
+    for (let i = 0; i < a.answer.length; i++) {
+      const x = a.start.x - 1 + dx * i;
+      const y = a.start.y - 1 + dy * i;
+      grid[y][x] = a.answer[i].toUpperCase();
+    }
+  }
+
+  const gridStr = grid.map((row) => row.join(" ")).join("\n");
+
+  // Build clue lists grouped by direction
+  const across = answers
+    .filter((a) => a.direction === "across")
+    .sort((a, b) => a.num - b.num);
+  const down = answers
+    .filter((a) => a.direction === "down")
+    .sort((a, b) => a.num - b.num);
+
+  let clues = "";
+  if (across.length) {
+    clues += "\n\n**Across**\n";
+    clues += across.map((a) => `${a.num}. ${a.clue} → ${a.answer.toUpperCase()} (${a.length})`).join("\n");
+  }
+  if (down.length) {
+    clues += "\n\n**Down**\n";
+    clues += down.map((a) => `${a.num}. ${a.clue} → ${a.answer.toUpperCase()} (${a.length})`).join("\n");
+  }
+
+  return `**${dims.x} x ${dims.y} grid — ${answers.length} words**\n\n${gridStr}${clues}`;
+}
+
+export function renderSanitizedPreview(answers: LayoutAnswer[], dims: GridDimensions): string {
+  // Build a 2D grid with blocks instead of letters
+  const grid: string[][] = [];
+  for (let row = 0; row < dims.y; row++) {
+    grid[row] = new Array(dims.x).fill("·");
+  }
+
+  for (const a of answers) {
+    const dx = a.direction === "across" ? 1 : 0;
+    const dy = a.direction === "down" ? 1 : 0;
+    for (let i = 0; i < a.answer.length; i++) {
+      const x = a.start.x - 1 + dx * i;
+      const y = a.start.y - 1 + dy * i;
+      grid[y][x] = "█";
+    }
+  }
+
+  const gridStr = grid.map((row) => row.join(" ")).join("\n");
+
+  // Clues without answers
+  const across = answers
+    .filter((a) => a.direction === "across")
+    .sort((a, b) => a.num - b.num);
+  const down = answers
+    .filter((a) => a.direction === "down")
+    .sort((a, b) => a.num - b.num);
+
+  let clues = "";
+  if (across.length) {
+    clues += "\n\n**Across**\n";
+    clues += across.map((a) => `${a.num}. ${a.clue} (${a.length} letters)`).join("\n");
+  }
+  if (down.length) {
+    clues += "\n\n**Down**\n";
+    clues += down.map((a) => `${a.num}. ${a.clue} (${a.length} letters)`).join("\n");
+  }
+
+  return `**${dims.x} x ${dims.y} grid — ${answers.length} words**\n\n${gridStr}${clues}`;
 }

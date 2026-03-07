@@ -229,7 +229,7 @@ const CrosswordForm = () => {
         {crosswordLayout ? (
           <ThemeProvider
             theme={{
-              columnBreakpoint: "9999px",
+              columnBreakpoint: "768px",
               gridBackground: "#ffffff",
               cellBackground: "#e8ecf8",
               cellBorder: "#c7ceeb",

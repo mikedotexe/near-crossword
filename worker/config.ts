@@ -14,6 +14,12 @@ function required(name: string): string {
 }
 
 const workerConfig = {
+  // Postgres
+  databaseUrl: required("DATABASE_URL"),
+
+  // Resend (optional)
+  resendApiKey: process.env.RESEND_API_KEY || "",
+
   // market.near.ai
   marketApiKey: required("MARKET_API_KEY"),
   marketUrl: process.env.MARKET_URL || "https://market.near.ai",
@@ -29,9 +35,9 @@ const workerConfig = {
   nearAccountId:
     process.env.NEAR_ACCOUNT_ID || "crossword.puzzle.near",
   nearPrivateKey: required("NEAR_PRIVATE_KEY"),
-  nearNetwork: process.env.NEAR_NETWORK || "mainnet",
+  nearNetwork: process.env.NEAR_NETWORK || "testnet",
   nearNodeUrl:
-    (process.env.NEAR_NETWORK || "mainnet") === "mainnet"
+    (process.env.NEAR_NETWORK || "testnet") === "mainnet"
       ? "https://rpc.mainnet.fastnear.com"
       : "https://rpc.testnet.fastnear.com",
 
