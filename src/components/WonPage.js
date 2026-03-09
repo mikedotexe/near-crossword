@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { motion } from "framer-motion/dist/framer-motion";
 
 const WonPage = ({
   claimStatusClasses,
@@ -12,123 +11,94 @@ const WonPage = ({
 }) => {
   const [inputMemo, setInputMemo] = useState("");
   const [inputName, setInputName] = useState("");
-  const isButtonDisabled = !inputMemo || !inputName;
-  return (
-    <div className="win-page">
-      <div className="title">You won!</div>
-      <div className="error-wrap">
-        <div className="error-icon"></div>
-        <div className="win-page-error">
-          You still need to claim your prize.
-        </div>
-      </div>
-      <div className="content">
-        <form action="">
-          <div id="claim-status" className={claimStatusClasses}>
-            <p>{claimError}</p>
-          </div>
-          <div className="field-group">
-            <label htmlFor="claim-memo" className="sr-only">
-              Enter your winning memo:
-            </label>
-            <input
-              type="text"
-              id="claim-memo"
-              name="claim-memo"
-              value={inputMemo}
-              onChange={(e) => {
-                setInputMemo(e.target.value);
-              }}
-              placeholder="Enter your winning memo:"
-            />
-          </div>
-          <div className="field-group">
-            <div
-              className="radio-field"
-              onClick={() => {
-                setNeedsNewAccount(false);
-              }}
-            >
-              <div
-                className={`radio-button ${
-                  needsNewAccount === false && "active"
-                }`}
-              >
-                {needsNewAccount === false && (
-                  <div className="radio-button-content" />
-                )}
-              </div>
-              <div>I have an account</div>
-            </div>
-            <div className="radio-field">
-              <div
-                className="radio-field"
-                onClick={() => {
-                  setNeedsNewAccount(true);
-                }}
-              >
-                <div
-                  className={`radio-button ${
-                    needsNewAccount === true && "active"
-                  }`}
-                >
-                  {needsNewAccount === true && (
-                    <div className="radio-button-content" />
-                  )}
-                </div>
-                <div> I need to create an account</div>
-              </div>
-            </div>
-          </div>
+  const isButtonDisabled = !inputName;
 
-          <motion.div
-            id="seed-phrase-wrapper"
-            className="field-group"
-            animate={{
-              opacity: needsNewAccount === true ? 1 : 0,
-              transitionEnd: {
-                display: needsNewAccount === true ? "block" : "none",
-              },
-            }}
-            transition={{ duration: 0.5 }}
-          >
-            <h3>You need to write this down, friend.</h3>
+  return (
+    <section className="card claim-card">
+      <p className="eyebrow">Congratulations!</p>
+      <h2>You solved it! Claim your reward.</h2>
+      <p>
+        Add your memo and destination account. If needed, you can create a new
+        account with your generated seed phrase.
+      </p>
+
+      <form className="crossword-form" onSubmit={claimPrize}>
+        <div id="claim-status" className={claimStatusClasses}>
+          <p>{claimError}</p>
+        </div>
+
+        <div className="field-group">
+          <label htmlFor="claim-memo">Your winning message</label>
+          <input
+            type="text"
+            id="claim-memo"
+            name="claim-memo"
+            value={inputMemo}
+            onChange={(event) => setInputMemo(event.target.value)}
+            placeholder="e.g. First solve! Great NEAR puzzle."
+          />
+          <p className="form-text">This message is recorded on-chain with your reward claim.</p>
+        </div>
+
+        <div className="field-group radio-group">
+          <label className="radio-option" htmlFor="claim-existing-account">
+            <input
+              id="claim-existing-account"
+              name="claim-account-mode"
+              type="radio"
+              checked={!needsNewAccount}
+              onChange={() => setNeedsNewAccount(false)}
+            />
+            <span>I have an account</span>
+          </label>
+
+          <label className="radio-option" htmlFor="claim-new-account">
+            <input
+              id="claim-new-account"
+              name="claim-account-mode"
+              type="radio"
+              checked={needsNewAccount}
+              onChange={() => setNeedsNewAccount(true)}
+            />
+            <span>I need to create an account</span>
+          </label>
+        </div>
+
+        {needsNewAccount ? (
+          <div id="seed-phrase-wrapper" className="field-group seed-phrase-card">
+            <h3>Save this seed phrase before continuing</h3>
             <p id="seed-phrase">{playerKeyPair.seedPhrase}</p>
             <p>
-              After you submit and it succeeds, use this seed phrase at{" "}
-              <a href={nearConfig.walletUrl} target="_blank">
+              After successful claim, import it into{" "}
+              <a href={nearConfig.walletUrl} rel="noreferrer" target="_blank">
                 NEAR Wallet
               </a>
+              .
             </p>
-          </motion.div>
+          </div>
+        ) : null}
 
-          <div className="field-group">
-            <label htmlFor="claim-account-id" className="sr-only">
-              Enter account name
-            </label>
-            <input
-              type="text"
-              id="claim-account-id"
-              name="claim-account-id"
-              placeholder="Enter account name"
-              value={inputName}
-              onChange={(e) => {
-                setInputName(e.target.value);
-              }}
-            />
-          </div>
-          <div className="button-wrap">
-            <button
-              type="submit"
-              className={`win-button ${isButtonDisabled ? "disabled" : ""}`}
-              onClick={claimPrize}
-            >
-              Submit
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <div className="field-group">
+          <label htmlFor="claim-account-id">Destination account</label>
+          <input
+            type="text"
+            id="claim-account-id"
+            name="claim-account-id"
+            placeholder="e.g. yourname.near"
+            value={inputName}
+            onChange={(event) => setInputName(event.target.value)}
+          />
+        </div>
+
+        <button
+          type="submit"
+          className="button button-primary"
+          disabled={isButtonDisabled}
+        >
+          Submit Claim
+        </button>
+      </form>
+    </section>
   );
 };
 

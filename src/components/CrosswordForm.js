@@ -1,197 +1,281 @@
-import React, { useState, useRef, useEffect } from 'react'
-import { generateLayout } from 'crossword-layout-generator'
-import Crossword from 'react-crossword'
-import { mungeLocalCrossword } from '../utils'
-import { ThemeProvider } from 'styled-components'
-import { addNewPuzzle } from '../add-puzzle'
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { ThemeProvider } from "styled-components";
+import Crossword from "@crosswordxyz/react-crossword";
+import { generateLayout } from "crossword-layout-generator";
+import { mungeLocalCrossword } from "../utils";
+import { addNewPuzzle } from "../add-puzzle";
+import { trackEvent } from "../lib/analytics";
+
+const allowedAnswerRegex = /^[a-zA-Z0-9.-]?[a-zA-Z0-9_.-]*$/;
+const createBlankClue = () => ({ clue: "", answer: "" });
 
 const CrosswordForm = () => {
-  const blankClue = { clue: "", answer: "" }
-  const [clueAnswerArray, setClueAnswerArray] = useState([blankClue])
-  const [dimensions, setDimensions] = useState()
-  const [generatedLayout, setGeneratedLayout] = useState()
-  const [crosswordLayout, setCrosswordLayout] = useState()
-  const [prizeDeposit, setPrizeDeposit] = useState('5')
-  const [hasErrors, setHasErrors] = useState(false)
-  const crosswordRef = useRef(null)
-
-  const handleClueAnswerChange = (e, key, propName) => {
-    //absolutely no spaces allowed, they break answer_pk generation. replace with empty string
-    if (propName === "answer" && e.target.value.includes(" ")) {
-      e.target.value = e.target.value.replace(" ", "")
-    }
-    // regex in match whitelists letters, digits, underscore, period, and hyphen
-    // also disallows leading _ which seems to break answer_pk
-    if (propName === "answer") {
-      if (!e.target.value.match(/^[a-zA-Z0-9.-]?[a-zA-Z0-9_.-]*$/)) {
-        e.target.classList.add("field-with-errors")
-        setHasErrors(true)
-      }
-      else if (hasErrors) {
-        e.target.classList.remove("field-with-errors")
-        setHasErrors(false)
-      }
-    }
-    const updatedArray = [...clueAnswerArray]
-    updatedArray[key][propName] = e.target.value
-    setClueAnswerArray(updatedArray)
-  }
-
-  const handleClueAnswerBlur = (e) => {
-    // indicate error on fields that have less than 3 characters, but still allow sample puzzle generation
-    if (e.target.value.length < 3) {
-      e.target.classList.add("field-with-errors")
-    } else if (e.target.classList.contains("field-with-errors")) {
-      e.target.classList.remove("field-with-errors")
-    }
-  }
-
-  const handlePrizeDepositChange = (e) => {
-    if (e.target.value >= 5 ) {
-      setPrizeDeposit(e.target.value)
-    }
-  }
-
-  const generateSamplePuzzle = () => {
-    const filteredClueAnswers =  JSON.parse(JSON.stringify(clueAnswerArray.filter(ca => ca.answer.length > 2 && ca.clue.length > 2)))
-    if (filteredClueAnswers.length >= 3 ) {
-      const layout = generateLayout(filteredClueAnswers)
-      const answers = []
-      layout.result.map(value => {
-        const answerObj = {
-          'num': value.position,
-          'start': {
-            'x': value.startx,
-            'y': value.starty
-          },
-          'direction': value.orientation,
-          'length': value.answer.length,
-          'answer': value.answer,
-          'clue': value.clue
-        }
-        if (answerObj.num) {
-          answers.push(answerObj)
-        }
-      })
-      setDimensions({
-        x: layout.cols,
-        y: layout.rows
-      })
-      setGeneratedLayout(answers)
-      setCrosswordLayout(mungeLocalCrossword(answers))
-    }
-  }
+  const [clueAnswerArray, setClueAnswerArray] = useState([createBlankClue()]);
+  const [dimensions, setDimensions] = useState();
+  const [generatedLayout, setGeneratedLayout] = useState();
+  const [crosswordLayout, setCrosswordLayout] = useState();
+  const [prizeDeposit, setPrizeDeposit] = useState("5");
+  const [hasErrors, setHasErrors] = useState(false);
+  const [commitStatus, setCommitStatus] = useState("");
+  const [commitError, setCommitError] = useState("");
+  const crosswordRef = useRef(null);
 
   useEffect(() => {
-    if (crosswordRef.current) {
-      crosswordRef.current.fillAllAnswers()
-      return () => {
-        crosswordRef.current.reset()
+    const stored = localStorage.getItem("aiGeneratedClues");
+    if (!stored) return;
+    try {
+      const pairs = JSON.parse(stored);
+      if (Array.isArray(pairs) && pairs.length > 0) {
+        setClueAnswerArray(pairs.filter((p) => p.clue && p.answer));
       }
+    } catch (err) {
+      console.warn("Failed to parse AI-generated clues:", err);
     }
-  }, [crosswordLayout])
+    localStorage.removeItem("aiGeneratedClues");
+  }, []);
+
+  const validClueAnswers = useMemo(
+    () =>
+      clueAnswerArray.filter(
+        (pair) => pair.answer.length > 2 && pair.clue.length > 2
+      ),
+    [clueAnswerArray]
+  );
+
+  const handleClueAnswerChange = (event, key, propName) => {
+    let nextValue = event.target.value;
+
+    if (propName === "answer") {
+      nextValue = nextValue.replace(/\s+/g, "");
+    }
+
+    const updatedArray = clueAnswerArray.map((item, index) =>
+      index === key ? { ...item, [propName]: nextValue } : item
+    );
+
+    const containsInvalidAnswer = updatedArray.some(
+      (item) => item.answer && !allowedAnswerRegex.test(item.answer)
+    );
+
+    setHasErrors(containsInvalidAnswer);
+    setClueAnswerArray(updatedArray);
+
+    if (propName === "answer" && !allowedAnswerRegex.test(nextValue)) {
+      event.target.classList.add("field-with-errors");
+    } else {
+      event.target.classList.remove("field-with-errors");
+    }
+  };
+
+  const handleClueAnswerBlur = (event) => {
+    if (event.target.value.length > 0 && event.target.value.length < 3) {
+      event.target.classList.add("field-with-errors");
+    } else {
+      event.target.classList.remove("field-with-errors");
+    }
+  };
+
+  const handlePrizeDepositChange = (event) => {
+    if (Number(event.target.value) >= 5) {
+      setPrizeDeposit(event.target.value);
+    }
+  };
+
+  const generateSamplePuzzle = () => {
+    if (validClueAnswers.length < 3) {
+      return;
+    }
+
+    trackEvent("create_preview_generate", {
+      valid_pairs: validClueAnswers.length,
+    });
+
+    const layout = generateLayout(validClueAnswers);
+    const answers = [];
+
+    layout.result.forEach((value) => {
+      const answerObj = {
+        num: value.position,
+        start: {
+          x: value.startx,
+          y: value.starty,
+        },
+        direction: value.orientation,
+        length: value.answer.length,
+        answer: value.answer,
+        clue: value.clue,
+      };
+
+      if (answerObj.num) {
+        answers.push(answerObj);
+      }
+    });
+
+    setDimensions({
+      x: layout.cols,
+      y: layout.rows,
+    });
+    setGeneratedLayout(answers);
+    setCrosswordLayout(mungeLocalCrossword(answers));
+    setCommitStatus("");
+    setCommitError("");
+  };
+
+  const handleCommitPuzzle = async () => {
+    setCommitStatus("Waiting for wallet approval...");
+    setCommitError("");
+    trackEvent("create_commit_initiated", {
+      clue_count: generatedLayout ? generatedLayout.length : 0,
+      prize: prizeDeposit,
+    });
+
+    try {
+      const result = await addNewPuzzle(
+        crosswordLayout,
+        generatedLayout,
+        dimensions,
+        prizeDeposit
+      );
+
+      if (result) {
+        setCommitStatus("Puzzle committed successfully.");
+        trackEvent("create_commit_success");
+      } else {
+        setCommitStatus("");
+        setCommitError("Wallet action was cancelled. No transaction was sent.");
+        trackEvent("create_commit_cancel_or_fail", {
+          reason: "wallet_cancelled",
+        });
+      }
+    } catch (error) {
+      console.error("Commit puzzle failed:", error);
+      setCommitStatus("");
+      setCommitError(error.message || "Failed to commit puzzle.");
+      trackEvent("create_commit_cancel_or_fail", {
+        reason: "transaction_error",
+      });
+    }
+  };
+
+  useEffect(() => {
+    const crossword = crosswordRef.current;
+    if (!crossword) {
+      return;
+    }
+
+    crossword.fillAllAnswers();
+    return () => {
+      crossword.reset();
+    };
+  }, [crosswordLayout]);
 
   return (
     <div>
-      <form className="crossword-form" onSubmit={(e) => e.preventDefault()}>
+      <form className="crossword-form" onSubmit={(event) => event.preventDefault()}>
+        {validClueAnswers.length < 3 ? (
+          <div className="form-text">Please add at least 3 valid clue/answer pairs.</div>
+        ) : null}
 
-        {/* display if fewer than 3 valid clue answer pairs */}
-        { JSON.parse(JSON.stringify(clueAnswerArray.filter(ca => ca.answer.length > 2 && ca.clue.length > 2))).length < 3 &&
-          <div className="form-text">Please add at least 3 valid clue answer pairs</div>
-        }
-
-        {
-          clueAnswerArray.map((value, key) => {
-            return (
-              <div className="clue-answer-item field-group" key={key}>
-                <input
-                  type="text"
-                  onChange={(e) => handleClueAnswerChange(e, key, 'clue')}
-                  onBlur={(e) => handleClueAnswerBlur(e)}
-                  name={`clue-${key}`}
-                  value={value.clue}
-                  placeholder="Some clue here"
-                />
-                <input
-                  type="text"
-                  onChange={(e) => handleClueAnswerChange(e, key, 'answer')}
-                  onBlur={(e) => handleClueAnswerBlur(e)}
-                  name={`answer-${key}`}
-                  value={value.answer}
-                  placeholder="The clue's solution"
-                />
-              </div>
-            )
-          })
-        }
+        {clueAnswerArray.map((value, key) => (
+          <div className="clue-answer-item field-group" key={key}>
+            <input
+              type="text"
+              onChange={(event) => handleClueAnswerChange(event, key, "clue")}
+              onBlur={handleClueAnswerBlur}
+              name={`clue-${key}`}
+              value={value.clue}
+              placeholder="Clue"
+            />
+            <input
+              type="text"
+              onChange={(event) => handleClueAnswerChange(event, key, "answer")}
+              onBlur={handleClueAnswerBlur}
+              name={`answer-${key}`}
+              value={value.answer}
+              placeholder="Answer"
+            />
+          </div>
+        ))}
 
         <div className="field-group add-word-container">
           <button
-            className="btn"
-            onClick={() => setClueAnswerArray([...clueAnswerArray, blankClue])}
-          >+ Add Word</button>
+            className="button button-secondary"
+            type="button"
+            onClick={() => setClueAnswerArray([...clueAnswerArray, createBlankClue()])}
+          >
+            + Add Word
+          </button>
         </div>
 
-        { hasErrors &&
-          <div className="error-msg">Disallowed characters detected in your form. Allowed characters are letters, numbers, hyphens, periods, and underscores (underscores not allowed as first character)</div>
-        }
+        {hasErrors ? (
+          <div className="error-msg">
+            Disallowed characters detected. Allowed: letters, numbers, hyphens,
+            periods, and underscores (underscore cannot be first character).
+          </div>
+        ) : null}
 
-        { JSON.parse(JSON.stringify(clueAnswerArray.filter(ca => ca.answer.length > 2 && ca.clue.length > 2))).length >= 3 && !hasErrors &&
-          <React.Fragment>
-            <div className="field-group field-group-border-top">
-              <button
-                className="win-button"
-                onClick={() => generateSamplePuzzle()}
-              >Generate Sample Puzzle</button>
-            </div>
-          </React.Fragment>
-        }
+        {validClueAnswers.length >= 3 && !hasErrors ? (
+          <div className="field-group field-group-border-top">
+            <button
+              className="button button-primary"
+              type="button"
+              onClick={generateSamplePuzzle}
+            >
+              Generate Sample Puzzle
+            </button>
+          </div>
+        ) : null}
 
-        { crosswordLayout && 
+        {crosswordLayout ? (
           <ThemeProvider
             theme={{
-              columnBreakpoint   : '9999px',
-              gridBackground     : '#fff',
-              cellBackground     : '#D5D5D5',
-              cellBorder         : '#D5D5D5',
-              textColor          : '#000000',
-              numberColor        : '#000000',
-              focusBackground    : 'rgba(170, 208, 85, 0.5)',
-              highlightBackground: 'rgba(255, 200, 96, 0.5)',
+              columnBreakpoint: "768px",
+              gridBackground: "#ffffff",
+              cellBackground: "#e8ecf8",
+              cellBorder: "#c7ceeb",
+              textColor: "#1a1d2e",
+              numberColor: "#4b5675",
+              focusBackground: "rgba(99, 102, 241, 0.4)",
+              highlightBackground: "rgba(165, 180, 252, 0.4)",
             }}
           >
-            <Crossword ref={crosswordRef} data={crosswordLayout} useStorage={false} />
+            <Crossword
+              ref={crosswordRef}
+              data={crosswordLayout}
+              useStorage={false}
+            />
           </ThemeProvider>
-        }
+        ) : null}
 
-        { crosswordLayout && generatedLayout && dimensions && !hasErrors &&
-
+        {crosswordLayout && generatedLayout && dimensions && !hasErrors ? (
           <React.Fragment>
             <div className="field-group field-group-border-top">
-              <label htmlFor="prize-field"> Include Prize (in NEAR):</label>
-
+              <label htmlFor="prize-field">Include Prize (in NEAR):</label>
               <input
                 type="number"
                 id="prize-field"
                 value={prizeDeposit}
                 step="1"
-                onChange={(e) => handlePrizeDepositChange(e)}
+                onChange={handlePrizeDepositChange}
               />
             </div>
 
             <div className="field-group">
               <button
-                className="win-button"
-                onClick={() => addNewPuzzle(crosswordLayout, generatedLayout, dimensions, prizeDeposit)}
-              >Commit Puzzle to Smart Contract</button>
+                className="button button-primary"
+                type="button"
+                onClick={handleCommitPuzzle}
+              >
+                Commit Puzzle to Smart Contract
+              </button>
+              {commitStatus ? <p className="info-msg">{commitStatus}</p> : null}
+              {commitError ? <p className="error-msg">{commitError}</p> : null}
             </div>
           </React.Fragment>
-          
-        }
-
+        ) : null}
       </form>
     </div>
-  )
-}
+  );
+};
 
-export default CrosswordForm
+export default CrosswordForm;
