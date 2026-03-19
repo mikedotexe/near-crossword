@@ -115,6 +115,49 @@ Missing contract behavior:
 - Task routes (`/play`, `/claim`, `/create`) show a concise configuration warning with setup guidance.
 - Non-recoverable RPC/network failures still surface as initialization errors.
 
+Tempo MPP (Multi-Currency Payments)
+=====================================
+
+The app integrates Tempo's Machine Payments Protocol (MPP) to accept payments
+in USDC and other tokens, in addition to NEAR. This enables a cross-chain
+payment flow: users pay with Tempo tokens, and the server funds puzzles on
+NEAR using its own account.
+
+**How it works:**
+
+1. User clicks "Pay with Tempo" on the Create or AI Studio page
+2. Browser generates an ephemeral Tempo account (stored in localStorage)
+3. User funds the account from the testnet faucet (or transfers USDC)
+4. When submitting, the API returns HTTP 402 with a `WWW-Authenticate: Payment` challenge
+5. The mppx client auto-signs a Tempo transaction and retries with an `Authorization: Payment` credential
+6. Server verifies the payment on-chain, then creates the puzzle on NEAR
+
+**API Endpoints:**
+
+- `GET /api/mpp/status` — check if MPP is enabled, see prices and currency
+- `POST /api/mpp/create-puzzle` — MPP-gated puzzle creation ($1.00 USDC)
+- `POST /api/mpp/generate-clues` — MPP-gated AI generation ($0.10 USDC)
+
+**Required env vars:**
+
+- `MPP_RECIPIENT` — Tempo address to receive payments
+- `MPP_SECRET_KEY` — HMAC key for challenge binding (`openssl rand -hex 32`)
+- `MPP_CURRENCY` — TIP-20 token address (default: USDC on Tempo mainnet)
+- `MPP_TESTNET` — set to `true` for Tempo Moderato testnet
+- `NEXT_PUBLIC_MPP_TESTNET` — client-side testnet flag
+
+**Demo:**
+
+```bash
+# Start the dev server
+yarn dev
+
+# Run the MPP flow demo
+bash scripts/test-mpp-flow.sh
+```
+
+**Dependencies:** `mppx` (TypeScript SDK), `viem` (Tempo blockchain interactions)
+
 Analytics Events
 ================
 
@@ -137,6 +180,10 @@ The frontend tracks funnel events via `src/lib/analytics.js`:
 - `ai_pdf_upload_success` / `ai_pdf_upload_error`
 - `ai_async_submit_success`
 - `ai_variation_selected`
+- `landing_mpp_create_click` / `landing_mpp_ai_click`
+- `create_use_mpp_click`
+- `create_commit_mpp_initiated` / `create_commit_mpp_success` / `create_commit_mpp_fail`
+- `ai_mpp_generation_start` / `ai_mpp_generation_success`
 
 How to play with this contract
 ===============================
