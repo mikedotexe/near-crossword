@@ -84,6 +84,20 @@ export default async function handler(req, res) {
   if (result.status === 402) return;
 
   // Payment verified — create the puzzle on NEAR
+  // If NEAR credentials are not configured, return success with demo flag
+  if (
+    !process.env.NEAR_PRIVATE_KEY ||
+    process.env.NEAR_PRIVATE_KEY === "ed25519:your-private-key-here"
+  ) {
+    return res.status(200).json({
+      success: true,
+      txHash: null,
+      message: `MPP payment verified! Puzzle creation queued (NEAR credentials not configured for on-chain submission).`,
+      paymentMethod: "tempo",
+      demo: true,
+    });
+  }
+
   try {
     const near = await getNearConnection();
     const account = await near.account(process.env.NEAR_ACCOUNT_ID);

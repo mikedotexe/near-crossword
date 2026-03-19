@@ -66,8 +66,11 @@ const CrosswordForm = ({ allowMpp = false }) => {
         const receiptInfo = result.receipt
           ? ` | Tempo TX: ${result.receipt.reference?.slice(0, 10)}...`
           : "";
+        const nearInfo = result.txHash
+          ? `NEAR TX: ${result.txHash.slice(0, 10)}...`
+          : "MPP payment verified";
         setCommitStatus(
-          `Puzzle created on NEAR (TX: ${result.txHash?.slice(0, 10)}...). Paid via Tempo MPP.${receiptInfo}`
+          `${nearInfo}. Paid via Tempo MPP.${receiptInfo}${result.demo ? " (demo mode)" : ""}`
         );
         trackEvent("create_commit_mpp_success");
         // Refresh balance
