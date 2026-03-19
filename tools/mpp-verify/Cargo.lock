@@ -232,6 +232,7 @@ checksum = "f8ca58f447f06ed17d5fc4043ce1b10dd205e060fb3ce5b979b8ed8e59ff3f79"
 [[package]]
 name = "mpp"
 version = "0.5.0"
+source = "git+https://github.com/tempoxyz/mpp-rs#102bef4db346e4273b122daccad1a5dda7b2f22a"
 dependencies = [
  "base64",
  "hmac",

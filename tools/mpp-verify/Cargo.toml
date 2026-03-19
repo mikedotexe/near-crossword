@@ -9,7 +9,7 @@ name = "mpp-verify"
 path = "src/main.rs"
 
 [dependencies]
-mpp = { path = "/Users/mikepurvis/other/mpp-rs", default-features = false }
+mpp = { git = "https://github.com/tempoxyz/mpp-rs", default-features = false }
 serde_json = "1"
 base64 = "0.22"
 clap = { version = "4", features = ["derive"] }
