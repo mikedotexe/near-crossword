@@ -47,6 +47,46 @@ const LandingPage = ({ hasActivePuzzle }) => {
           <Link href="/create">Get started here</Link>.
         </p>
       </article>
+
+      <article className="card">
+        <p className="eyebrow">Powered by Tempo MPP</p>
+        <h3>Pay with any currency</h3>
+        <p>
+          Create puzzles using USDC, stablecoins, or other tokens via
+          Tempo&apos;s Machine Payments Protocol. No NEAR wallet needed to get
+          started — pay with what you have.
+        </p>
+        <ul className="step-list">
+          <li>
+            <strong>Multi-currency:</strong> Pay with USDC on Tempo instead of
+            NEAR
+          </li>
+          <li>
+            <strong>HTTP 402 flow:</strong> Seamless payment integrated into API
+            requests
+          </li>
+          <li>
+            <strong>Cross-chain:</strong> Your Tempo payment funds NEAR puzzles
+            automatically
+          </li>
+        </ul>
+        <div className="button-row" style={{ marginTop: "1rem" }}>
+          <Link
+            className="button button-primary"
+            href="/create"
+            onClick={() => trackEvent("landing_mpp_create_click")}
+          >
+            Create with Tempo
+          </Link>
+          <Link
+            className="button button-secondary"
+            href="/ai-studio"
+            onClick={() => trackEvent("landing_mpp_ai_click")}
+          >
+            AI Studio
+          </Link>
+        </div>
+      </article>
     </section>
   );
 };

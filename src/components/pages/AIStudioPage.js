@@ -3,6 +3,13 @@ import { useRouter } from "next/router";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { trackEvent } from "../../lib/analytics";
+import {
+  generateCluesWithMpp,
+  getTempoBalance,
+  fundTempoAccount,
+  getTempoAddress,
+  ensureFunded,
+} from "../../lib/mpp-client";
 
 const DRAFT_KEY = "aiCrosswordDraft";
 const MAX_FILE_SIZE = 15 * 1024 * 1024;
@@ -40,6 +47,12 @@ const AIStudioPage = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [asyncMode, setAsyncMode] = useState(false);
 
+  // MPP state
+  const [useMpp, setUseMpp] = useState(false);
+  const [tempoBalance, setTempoBalance] = useState(null);
+  const [tempoAddress, setTempoAddress] = useState(null);
+  const [fundingTempo, setFundingTempo] = useState(false);
+
   useEffect(() => {
     const savedDraft = localStorage.getItem(DRAFT_KEY);
     if (!savedDraft) return;
@@ -54,6 +67,26 @@ const AIStudioPage = () => {
   useEffect(() => {
     localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
   }, [draft]);
+
+  useEffect(() => {
+    if (useMpp) {
+      setTempoAddress(getTempoAddress());
+      // Check balance and auto-fund if zero (testnet faucet)
+      ensureFunded().then(setTempoBalance).catch(() => setTempoBalance(0));
+    }
+  }, [useMpp]);
+
+  const handleFundTempo = async () => {
+    setFundingTempo(true);
+    try {
+      const balance = await fundTempoAccount();
+      setTempoBalance(balance);
+    } catch (err) {
+      setErrorMessage("Failed to fund Tempo account: " + err.message);
+    } finally {
+      setFundingTempo(false);
+    }
+  };
 
   const updateField = (event) => {
     const { name, value } = event.target;
@@ -129,7 +162,7 @@ const AIStudioPage = () => {
         return;
       }
 
-      // Sync mode: existing flow
+      // Sync mode: build request body
       let body;
       if (inputMode === "pdf") {
         body = { pdfBase64, tone: draft.tone, objective: draft.objective };
@@ -139,21 +172,36 @@ const AIStudioPage = () => {
         body = { youtubeUrl: youtubeUrl.trim(), tone: draft.tone, objective: draft.objective };
       }
 
-      const response = await fetch("/api/generate-clues", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
+      let response;
 
-      const data = await response.json();
+      let data;
 
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to generate clues.");
+      if (useMpp) {
+        // MPP-paid generation
+        trackEvent("ai_mpp_generation_start");
+        data = await generateCluesWithMpp(body);
+      } else {
+        // Free/existing flow
+        const response = await fetch("/api/generate-clues", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+
+        data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || "Failed to generate clues.");
+        }
       }
 
       setVariations(data.variations);
       setPhase("review");
-      trackEvent("ai_pdf_upload_success");
+      trackEvent(useMpp ? "ai_mpp_generation_success" : "ai_pdf_upload_success");
+
+      // Refresh Tempo balance after MPP payment
+      if (useMpp) {
+        getTempoBalance().then(setTempoBalance).catch(() => {});
+      }
     } catch (error) {
       console.error("AI generation failed:", error);
       setErrorMessage(error.message || "Something went wrong. Please try again.");
@@ -199,7 +247,9 @@ const AIStudioPage = () => {
               : "Fetching transcript and generating clues\u2026"}
           </p>
           <p style={{ fontSize: "0.85rem", opacity: 0.8 }}>
-            This may take up to a minute.
+            {useMpp
+              ? "Processing Tempo payment and generating clues..."
+              : "This may take up to a minute."}
           </p>
         </div>
       )}
@@ -297,7 +347,52 @@ const AIStudioPage = () => {
             </select>
           </div>
 
-          {session && (
+          {/* MPP payment toggle */}
+          <div
+            className="field-group"
+            style={{
+              background: useMpp ? "rgba(99,102,241,0.08)" : "transparent",
+              padding: useMpp ? "16px" : "0",
+              borderRadius: "8px",
+              transition: "all 0.2s",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <input
+                type="checkbox"
+                id="useMpp"
+                checked={useMpp}
+                onChange={(e) => setUseMpp(e.target.checked)}
+              />
+              <label htmlFor="useMpp" style={{ fontWeight: 600 }}>
+                Pay with Tempo MPP ($0.10 USDC per generation)
+              </label>
+            </div>
+
+            {useMpp && (
+              <div style={{ marginTop: "12px" }}>
+                {tempoAddress ? (
+                  <p style={{ margin: "0 0 4px", fontSize: "13px", wordBreak: "break-all", opacity: 0.7 }}>
+                    Account: {tempoAddress}
+                  </p>
+                ) : null}
+                <p style={{ margin: "0 0 8px" }}>
+                  Balance: {tempoBalance !== null ? `$${tempoBalance.toFixed(2)} USDC` : "Loading..."}
+                </p>
+                <button
+                  className="button button-secondary"
+                  type="button"
+                  onClick={handleFundTempo}
+                  disabled={fundingTempo}
+                  style={{ fontSize: "0.85rem" }}
+                >
+                  {fundingTempo ? "Funding..." : "Fund from Faucet (Testnet)"}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {session && !useMpp && (
             <div className="async-toggle">
               <input
                 type="checkbox"
@@ -317,7 +412,11 @@ const AIStudioPage = () => {
               type="submit"
               disabled={!canSubmit}
             >
-              {asyncMode && session ? "Submit Job" : "Generate Clues"}
+              {useMpp
+                ? "Pay & Generate Clues"
+                : asyncMode && session
+                ? "Submit Job"
+                : "Generate Clues"}
             </button>
           </div>
         </form>

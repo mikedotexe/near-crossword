@@ -16,6 +16,7 @@
     "crossword-layout-generator": "^0.1.1",
     "dotenv": "^16.4.7",
     "env-cmd": "^11.0.0",
+    "mppx": "^0.4.7",
     "near-api-js": "^5.1.1",
     "near-seed-phrase": "github:near/near-seed-phrase",
     "next": "15.5.12",
@@ -30,6 +31,7 @@
     "styled-components": "^5.3.11",
     "twitter-api-v2": "^1.29.0",
     "uuid": "^11.1.0",
+    "viem": "^2.47.5",
     "youtube-caption-extractor": "^1.9.1"
   },
   "scripts": {

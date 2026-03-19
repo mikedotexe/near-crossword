@@ -7,6 +7,7 @@ const CreatePage = () => {
   const [walletConnected, setWalletConnected] = useState(false);
   const [connectingWallet, setConnectingWallet] = useState(false);
   const [walletError, setWalletError] = useState("");
+  const [useMpp, setUseMpp] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -67,7 +68,8 @@ const CreatePage = () => {
     }
   };
 
-  if (walletConnected) {
+  // If wallet is connected or using MPP, show the form
+  if (walletConnected || useMpp) {
     return (
       <section className="card form-card">
         <div className="section-header">
@@ -76,10 +78,10 @@ const CreatePage = () => {
           <ol className="step-list compact-list">
             <li>Write your clues and answers</li>
             <li>Set a reward amount</li>
-            <li>Publish</li>
+            <li>Choose payment method &amp; publish</li>
           </ol>
         </div>
-        <CrosswordForm />
+        <CrosswordForm allowMpp={true} />
       </section>
     );
   }
@@ -89,15 +91,27 @@ const CreatePage = () => {
       <p className="eyebrow">Get Started</p>
       <h2>Connect your wallet to create puzzles</h2>
       <p>
-        You&apos;ll need a NEAR wallet to publish puzzles and attach rewards.
+        You&apos;ll need a NEAR wallet to publish puzzles and attach rewards,
+        or you can pay with Tempo tokens via MPP.
       </p>
-      <button
-        className="button button-primary"
-        onClick={onConnectWallet}
-        disabled={connectingWallet}
-      >
-        {connectingWallet ? "Connecting wallet..." : "Connect Wallet to Start"}
-      </button>
+      <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+        <button
+          className="button button-primary"
+          onClick={onConnectWallet}
+          disabled={connectingWallet}
+        >
+          {connectingWallet ? "Connecting wallet..." : "Connect NEAR Wallet"}
+        </button>
+        <button
+          className="button button-secondary"
+          onClick={() => {
+            setUseMpp(true);
+            trackEvent("create_use_mpp_click");
+          }}
+        >
+          Pay with Tempo (MPP)
+        </button>
+      </div>
       {walletError ? <p className="error-msg">{walletError}</p> : null}
     </section>
   );

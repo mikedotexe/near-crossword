@@ -57,6 +57,20 @@ Authenticated users can submit AI Studio jobs asynchronously:
 
 Job statuses: `pending` → `processing` → `completed` | `failed` (max 2 retries).
 
+### Tempo MPP Integration (`src/lib/mpp-*.js`, `pages/api/mpp/`)
+Multi-currency payments via Tempo's Machine Payments Protocol (HTTP 402 flow).
+
+- `src/lib/mpp-server.js` — server-side MPP handler (Tempo charge method, USDC on Tempo mainnet)
+- `src/lib/mpp-client.js` — client-side MPP handler (auto-handles 402, manages Tempo account in localStorage, auto-funds via faucet, receipt extraction)
+- `pages/api/mpp/create-puzzle.js` — MPP-gated puzzle creation: verifies Tempo payment, then creates puzzle on NEAR using server's account
+- `pages/api/mpp/generate-clues.js` — MPP-gated AI clue generation ($0.10/generation via Tempo)
+- `pages/api/mpp/status.js` — MPP configuration status (prices, currency, network)
+- Cross-chain pattern: user pays with Tempo tokens (USDC) → server funds puzzle with NEAR
+- Uses `mppx` npm package (TypeScript SDK) + `viem` for Tempo blockchain interactions
+- Auto-funds new Tempo accounts from faucet (testnet) when balance is zero
+- Tempo wallet address for receiving: configured via `MPP_RECIPIENT` env var
+- MPP env vars: `MPP_RECIPIENT`, `MPP_SECRET_KEY`, `MPP_CURRENCY`, `MPP_REALM`, `MPP_TESTNET`, `NEXT_PUBLIC_MPP_TESTNET`
+
 ## Build Commands
 
 - **Contract**: `cd contract && cargo build --target wasm32-unknown-unknown --release`
