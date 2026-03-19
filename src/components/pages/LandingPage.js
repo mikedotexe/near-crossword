@@ -13,7 +13,7 @@ const LandingPage = ({ hasActivePuzzle }) => {
           directly to their wallet.
         </p>
         <p className="trust-line">
-          No sign-up required — just connect a wallet and play.
+          No sign-up required — connect a wallet or pay with dollars to start.
         </p>
 
         <div className="button-row">
@@ -49,26 +49,16 @@ const LandingPage = ({ hasActivePuzzle }) => {
       </article>
 
       <article className="card">
-        <p className="eyebrow">Powered by Tempo MPP</p>
-        <h3>Pay with any currency</h3>
+        <p className="eyebrow">New</p>
+        <h3>Pay with dollars, not just crypto</h3>
         <p>
-          Create puzzles using USDC, stablecoins, or other tokens via
-          Tempo&apos;s Machine Payments Protocol. No NEAR wallet needed to get
-          started — pay with what you have.
+          Fund puzzles with USDC instead of NEAR. No crypto wallet needed
+          — payment happens in the background when you hit publish.
         </p>
         <ul className="step-list">
-          <li>
-            <strong>Multi-currency:</strong> Pay with USDC on Tempo instead of
-            NEAR
-          </li>
-          <li>
-            <strong>HTTP 402 flow:</strong> Seamless payment integrated into API
-            requests
-          </li>
-          <li>
-            <strong>Cross-chain:</strong> Your Tempo payment funds NEAR puzzles
-            automatically
-          </li>
+          <li>Write your clues and set a reward amount</li>
+          <li>Choose &ldquo;Pay with USDC&rdquo; at checkout</li>
+          <li>Your puzzle goes live on NEAR automatically</li>
         </ul>
         <div className="button-row" style={{ marginTop: "1rem" }}>
           <Link
@@ -76,7 +66,7 @@ const LandingPage = ({ hasActivePuzzle }) => {
             href="/create"
             onClick={() => trackEvent("landing_mpp_create_click")}
           >
-            Create with Tempo
+            Create a Puzzle
           </Link>
           <Link
             className="button button-secondary"

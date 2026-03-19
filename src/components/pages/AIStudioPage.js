@@ -82,7 +82,7 @@ const AIStudioPage = () => {
       const balance = await fundTempoAccount();
       setTempoBalance(balance);
     } catch (err) {
-      setErrorMessage("Failed to fund Tempo account: " + err.message);
+      setErrorMessage("Could not add funds: " + err.message);
     } finally {
       setFundingTempo(false);
     }
@@ -248,7 +248,7 @@ const AIStudioPage = () => {
           </p>
           <p style={{ fontSize: "0.85rem", opacity: 0.8 }}>
             {useMpp
-              ? "Processing Tempo payment and generating clues..."
+              ? "Processing payment and generating clues..."
               : "This may take up to a minute."}
           </p>
         </div>
@@ -365,29 +365,28 @@ const AIStudioPage = () => {
                 onChange={(e) => setUseMpp(e.target.checked)}
               />
               <label htmlFor="useMpp" style={{ fontWeight: 600 }}>
-                Pay with Tempo MPP ($0.10 USDC per generation)
+                Pay with USDC ($0.10 per generation)
               </label>
             </div>
 
             {useMpp && (
               <div style={{ marginTop: "12px" }}>
-                {tempoAddress ? (
-                  <p style={{ margin: "0 0 4px", fontSize: "13px", wordBreak: "break-all", opacity: 0.7 }}>
-                    Account: {tempoAddress}
-                  </p>
-                ) : null}
                 <p style={{ margin: "0 0 8px" }}>
-                  Balance: {tempoBalance !== null ? `$${tempoBalance.toFixed(2)} USDC` : "Loading..."}
+                  {tempoBalance !== null
+                    ? `$${tempoBalance.toFixed(2)} USDC available`
+                    : "Checking balance..."}
                 </p>
-                <button
-                  className="button button-secondary"
-                  type="button"
-                  onClick={handleFundTempo}
-                  disabled={fundingTempo}
-                  style={{ fontSize: "0.85rem" }}
-                >
-                  {fundingTempo ? "Funding..." : "Fund from Faucet (Testnet)"}
-                </button>
+                {tempoBalance !== null && tempoBalance < 0.1 ? (
+                  <button
+                    className="button button-secondary"
+                    type="button"
+                    onClick={handleFundTempo}
+                    disabled={fundingTempo}
+                    style={{ fontSize: "0.85rem" }}
+                  >
+                    {fundingTempo ? "Adding funds..." : "Add test funds"}
+                  </button>
+                ) : null}
               </div>
             )}
           </div>
@@ -413,7 +412,7 @@ const AIStudioPage = () => {
               disabled={!canSubmit}
             >
               {useMpp
-                ? "Pay & Generate Clues"
+                ? "Pay & Generate"
                 : asyncMode && session
                 ? "Submit Job"
                 : "Generate Clues"}

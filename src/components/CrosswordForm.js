@@ -45,14 +45,14 @@ const CrosswordForm = ({ allowMpp = false }) => {
       const balance = await fundTempoAccount();
       setTempoBalance(balance);
     } catch (err) {
-      setCommitError("Failed to fund Tempo account: " + err.message);
+      setCommitError("Could not add funds: " + err.message);
     } finally {
       setFundingTempo(false);
     }
   };
 
   const handleCommitPuzzleMpp = async () => {
-    setCommitStatus("Processing payment via Tempo...");
+    setCommitStatus("Processing payment...");
     setCommitError("");
     trackEvent("create_commit_mpp_initiated", {
       clue_count: validClueAnswers.length,
@@ -63,15 +63,11 @@ const CrosswordForm = ({ allowMpp = false }) => {
       const result = await createPuzzleWithMpp(validClueAnswers, prizeDeposit);
 
       if (result.success) {
-        const receiptInfo = result.receipt
-          ? ` | Tempo TX: ${result.receipt.reference?.slice(0, 10)}...`
-          : "";
-        const nearInfo = result.txHash
-          ? `NEAR TX: ${result.txHash.slice(0, 10)}...`
-          : "MPP payment verified";
-        setCommitStatus(
-          `${nearInfo}. Paid via Tempo MPP.${receiptInfo}${result.demo ? " (demo mode)" : ""}`
-        );
+        if (result.demo) {
+          setCommitStatus("Payment received — puzzle will go live shortly.");
+        } else {
+          setCommitStatus("Puzzle is live! Payment confirmed.");
+        }
         trackEvent("create_commit_mpp_success");
         // Refresh balance
         getTempoBalance().then(setTempoBalance).catch(() => {});
@@ -81,7 +77,7 @@ const CrosswordForm = ({ allowMpp = false }) => {
     } catch (error) {
       console.error("MPP commit failed:", error);
       setCommitStatus("");
-      setCommitError(error.message || "MPP payment failed.");
+      setCommitError(error.message || "Payment failed. Please try again.");
       trackEvent("create_commit_mpp_fail", { reason: error.message });
     }
   };
@@ -328,7 +324,7 @@ const CrosswordForm = ({ allowMpp = false }) => {
 
             {allowMpp ? (
               <div className="field-group">
-                <label>Payment Method:</label>
+                <label>Pay with:</label>
                 <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
                   <label style={{ display: "flex", alignItems: "center", gap: "6px", cursor: "pointer" }}>
                     <input
@@ -338,7 +334,7 @@ const CrosswordForm = ({ allowMpp = false }) => {
                       checked={paymentMethod === "near"}
                       onChange={() => setPaymentMethod("near")}
                     />
-                    NEAR Wallet
+                    NEAR
                   </label>
                   <label style={{ display: "flex", alignItems: "center", gap: "6px", cursor: "pointer" }}>
                     <input
@@ -348,7 +344,7 @@ const CrosswordForm = ({ allowMpp = false }) => {
                       checked={paymentMethod === "mpp"}
                       onChange={() => setPaymentMethod("mpp")}
                     />
-                    Tempo MPP (Multi-Currency)
+                    USDC
                   </label>
                 </div>
               </div>
@@ -356,26 +352,24 @@ const CrosswordForm = ({ allowMpp = false }) => {
 
             {paymentMethod === "mpp" ? (
               <div className="field-group" style={{ background: "rgba(99,102,241,0.08)", padding: "16px", borderRadius: "8px" }}>
-                <p style={{ margin: "0 0 8px", fontWeight: 600 }}>Tempo Account</p>
-                {tempoAddress ? (
-                  <p style={{ margin: "0 0 4px", fontSize: "13px", wordBreak: "break-all", opacity: 0.7 }}>
-                    {tempoAddress}
-                  </p>
-                ) : null}
                 <p style={{ margin: "0 0 8px" }}>
-                  Balance: {tempoBalance !== null ? `$${tempoBalance.toFixed(2)} USDC` : "Loading..."}
+                  {tempoBalance !== null
+                    ? `$${tempoBalance.toFixed(2)} USDC available`
+                    : "Checking balance..."}
                 </p>
-                <button
-                  className="button button-secondary"
-                  type="button"
-                  onClick={handleFundTempo}
-                  disabled={fundingTempo}
-                  style={{ marginBottom: "8px" }}
-                >
-                  {fundingTempo ? "Funding..." : "Get Testnet USDC (Faucet)"}
-                </button>
+                {tempoBalance !== null && tempoBalance < 1 ? (
+                  <button
+                    className="button button-secondary"
+                    type="button"
+                    onClick={handleFundTempo}
+                    disabled={fundingTempo}
+                    style={{ marginBottom: "8px" }}
+                  >
+                    {fundingTempo ? "Adding funds..." : "Add test funds"}
+                  </button>
+                ) : null}
                 <p style={{ margin: 0, fontSize: "12px", opacity: 0.6 }}>
-                  Pay with USDC on Tempo instead of NEAR. The server funds the puzzle on-chain.
+                  $1.00 USDC per puzzle. Payment is processed automatically when you publish.
                 </p>
               </div>
             ) : null}
@@ -387,7 +381,7 @@ const CrosswordForm = ({ allowMpp = false }) => {
                   type="button"
                   onClick={handleCommitPuzzle}
                 >
-                  Commit Puzzle to Smart Contract
+                  Publish Puzzle
                 </button>
               ) : (
                 <button
@@ -395,7 +389,7 @@ const CrosswordForm = ({ allowMpp = false }) => {
                   type="button"
                   onClick={handleCommitPuzzleMpp}
                 >
-                  Pay with Tempo &amp; Create Puzzle
+                  Pay &amp; Publish
                 </button>
               )}
               {commitStatus ? <p className="info-msg">{commitStatus}</p> : null}
