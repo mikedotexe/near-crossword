@@ -9,6 +9,7 @@ import {
   fundTempoAccount,
   getTempoAddress,
   ensureFunded,
+  recordPayment,
   TEMPO_EXPLORER,
 } from "../../lib/mpp-client";
 
@@ -197,6 +198,11 @@ const AIStudioPage = () => {
       setVariations(data.variations);
       if (useMpp && data.receipt) {
         setPaymentReceipt(data.receipt);
+        recordPayment({
+          type: "ai-clues",
+          amount: "0.10",
+          receipt: data.receipt,
+        });
       }
       setPhase("review");
       trackEvent(useMpp ? "ai_mpp_generation_success" : "ai_pdf_upload_success");

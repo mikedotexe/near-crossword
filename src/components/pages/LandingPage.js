@@ -1,8 +1,20 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { trackEvent } from "../../lib/analytics";
+import { getPaymentHistory, TEMPO_EXPLORER } from "../../lib/mpp-client";
+
+const NEAR_EXPLORER =
+  process.env.NEXT_PUBLIC_NEAR_NETWORK === "mainnet"
+    ? "https://nearblocks.io"
+    : "https://testnet.nearblocks.io";
 
 const LandingPage = ({ hasActivePuzzle }) => {
+  const [payments, setPayments] = useState([]);
+
+  useEffect(() => {
+    setPayments(getPaymentHistory());
+  }, []);
+
   return (
     <section className="page-grid">
       <article className="card hero-card">
@@ -83,6 +95,59 @@ const LandingPage = ({ hasActivePuzzle }) => {
           </Link>
         </div>
       </article>
+
+      {payments.length > 0 ? (
+        <article className="card">
+          <p className="eyebrow">Your Payments</p>
+          <h3>Recent cross-chain transactions</h3>
+          <div style={{ fontSize: "0.85rem" }}>
+            {payments.slice(0, 5).map((p, i) => (
+              <div
+                key={i}
+                style={{
+                  padding: "8px 0",
+                  borderBottom: i < Math.min(payments.length, 5) - 1 ? "1px solid rgba(0,0,0,0.06)" : "none",
+                }}
+              >
+                <span style={{ fontWeight: 600 }}>
+                  {p.type === "puzzle" ? "Puzzle" : "AI Clues"}
+                </span>
+                {" — "}
+                <span>${p.amount}</span>
+                {p.demo ? (
+                  <span style={{ fontSize: "0.75rem", color: "var(--muted)", marginLeft: "6px" }}>
+                    (demo)
+                  </span>
+                ) : null}
+                <div style={{ marginTop: "2px", fontSize: "0.78rem", color: "var(--muted)" }}>
+                  {p.reference ? (
+                    <a
+                      href={`${TEMPO_EXPLORER}/tx/${p.reference}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: "var(--primary)", marginRight: "8px" }}
+                    >
+                      Tempo tx
+                    </a>
+                  ) : null}
+                  {p.nearTxHash ? (
+                    <a
+                      href={`${NEAR_EXPLORER}/txns/${p.nearTxHash}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: "var(--primary)" }}
+                    >
+                      NEAR tx
+                    </a>
+                  ) : null}
+                  {" "}
+                  {new Date(p.timestamp).toLocaleString()}
+                </div>
+              </div>
+            ))}
+          </div>
+        </article>
+      ) : null}
     </section>
   );
 };

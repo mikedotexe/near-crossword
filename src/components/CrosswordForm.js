@@ -11,6 +11,7 @@ import {
   fundTempoAccount,
   getTempoAddress,
   ensureFunded,
+  recordPayment,
   TEMPO_EXPLORER,
 } from "../lib/mpp-client";
 
@@ -94,6 +95,13 @@ const CrosswordForm = ({ allowMpp = false }) => {
           setCommitStatus("Puzzle is live on NEAR! Tempo payment confirmed.");
         }
         trackEvent("create_commit_mpp_success");
+        recordPayment({
+          type: "puzzle",
+          amount: "1.00",
+          receipt: result.receipt,
+          nearTxHash: result.txHash,
+          demo: result.demo,
+        });
         // Refresh balance
         getTempoBalance().then(setTempoBalance).catch(() => {});
       } else {

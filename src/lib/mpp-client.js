@@ -105,6 +105,34 @@ export async function ensureFunded() {
   return fundTempoAccount();
 }
 
+const HISTORY_KEY = "mpp_payment_history";
+const MAX_HISTORY = 20;
+
+export function recordPayment({ type, amount, receipt, nearTxHash, demo }) {
+  try {
+    const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+    history.unshift({
+      type,
+      amount,
+      reference: receipt?.reference || null,
+      nearTxHash: nearTxHash || null,
+      demo: demo || false,
+      timestamp: new Date().toISOString(),
+    });
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, MAX_HISTORY)));
+  } catch {
+    // localStorage unavailable
+  }
+}
+
+export function getPaymentHistory() {
+  try {
+    return JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+  } catch {
+    return [];
+  }
+}
+
 function extractReceipt(response) {
   try {
     const header = response.headers.get("payment-receipt");
