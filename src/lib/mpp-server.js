@@ -1,11 +1,11 @@
 import { Mppx, tempo } from "mppx/server";
 
-// USDC on Tempo mainnet (chain 4217)
-const DEFAULT_CURRENCY = "0x20c000000000000000000000b9537d11c60e8b50";
+// pathUSD on Tempo Moderato testnet (hackathon default — free faucet, no setup)
+const DEFAULT_CURRENCY = "0x20c0000000000000000000000000000000000000";
 
 const CURRENCY = process.env.MPP_CURRENCY || DEFAULT_CURRENCY;
 const RECIPIENT = process.env.MPP_RECIPIENT;
-const IS_TESTNET = process.env.MPP_TESTNET === "true";
+const IS_TESTNET = process.env.MPP_TESTNET !== "false";
 
 let mppInstance = null;
 

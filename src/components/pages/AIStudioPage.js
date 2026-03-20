@@ -9,6 +9,7 @@ import {
   fundTempoAccount,
   getTempoAddress,
   ensureFunded,
+  TEMPO_EXPLORER,
 } from "../../lib/mpp-client";
 
 const DRAFT_KEY = "aiCrosswordDraft";
@@ -45,10 +46,11 @@ const AIStudioPage = () => {
   const [phase, setPhase] = useState("idle");
   const [variations, setVariations] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
+  const [paymentReceipt, setPaymentReceipt] = useState(null);
   const [asyncMode, setAsyncMode] = useState(false);
 
-  // MPP state
-  const [useMpp, setUseMpp] = useState(false);
+  // MPP state — default to enabled for hackathon demo
+  const [useMpp, setUseMpp] = useState(true);
   const [tempoBalance, setTempoBalance] = useState(null);
   const [tempoAddress, setTempoAddress] = useState(null);
   const [fundingTempo, setFundingTempo] = useState(false);
@@ -172,8 +174,6 @@ const AIStudioPage = () => {
         body = { youtubeUrl: youtubeUrl.trim(), tone: draft.tone, objective: draft.objective };
       }
 
-      let response;
-
       let data;
 
       if (useMpp) {
@@ -195,6 +195,9 @@ const AIStudioPage = () => {
       }
 
       setVariations(data.variations);
+      if (useMpp && data.receipt) {
+        setPaymentReceipt(data.receipt);
+      }
       setPhase("review");
       trackEvent(useMpp ? "ai_mpp_generation_success" : "ai_pdf_upload_success");
 
@@ -220,6 +223,7 @@ const AIStudioPage = () => {
     setPhase("idle");
     setVariations(null);
     setErrorMessage("");
+    setPaymentReceipt(null);
     setFile(null);
     setYoutubeUrl("");
     setPastedText("");
@@ -248,7 +252,7 @@ const AIStudioPage = () => {
           </p>
           <p style={{ fontSize: "0.85rem", opacity: 0.8 }}>
             {useMpp
-              ? "Processing payment and generating clues..."
+              ? "Verifying payment on Tempo, then generating clues\u2026"
               : "This may take up to a minute."}
           </p>
         </div>
@@ -365,7 +369,7 @@ const AIStudioPage = () => {
                 onChange={(e) => setUseMpp(e.target.checked)}
               />
               <label htmlFor="useMpp" style={{ fontWeight: 600 }}>
-                Pay with USDC ($0.10 per generation)
+                Pay with dollars ($0.10 per generation)
               </label>
             </div>
 
@@ -373,7 +377,7 @@ const AIStudioPage = () => {
               <div style={{ marginTop: "12px" }}>
                 <p style={{ margin: "0 0 8px" }}>
                   {tempoBalance !== null
-                    ? `$${tempoBalance.toFixed(2)} USDC available`
+                    ? `$${tempoBalance.toFixed(2)} available`
                     : "Checking balance..."}
                 </p>
                 {tempoBalance !== null && tempoBalance < 0.1 ? (
@@ -386,6 +390,19 @@ const AIStudioPage = () => {
                   >
                     {fundingTempo ? "Adding funds..." : "Add test funds"}
                   </button>
+                ) : null}
+                {tempoAddress ? (
+                  <p style={{ margin: "8px 0 0", fontSize: "0.78rem", color: "var(--muted)" }}>
+                    Tempo account:{" "}
+                    <a
+                      href={`${TEMPO_EXPLORER}/address/${tempoAddress}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: "var(--primary)" }}
+                    >
+                      {tempoAddress.slice(0, 8)}...{tempoAddress.slice(-6)}
+                    </a>
+                  </p>
                 ) : null}
               </div>
             )}
@@ -409,7 +426,7 @@ const AIStudioPage = () => {
             <button
               className="button button-primary"
               type="submit"
-              disabled={!canSubmit}
+              disabled={!canSubmit || (useMpp && tempoBalance !== null && tempoBalance < 0.1)}
             >
               {useMpp
                 ? "Pay & Generate"
@@ -417,12 +434,35 @@ const AIStudioPage = () => {
                 ? "Submit Job"
                 : "Generate Clues"}
             </button>
+            {useMpp && tempoBalance !== null && tempoBalance < 0.1 ? (
+              <p className="form-text" style={{ marginTop: "4px" }}>
+                Insufficient balance. Click &ldquo;Add test funds&rdquo; above.
+              </p>
+            ) : null}
           </div>
         </form>
       )}
 
       {phase === "review" && variations && (
         <div>
+          {paymentReceipt ? (
+            <div style={{ marginBottom: "1rem", padding: "12px", background: "rgba(16,185,129,0.08)", borderRadius: "8px", fontSize: "0.85rem" }}>
+              <p style={{ margin: "0 0 4px", fontWeight: 600, color: "var(--foreground)" }}>
+                Tempo payment confirmed
+              </p>
+              <p style={{ margin: 0, color: "var(--secondary)" }}>
+                Ref: {paymentReceipt.reference}{" "}
+                <a
+                  href={`${TEMPO_EXPLORER}/tx/${paymentReceipt.reference}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: "var(--primary)" }}
+                >
+                  View on explorer
+                </a>
+              </p>
+            </div>
+          ) : null}
           <p style={{ marginBottom: "1rem" }}>
             Pick a variation to use, then edit the clues on the Create page.
           </p>

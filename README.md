@@ -119,15 +119,39 @@ Tempo MPP (Multi-Currency Payments)
 =====================================
 
 The app integrates Tempo's Machine Payments Protocol (MPP) to accept payments
-in USDC and other tokens, in addition to NEAR. This enables a cross-chain
-payment flow: users pay with Tempo tokens, and the server funds puzzles on
-NEAR using its own account.
+in addition to NEAR. This enables a cross-chain payment flow: users pay with
+Tempo tokens, and the server funds puzzles on NEAR using its own account.
+
+**The app defaults to Tempo Moderato testnet** (chain ID 42431). Judges and
+new users get free test funds automatically from the faucet — no MetaMask, no
+API keys, no sign-up required. Transactions can be verified at
+https://explore.moderato.tempo.xyz.
+
+To switch to Tempo mainnet with real USDC, set `MPP_TESTNET=false` and
+`NEXT_PUBLIC_MPP_TESTNET=false` and update `MPP_CURRENCY` to the mainnet
+USDC address.
 
 **How it works:**
 
-1. User clicks "Pay with Tempo" on the Create or AI Studio page
+```
+  Browser (mppx client)              Server (mppx server)           Blockchains
+  ─────────────────────              ────────────────────           ──────────
+  1. POST /api/mpp/create-puzzle ──→ 2. No payment credential
+                                        → 402 + WWW-Authenticate
+  3. ← 402 Payment Required ←───────
+  4. Auto-sign Tempo tx
+     (TIP-20 transfer) ─────────────→                         ──→ 5. Tempo: verify
+  6.                                    Payment verified             transfer
+                                        → new_puzzle()         ──→ 7. NEAR: create
+  8. ← 200 + Payment-Receipt ←──────                                puzzle on-chain
+     + txHash
+  9. Show cross-chain receipt
+     (Tempo link + NEAR link)
+```
+
+1. User clicks "Pay with dollars" on the Create or AI Studio page
 2. Browser generates an ephemeral Tempo account (stored in localStorage)
-3. User funds the account from the testnet faucet (or transfers USDC)
+3. Account is automatically funded from the testnet faucet when balance is zero
 4. When submitting, the API returns HTTP 402 with a `WWW-Authenticate: Payment` challenge
 5. The mppx client auto-signs a Tempo transaction and retries with an `Authorization: Payment` credential
 6. Server verifies the payment on-chain, then creates the puzzle on NEAR
@@ -135,25 +159,33 @@ NEAR using its own account.
 **API Endpoints:**
 
 - `GET /api/mpp/status` — check if MPP is enabled, see prices and currency
-- `POST /api/mpp/create-puzzle` — MPP-gated puzzle creation ($1.00 USDC)
-- `POST /api/mpp/generate-clues` — MPP-gated AI generation ($0.10 USDC)
+- `POST /api/mpp/create-puzzle` — MPP-gated puzzle creation ($1.00)
+- `POST /api/mpp/generate-clues` — MPP-gated AI generation ($0.10)
 
 **Required env vars:**
 
 - `MPP_RECIPIENT` — Tempo address to receive payments
 - `MPP_SECRET_KEY` — HMAC key for challenge binding (`openssl rand -hex 32`)
-- `MPP_CURRENCY` — TIP-20 token address (default: USDC on Tempo mainnet)
-- `MPP_TESTNET` — set to `true` for Tempo Moderato testnet
-- `NEXT_PUBLIC_MPP_TESTNET` — client-side testnet flag
+- `MPP_CURRENCY` — TIP-20 token address (default: pathUSD on Moderato testnet)
+- `MPP_TESTNET` — defaults to `true` (Moderato testnet); set `false` for mainnet
+- `NEXT_PUBLIC_MPP_TESTNET` — client-side testnet flag (must match `MPP_TESTNET`)
 
-**Demo:**
+**Demo (browser):**
 
 ```bash
-# Start the dev server
 yarn dev
+# Open http://localhost:3000/create
+# Click "Pay with dollars" → "Load sample clues" → "Generate Sample Puzzle" → "Pay & Publish"
+# Open DevTools Network tab to see the HTTP 402 → 200 flow:
+#   1. POST /api/mpp/create-puzzle → 402 (WWW-Authenticate: Payment ...)
+#   2. POST /api/mpp/create-puzzle → 200 (Payment-Receipt header with tx reference)
+```
 
-# Run the MPP flow demo
+**Demo (CLI):**
+
+```bash
 bash scripts/test-mpp-flow.sh
+# Shows: status endpoint, 402 challenge parsing, Rust SDK verification
 ```
 
 **Dependencies:** `mppx` (TypeScript SDK), `viem` (Tempo blockchain interactions)

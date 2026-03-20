@@ -96,21 +96,25 @@ const CreatePage = () => {
       <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
         <button
           className="button button-primary"
-          onClick={onConnectWallet}
-          disabled={connectingWallet}
-        >
-          {connectingWallet ? "Connecting wallet..." : "Pay with NEAR"}
-        </button>
-        <button
-          className="button button-secondary"
           onClick={() => {
             setUseMpp(true);
             trackEvent("create_use_mpp_click");
           }}
         >
-          Pay with USDC
+          Pay with dollars
+        </button>
+        <button
+          className="button button-secondary"
+          onClick={onConnectWallet}
+          disabled={connectingWallet}
+        >
+          {connectingWallet ? "Connecting wallet..." : "Pay with NEAR wallet"}
         </button>
       </div>
+      <p style={{ marginTop: "0.5rem", fontSize: "0.82rem", color: "var(--muted)" }}>
+        Dollar payments use Tempo&apos;s Machine Payments Protocol (HTTP 402)
+        &mdash; no wallet, no sign-up, no checkout page.
+      </p>
       {walletError ? <p className="error-msg">{walletError}</p> : null}
     </section>
   );

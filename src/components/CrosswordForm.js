@@ -11,10 +11,22 @@ import {
   fundTempoAccount,
   getTempoAddress,
   ensureFunded,
+  TEMPO_EXPLORER,
 } from "../lib/mpp-client";
 
+const NEAR_EXPLORER =
+  process.env.NEXT_PUBLIC_NEAR_NETWORK === "mainnet"
+    ? "https://nearblocks.io"
+    : "https://testnet.nearblocks.io";
 const allowedAnswerRegex = /^[a-zA-Z0-9.-]?[a-zA-Z0-9_.-]*$/;
 const createBlankClue = () => ({ clue: "", answer: "" });
+const SAMPLE_CLUES = [
+  { clue: "HTTP status code for payment required", answer: "402" },
+  { clue: "Protocol for machine-to-machine payments", answer: "MPP" },
+  { clue: "Blockchain for smart contracts and dApps", answer: "NEAR" },
+  { clue: "Token standard on Tempo network", answer: "TIP-20" },
+  { clue: "Cryptographic proof of payment", answer: "RECEIPT" },
+];
 
 const CrosswordForm = ({ allowMpp = false }) => {
   const [clueAnswerArray, setClueAnswerArray] = useState([createBlankClue()]);
@@ -25,7 +37,10 @@ const CrosswordForm = ({ allowMpp = false }) => {
   const [hasErrors, setHasErrors] = useState(false);
   const [commitStatus, setCommitStatus] = useState("");
   const [commitError, setCommitError] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("near"); // "near" or "mpp"
+  const [paymentReceipt, setPaymentReceipt] = useState(null);
+  const [nearTxHash, setNearTxHash] = useState(null);
+  const [isDemoResult, setIsDemoResult] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("mpp"); // "near" or "mpp"
   const [tempoBalance, setTempoBalance] = useState(null);
   const [tempoAddress, setTempoAddress] = useState(null);
   const [fundingTempo, setFundingTempo] = useState(false);
@@ -52,8 +67,11 @@ const CrosswordForm = ({ allowMpp = false }) => {
   };
 
   const handleCommitPuzzleMpp = async () => {
-    setCommitStatus("Processing payment...");
+    setCommitStatus("Signing payment on Tempo\u2026");
     setCommitError("");
+    setPaymentReceipt(null);
+    setNearTxHash(null);
+    setIsDemoResult(false);
     trackEvent("create_commit_mpp_initiated", {
       clue_count: validClueAnswers.length,
       prize: prizeDeposit,
@@ -63,10 +81,17 @@ const CrosswordForm = ({ allowMpp = false }) => {
       const result = await createPuzzleWithMpp(validClueAnswers, prizeDeposit);
 
       if (result.success) {
+        if (result.receipt) {
+          setPaymentReceipt(result.receipt);
+        }
+        if (result.txHash) {
+          setNearTxHash(result.txHash);
+        }
+        setIsDemoResult(Boolean(result.demo));
         if (result.demo) {
-          setCommitStatus("Payment received — puzzle will go live shortly.");
+          setCommitStatus("Payment verified on Tempo! NEAR submission is simulated (server credentials not configured).");
         } else {
-          setCommitStatus("Puzzle is live! Payment confirmed.");
+          setCommitStatus("Puzzle is live on NEAR! Tempo payment confirmed.");
         }
         trackEvent("create_commit_mpp_success");
         // Refresh balance
@@ -267,6 +292,19 @@ const CrosswordForm = ({ allowMpp = false }) => {
           >
             + Add Word
           </button>
+          {validClueAnswers.length < 3 ? (
+            <button
+              className="button button-secondary"
+              type="button"
+              onClick={() => {
+                setClueAnswerArray(SAMPLE_CLUES);
+                trackEvent("create_load_sample");
+              }}
+              style={{ marginLeft: "8px" }}
+            >
+              Load sample clues
+            </button>
+          ) : null}
         </div>
 
         {hasErrors ? (
@@ -330,21 +368,21 @@ const CrosswordForm = ({ allowMpp = false }) => {
                     <input
                       type="radio"
                       name="paymentMethod"
-                      value="near"
-                      checked={paymentMethod === "near"}
-                      onChange={() => setPaymentMethod("near")}
+                      value="mpp"
+                      checked={paymentMethod === "mpp"}
+                      onChange={() => setPaymentMethod("mpp")}
                     />
-                    NEAR
+                    Dollars (Tempo)
                   </label>
                   <label style={{ display: "flex", alignItems: "center", gap: "6px", cursor: "pointer" }}>
                     <input
                       type="radio"
                       name="paymentMethod"
-                      value="mpp"
-                      checked={paymentMethod === "mpp"}
-                      onChange={() => setPaymentMethod("mpp")}
+                      value="near"
+                      checked={paymentMethod === "near"}
+                      onChange={() => setPaymentMethod("near")}
                     />
-                    USDC
+                    NEAR wallet
                   </label>
                 </div>
               </div>
@@ -354,7 +392,7 @@ const CrosswordForm = ({ allowMpp = false }) => {
               <div className="field-group" style={{ background: "rgba(99,102,241,0.08)", padding: "16px", borderRadius: "8px" }}>
                 <p style={{ margin: "0 0 8px" }}>
                   {tempoBalance !== null
-                    ? `$${tempoBalance.toFixed(2)} USDC available`
+                    ? `$${tempoBalance.toFixed(2)} available`
                     : "Checking balance..."}
                 </p>
                 {tempoBalance !== null && tempoBalance < 1 ? (
@@ -368,8 +406,21 @@ const CrosswordForm = ({ allowMpp = false }) => {
                     {fundingTempo ? "Adding funds..." : "Add test funds"}
                   </button>
                 ) : null}
+                {tempoAddress ? (
+                  <p style={{ margin: "0 0 4px", fontSize: "12px", opacity: 0.6 }}>
+                    Tempo account:{" "}
+                    <a
+                      href={`${TEMPO_EXPLORER}/address/${tempoAddress}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: "var(--primary)" }}
+                    >
+                      {tempoAddress.slice(0, 8)}...{tempoAddress.slice(-6)}
+                    </a>
+                  </p>
+                ) : null}
                 <p style={{ margin: 0, fontSize: "12px", opacity: 0.6 }}>
-                  $1.00 USDC per puzzle. Payment is processed automatically when you publish.
+                  $1.00 per puzzle via Tempo. Payment is processed automatically when you publish.
                 </p>
               </div>
             ) : null}
@@ -388,12 +439,56 @@ const CrosswordForm = ({ allowMpp = false }) => {
                   className="button button-primary"
                   type="button"
                   onClick={handleCommitPuzzleMpp}
+                  disabled={tempoBalance !== null && tempoBalance < 1}
                 >
                   Pay &amp; Publish
                 </button>
               )}
+              {paymentMethod === "mpp" && tempoBalance !== null && tempoBalance < 1 ? (
+                <p className="form-text" style={{ marginTop: "4px" }}>
+                  Insufficient balance. Click &ldquo;Add test funds&rdquo; above.
+                </p>
+              ) : null}
               {commitStatus ? <p className="info-msg">{commitStatus}</p> : null}
               {commitError ? <p className="error-msg">{commitError}</p> : null}
+              {paymentReceipt || nearTxHash ? (
+                <div style={{ marginTop: "8px", padding: "16px", background: "rgba(16,185,129,0.08)", borderRadius: "8px", fontSize: "0.85rem" }}>
+                  <p style={{ margin: "0 0 8px", fontWeight: 600, color: "var(--foreground)" }}>
+                    Cross-chain transaction
+                  </p>
+                  {paymentReceipt ? (
+                    <p style={{ margin: "0 0 4px", color: "var(--secondary)" }}>
+                      Tempo payment:{" "}
+                      <a
+                        href={`${TEMPO_EXPLORER}/tx/${paymentReceipt.reference}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: "var(--primary)" }}
+                      >
+                        {paymentReceipt.reference.slice(0, 10)}...{paymentReceipt.reference.slice(-6)}
+                      </a>
+                    </p>
+                  ) : null}
+                  {nearTxHash ? (
+                    <p style={{ margin: "0 0 4px", color: "var(--secondary)" }}>
+                      NEAR transaction:{" "}
+                      <a
+                        href={`${NEAR_EXPLORER}/txns/${nearTxHash}?tab=overview`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: "var(--primary)" }}
+                      >
+                        {nearTxHash.slice(0, 10)}...{nearTxHash.slice(-6)}
+                      </a>
+                    </p>
+                  ) : null}
+                  {isDemoResult ? (
+                    <p style={{ margin: "4px 0 0", fontSize: "0.78rem", fontStyle: "italic", color: "var(--muted)" }}>
+                      Demo mode &mdash; Tempo payment was real, NEAR submission skipped (configure NEAR_PRIVATE_KEY for full flow)
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
           </React.Fragment>
         ) : null}

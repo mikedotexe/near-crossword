@@ -49,17 +49,23 @@ const LandingPage = ({ hasActivePuzzle }) => {
       </article>
 
       <article className="card">
-        <p className="eyebrow">New</p>
-        <h3>Pay with dollars, not just crypto</h3>
+        <p className="eyebrow">Powered by Tempo</p>
+        <h3>Pay with dollars, no wallet needed</h3>
         <p>
-          Fund puzzles with USDC instead of NEAR. No crypto wallet needed
-          — payment happens in the background when you hit publish.
+          Fund puzzles without a crypto wallet. Tempo&apos;s Machine Payments
+          Protocol handles the payment in the background when you hit publish.
         </p>
         <ul className="step-list">
           <li>Write your clues and set a reward amount</li>
-          <li>Choose &ldquo;Pay with USDC&rdquo; at checkout</li>
+          <li>Choose &ldquo;Pay with dollars&rdquo; at checkout</li>
           <li>Your puzzle goes live on NEAR automatically</li>
         </ul>
+        <p style={{ fontSize: "0.82rem", color: "var(--muted)", marginTop: "0.5rem" }}>
+          Under the hood: the server issues an HTTP 402 challenge, your browser
+          signs a Tempo transaction, and the server verifies payment on-chain
+          before creating the puzzle on NEAR. No API keys, no accounts, no
+          checkout page.
+        </p>
         <div className="button-row" style={{ marginTop: "1rem" }}>
           <Link
             className="button button-primary"

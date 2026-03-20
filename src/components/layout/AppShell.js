@@ -41,6 +41,15 @@ const AppShell = ({
           <a href="https://near.org" target="_blank" rel="noreferrer">
             NEAR Protocol
           </a>
+          {" · Payments by "}
+          <a href="https://tempo.xyz" target="_blank" rel="noreferrer">
+            Tempo
+          </a>
+          {process.env.NEXT_PUBLIC_MPP_TESTNET !== "false" ? (
+            <span style={{ marginLeft: "6px", fontSize: "0.7rem", padding: "2px 6px", borderRadius: "4px", background: "rgba(99,102,241,0.15)", color: "var(--primary)" }}>
+              Moderato testnet
+            </span>
+          ) : null}
           {" · "}
           <a
             href="https://github.com/mikedotexe/near-crossword"

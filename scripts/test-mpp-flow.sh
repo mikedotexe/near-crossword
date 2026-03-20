@@ -109,7 +109,7 @@ echo "  Client:  mppx auto-handles 402 -> sign -> retry"
 echo "  Verify:  mpp-rs (Rust) validates HMAC-bound IDs"
 echo ""
 echo "  Browser demo: $BASE_URL/create"
-echo "  (Click 'Pay with Tempo' to test full payment)"
+echo "  (Click 'Pay with dollars' to test full payment)"
 echo "======================================"
 
 rm -f /tmp/mpp-headers.txt

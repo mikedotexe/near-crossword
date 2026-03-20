@@ -6,8 +6,11 @@ import { tempo as tempoChain, tempoModerato } from "viem/chains";
 import { Actions } from "viem/tempo";
 
 const STORAGE_KEY = "mpp_tempo_account";
-// USDC on Tempo mainnet; pathUSD on testnet
-const IS_TESTNET = process.env.NEXT_PUBLIC_MPP_TESTNET === "true";
+// Defaults to testnet (Moderato). Only use mainnet when explicitly set to "false".
+const IS_TESTNET = process.env.NEXT_PUBLIC_MPP_TESTNET !== "false";
+export const TEMPO_EXPLORER = IS_TESTNET
+  ? "https://explore.moderato.tempo.xyz"
+  : "https://explore.tempo.xyz";
 const CURRENCY = IS_TESTNET
   ? "0x20c0000000000000000000000000000000000000"   // pathUSD (testnet)
   : "0x20c000000000000000000000b9537d11c60e8b50";  // USDC (mainnet)
