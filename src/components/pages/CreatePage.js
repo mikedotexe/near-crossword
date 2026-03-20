@@ -68,7 +68,7 @@ const CreatePage = () => {
     }
   };
 
-  // If wallet is connected or using USDC payment, show the form
+  // If wallet is connected or using dollar payment, show the form
   if (walletConnected || useMpp) {
     return (
       <section className="card form-card">
