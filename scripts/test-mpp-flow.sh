@@ -25,6 +25,21 @@ echo "  TypeScript (mppx) + Rust (mpp-rs)"
 echo "======================================"
 echo ""
 
+# Wait for server to be ready (handles cold-start compilation)
+echo "   Waiting for server at $BASE_URL..."
+for i in $(seq 1 60); do
+  if curl -sf "$BASE_URL/api/mpp/status" -o /dev/null 2>/dev/null; then
+    echo "   Server ready."
+    echo ""
+    break
+  fi
+  if [ "$i" = "60" ]; then
+    echo "   ERROR: Server not responding. Start with: yarn dev"
+    exit 1
+  fi
+  sleep 1
+done
+
 echo "1. Check MPP Status"
 echo "   GET $BASE_URL/api/mpp/status"
 echo "   ---"
