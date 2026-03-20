@@ -63,6 +63,15 @@ export default async function handler(req, res) {
       .json({ error: "Reward must be at least 5 NEAR" });
   }
 
+  // Validate layout can be generated before charging
+  try {
+    generateLayout(clueAnswers);
+  } catch (err) {
+    return res
+      .status(400)
+      .json({ error: "Could not generate a crossword layout from these clues. Try different answers." });
+  }
+
   if (!process.env.MPP_RECIPIENT) {
     return res
       .status(503)
@@ -92,7 +101,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       success: true,
       txHash: null,
-      message: `MPP payment verified! Puzzle creation queued (NEAR credentials not configured for on-chain submission).`,
+      message: `MPP payment verified! Puzzle would be created on NEAR when server credentials are configured.`,
       paymentMethod: "tempo",
       demo: true,
     });

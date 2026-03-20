@@ -103,7 +103,13 @@ const CrosswordForm = ({ allowMpp = false }) => {
       console.error("MPP commit failed:", error);
       setCommitStatus("");
       setCommitError(error.message || "Payment failed. Please try again.");
+      // Show receipt even on error — user can prove payment was made
+      if (error.receipt) {
+        setPaymentReceipt(error.receipt);
+      }
       trackEvent("create_commit_mpp_fail", { reason: error.message });
+      // Refresh balance after failed attempt (payment may have gone through)
+      getTempoBalance().then(setTempoBalance).catch(() => {});
     }
   };
 

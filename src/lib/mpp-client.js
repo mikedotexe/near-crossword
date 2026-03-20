@@ -56,6 +56,16 @@ export function getMppClient() {
   const account = getOrCreateTempoAccount();
   mppClient = Mppx.create({
     methods: [tempo({ account })],
+    onChallenge: async (challenge, { createCredential }) => {
+      const amount = challenge.request?.amount;
+      const decimals = challenge.request?.decimals ?? 6;
+      const display = amount ? `$${(Number(amount) / 10 ** decimals).toFixed(2)}` : "unknown";
+      console.log(
+        `[MPP] 402 challenge received: ${display} for "${challenge.description || challenge.realm}"`,
+        { method: challenge.method, intent: challenge.intent }
+      );
+      return createCredential();
+    },
   });
 
   return mppClient;
@@ -114,13 +124,18 @@ export async function createPuzzleWithMpp(clueAnswers, rewardNear) {
     body: JSON.stringify({ clueAnswers, rewardNear }),
   });
 
+  // Extract receipt before checking status — payment may have succeeded
+  // even if the server-side NEAR submission failed
+  const receipt = extractReceipt(res);
+
   if (!res.ok) {
-    const error = await res.json().catch(() => ({ error: "Request failed" }));
-    throw new Error(error.error || `Payment failed (${res.status})`);
+    const data = await res.json().catch(() => ({ error: "Request failed" }));
+    const err = new Error(data.error || `Payment failed (${res.status})`);
+    err.receipt = receipt;
+    throw err;
   }
 
   const data = await res.json();
-  const receipt = extractReceipt(res);
   return { ...data, receipt };
 }
 
@@ -133,12 +148,15 @@ export async function generateCluesWithMpp(body) {
     body: JSON.stringify(body),
   });
 
+  const receipt = extractReceipt(res);
+
   if (!res.ok) {
-    const error = await res.json().catch(() => ({ error: "Request failed" }));
-    throw new Error(error.error || `Payment failed (${res.status})`);
+    const data = await res.json().catch(() => ({ error: "Request failed" }));
+    const err = new Error(data.error || `Payment failed (${res.status})`);
+    err.receipt = receipt;
+    throw err;
   }
 
   const data = await res.json();
-  const receipt = extractReceipt(res);
   return { ...data, receipt };
 }

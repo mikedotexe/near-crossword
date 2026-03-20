@@ -208,8 +208,16 @@ const AIStudioPage = () => {
     } catch (error) {
       console.error("AI generation failed:", error);
       setErrorMessage(error.message || "Something went wrong. Please try again.");
+      // Show receipt even on error — user can prove payment was made
+      if (error.receipt) {
+        setPaymentReceipt(error.receipt);
+      }
       setPhase("error");
       trackEvent("ai_pdf_upload_error");
+      // Refresh balance after failed attempt
+      if (useMpp) {
+        getTempoBalance().then(setTempoBalance).catch(() => {});
+      }
     }
   };
 
@@ -535,6 +543,24 @@ const AIStudioPage = () => {
       {phase === "error" && (
         <div>
           <p className="error-msg">{errorMessage}</p>
+          {paymentReceipt ? (
+            <div style={{ marginTop: "0.75rem", padding: "12px", background: "rgba(251,191,36,0.08)", borderRadius: "8px", fontSize: "0.85rem" }}>
+              <p style={{ margin: "0 0 4px", fontWeight: 600 }}>
+                Payment was processed
+              </p>
+              <p style={{ margin: 0, color: "var(--secondary)" }}>
+                Ref: {paymentReceipt.reference}{" "}
+                <a
+                  href={`${TEMPO_EXPLORER}/tx/${paymentReceipt.reference}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: "var(--primary)" }}
+                >
+                  View on explorer
+                </a>
+              </p>
+            </div>
+          ) : null}
           <div className="field-group" style={{ marginTop: "0.75rem" }}>
             <button className="button button-secondary" onClick={handleStartOver}>
               Try Again
