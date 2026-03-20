@@ -483,9 +483,43 @@ variable. The network is set via `NEXT_PUBLIC_NEAR_ENV` (defaults to `testnet`).
 | mainnet  | `https://rpc.mainnet.fastnear.com`  |
 | testnet  | `https://rpc.testnet.fastnear.com`  |
 
+## MPP Payment (Alternative to NEAR Wallet)
+
+Puzzles can be created and AI clues generated using Tempo's Machine Payments
+Protocol (HTTP 402) instead of connecting a NEAR wallet. The server accepts
+dollar payments on the Tempo blockchain and funds the NEAR puzzle using its
+own account.
+
+### MPP Endpoints
+
+| Method | Path | Price | Description |
+|--------|------|-------|-------------|
+| GET | `/api/mpp/discover` | free | Machine-readable pricing (JSON or markdown) |
+| GET | `/api/mpp/status` | free | MPP configuration and network info |
+| POST | `/api/mpp/create-puzzle` | $1.00 | Create puzzle (402 challenge → Tempo payment → NEAR submission) |
+| POST | `/api/mpp/generate-clues` | $0.10 | AI-generate clue/answer pairs from content |
+
+### 402 Flow
+
+1. Client sends POST without credentials
+2. Server responds 402 with `WWW-Authenticate: Payment` header
+3. Client signs a Tempo TIP-20 transfer
+4. Client retries with `Authorization: Payment` header
+5. Server verifies payment on-chain, returns 200 with `Payment-Receipt` header
+
+### CLI Testing
+
+```bash
+npx mppx account create -a test && npx mppx account fund -a test
+npx mppx http://localhost:3000/api/mpp/create-puzzle -a test -v \
+  -J '{"clueAnswers":[{"clue":"Test","answer":"MPP"},{"clue":"Test2","answer":"NEAR"},{"clue":"Test3","answer":"TEMPO"}],"rewardNear":"5"}'
+```
+
 ## Dependencies
 
 - `crossword-layout-generator` — arranges clue/answer pairs into a crossword grid
 - `near-seed-phrase` — derives ed25519 keypairs from BIP-39 seed phrases
 - `@fastnear/api` — NEAR RPC and transaction utilities
 - `@fastnear/wallet` — wallet connection and transaction signing
+- `mppx` — Tempo Machine Payments Protocol client and server SDK
+- `viem` — Tempo blockchain interactions (balance, faucet, transfers)
