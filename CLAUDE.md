@@ -66,6 +66,7 @@ Multi-currency payments via Tempo's Machine Payments Protocol (HTTP 402 flow).
 - `pages/api/mpp/create-puzzle.js` — MPP-gated puzzle creation: verifies Tempo payment, then creates puzzle on NEAR using server's account
 - `pages/api/mpp/generate-clues.js` — MPP-gated AI clue generation ($0.10/generation via Tempo)
 - `pages/api/mpp/status.js` — MPP configuration status (prices, currency, network, demoMode flag)
+- `pages/api/mpp/discover.js` — machine-readable pricing discovery (JSON + markdown via Accept header)
 - Cross-chain pattern: user pays with Tempo tokens → server funds puzzle with NEAR
 - Uses `mppx` npm package (TypeScript SDK) + `viem` for Tempo blockchain interactions
 - Auto-funds new Tempo accounts from faucet (testnet) when balance is zero

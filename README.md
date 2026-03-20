@@ -159,6 +159,7 @@ USDC address.
 **API Endpoints:**
 
 - `GET /api/mpp/status` — check if MPP is enabled, see prices and currency
+- `GET /api/mpp/discover` — machine-readable pricing (JSON or `Accept: text/markdown`)
 - `POST /api/mpp/create-puzzle` — MPP-gated puzzle creation ($1.00)
 - `POST /api/mpp/generate-clues` — MPP-gated AI generation ($0.10)
 
@@ -181,7 +182,25 @@ yarn dev
 #   2. POST /api/mpp/create-puzzle → 200 (Payment-Receipt header with tx reference)
 ```
 
-**Demo (CLI):**
+**Demo (mppx CLI — recommended for judges):**
+
+```bash
+# Create a testnet account (one-time, stored in system keychain)
+npx mppx account create -a judge
+npx mppx account fund -a judge
+
+# Check pricing
+npx mppx http://localhost:3000/api/mpp/status -a judge
+
+# Make a paid puzzle creation request — the CLI handles the full 402 flow:
+#   1. Sends POST → gets 402 Payment Required
+#   2. Auto-signs Tempo transaction
+#   3. Retries with Payment credential → gets 200 + receipt
+npx mppx http://localhost:3000/api/mpp/create-puzzle -a judge -v \
+  -J '{"clueAnswers":[{"clue":"HTTP status for payment required","answer":"402"},{"clue":"Payment protocol","answer":"MPP"},{"clue":"Smart contract chain","answer":"NEAR"}],"rewardNear":"5"}'
+```
+
+**Demo (shell script):**
 
 ```bash
 bash scripts/test-mpp-flow.sh
