@@ -1,0 +1,15 @@
+[package]
+name = "mpp-verify"
+version = "0.1.0"
+edition = "2021"
+description = "CLI tool for parsing and verifying Tempo MPP payment challenges and receipts"
+
+[[bin]]
+name = "mpp-verify"
+path = "src/main.rs"
+
+[dependencies]
+mpp = { git = "https://github.com/tempoxyz/mpp-rs", rev = "102bef4", default-features = false }
+serde_json = "1"
+base64 = "0.22"
+clap = { version = "4", features = ["derive"] }
