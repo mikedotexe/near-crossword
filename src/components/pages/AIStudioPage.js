@@ -459,7 +459,7 @@ const AIStudioPage = () => {
 
       {phase === "review" && variations && (
         <div>
-          {paymentReceipt ? (
+          {paymentReceipt?.reference ? (
             <div style={{ marginBottom: "1rem", padding: "12px", background: "rgba(16,185,129,0.08)", borderRadius: "8px", fontSize: "0.85rem" }}>
               <p style={{ margin: "0 0 4px", fontWeight: 600, color: "var(--foreground)" }}>
                 Tempo payment confirmed
@@ -549,7 +549,7 @@ const AIStudioPage = () => {
       {phase === "error" && (
         <div>
           <p className="error-msg">{errorMessage}</p>
-          {paymentReceipt ? (
+          {paymentReceipt?.reference ? (
             <div style={{ marginTop: "0.75rem", padding: "12px", background: "rgba(251,191,36,0.08)", borderRadius: "8px", fontSize: "0.85rem" }}>
               <p style={{ margin: "0 0 4px", fontWeight: 600 }}>
                 Payment was processed

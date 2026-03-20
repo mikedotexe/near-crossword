@@ -470,7 +470,7 @@ const CrosswordForm = ({ allowMpp = false }) => {
                   <p style={{ margin: "0 0 8px", fontWeight: 600, color: "var(--foreground)" }}>
                     Cross-chain transaction
                   </p>
-                  {paymentReceipt ? (
+                  {paymentReceipt?.reference ? (
                     <p style={{ margin: "0 0 4px", color: "var(--secondary)" }}>
                       Tempo payment:{" "}
                       <a
