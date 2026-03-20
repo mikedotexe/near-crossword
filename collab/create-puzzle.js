@@ -32,12 +32,31 @@ async function getNearConnection() {
   return nearConnection;
 }
 
-function generateSeedPhrase(clueAnswers) {
-  const sortedAnswers = clueAnswers
-    .map((ca) => ca.answer.toLowerCase())
-    .sort()
-    .join(" ");
-  return sortedAnswers;
+// Must match generateNewPuzzleSeedPhrase in src/utils.js:
+// iterate by clue number, across before down for each number.
+function generateSeedPhrase(layoutResult) {
+  // Build across/down maps keyed by position number
+  const across = {};
+  const down = {};
+  let maxNum = 0;
+  for (const item of layoutResult) {
+    if (!item.position) continue;
+    const num = item.position;
+    if (num > maxNum) maxNum = num;
+    if (item.orientation === "across") {
+      across[num] = item.answer;
+    } else {
+      down[num] = item.answer;
+    }
+  }
+
+  const words = [];
+  for (let i = 1; i <= maxNum; i++) {
+    if (across[i]) words.push(across[i]);
+    if (down[i]) words.push(down[i]);
+  }
+
+  return words.map((w) => w.toLowerCase()).join(" ");
 }
 
 export default async function handler(req, res) {
@@ -63,9 +82,11 @@ export default async function handler(req, res) {
       .json({ error: "Reward must be at least 5 NEAR" });
   }
 
-  // Validate layout can be generated before charging
+  // Generate layout before charging — validates clues and produces the
+  // positional data needed for seed phrase derivation and contract args.
+  let layout;
   try {
-    generateLayout(clueAnswers);
+    layout = generateLayout(clueAnswers);
   } catch (err) {
     return res
       .status(400)
@@ -111,7 +132,7 @@ export default async function handler(req, res) {
     const near = await getNearConnection();
     const account = await near.account(process.env.NEAR_ACCOUNT_ID);
 
-    const layout = generateLayout(clueAnswers);
+    // Reuse layout generated before payment (same positional data)
     const answers = [];
     layout.result.forEach((value) => {
       if (value.position) {
@@ -126,7 +147,7 @@ export default async function handler(req, res) {
     });
 
     const dimensions = { x: layout.cols, y: layout.rows };
-    const seedPhrase = generateSeedPhrase(clueAnswers);
+    const seedPhrase = generateSeedPhrase(layout.result);
     const { publicKey: answerPk } = parseSeedPhrase(seedPhrase);
     const depositYocto = utils.format.parseNearAmount(rewardNear);
 
