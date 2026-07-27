@@ -123,6 +123,25 @@ and payout quote, so a relayer cannot substitute either. A nonce is consumed
 before the token transfer starts. A failed transfer reopens the campaign but
 requires a fresh signature over the next nonce.
 
+`claim` receives one Rust `ClaimArgs` parameter, named `args`, so its JSON
+wire format is explicitly nested:
+
+```json
+{
+  "args": {
+    "campaign_id": "campaign-id",
+    "receiver_id": "winner.near",
+    "payout_digest": "<base64 32-byte digest>",
+    "nonce": 0,
+    "deadline_ms": 1735689900000,
+    "signature": "<base64 64-byte ed25519 signature>"
+  }
+}
+```
+
+The v2 server client already submits this format. A direct flat JSON call is
+rejected before any payout begins.
+
 [`fixtures/claim-permit-v1.json`](fixtures/claim-permit-v1.json) contains a
 fixed seed, public key, message, digest, and signature for cross-language
 conformance tests. The seed is intentionally public test material.
