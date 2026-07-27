@@ -84,6 +84,18 @@ at `crossword.puzzle.near`.
 confirmation of network, asset, exact amount, payer, recipient, recovery
 account, and refund address.
 
+### Completed private direct-USDC canary — 2026-07-27
+
+The independent v2 contract was deployed at
+`crossword-campaigns-v2.mike.near`. A private 0.100000-USDC campaign was
+funded directly, claimed back to its approved `mike.near` recovery account, and
+rejected on replay with `ERR_NONCE`. Final contract liabilities and USDC balance
+were both zero. The transaction links, release hash, and exact boundary are in
+[`docs/mainnet-canary-2026-07-27.md`](docs/mainnet-canary-2026-07-27.md).
+
+This proves only the direct-USDC path below; it does not close the remaining
+mainnet gates.
+
 - Fund at least one capped campaign from a non-NEAR origin into v2 USDC escrow.
 - Complete one direct NEAR USDC winner payout.
 - Complete one cross-chain payout and retain both the contract transfer and

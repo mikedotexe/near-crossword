@@ -182,7 +182,7 @@ The 1Click, x402, email, and chain-worker settings are documented in
 [.env.example](.env.example). Secrets, operator keys, payment credentials, and
 provider bearer tokens are server-only.
 
-No v2 mainnet contract deployment or funded acceptance campaign is implied by this
-repository. Launch still requires contract audit, staging evidence, explicit
-small-value approvals, reconciliation of the legacy account, and transfer of
-upgrade authority to the selected multisig.
+V2 has a private, direct-USDC mainnet canary at
+`crossword-campaigns-v2.mike.near`; it is not a public launch. See the dated
+[canary evidence](docs/mainnet-canary-2026-07-27.md) and [`QA.md`](QA.md) for
+what it proves and the remaining launch gates.
