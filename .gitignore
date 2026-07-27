@@ -4,3 +4,14 @@
 /node_modules
 /.cache
 /dist
+/package-lock.json
+/.yarn
+/.next
+/.parcel-cache
+*.tsbuildinfo
+/contract-v2/target
+/playwright-report
+/test-results
+.env*
+!.env.example
+worker/dist/

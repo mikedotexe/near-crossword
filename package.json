@@ -1,40 +1,55 @@
 {
   "name": "near-crossword",
   "version": "0.1.0",
+  "packageManager": "yarn@4.12.0",
+  "engines": {
+    "node": "20.x"
+  },
+  "resolutions": {
+    "postcss": "8.5.23",
+    "sharp": "0.35.3"
+  },
   "dependencies": {
-    "@testing-library/jest-dom": "^5.11.4",
-    "@testing-library/react": "^11.1.0",
-    "@testing-library/user-event": "^12.1.10",
-    "crossword-layout-generator": "^0.1.1",
-    "env-cmd": "^10.1.0",
-    "framer-motion": "^5.2.1",
-    "near-api-js": "^0.42.0",
-    "near-cli": "^2.1.1",
-    "near-seed-phrase": "github:near/near-seed-phrase",
-    "react": "^16.13.1",
-    "react-crossword": "mikedotexe/react-crossword#with-dist",
-    "react-dom": "^16.13.1",
-    "react-fullpage-custom-loader": "^0.1.6",
-    "react-scripts": "4.0.3",
-    "styled-components": "^5.3.3",
-    "web-vitals": "^1.0.1"
+    "@anthropic-ai/sdk": "^0.39.0",
+    "@defuse-protocol/nearintents-mpp-sdk": "0.1.1",
+    "@defuse-protocol/one-click-sdk-typescript": "0.1.25",
+    "@fastnear/api": "0.9.13",
+    "@fastnear/intents": "2.3.0",
+    "@fastnear/near-connect": "0.10.6",
+    "@fastnear/utils": "0.9.13",
+    "@fastnear/wallet": "2.3.0",
+    "@x402/core": "2.19.0",
+    "@x402/extensions": "2.19.0",
+    "@x402/near": "2.19.0",
+    "dotenv": "^16.4.7",
+    "mppx": "0.8.13",
+    "near-api-js": "^5.1.1",
+    "next": "15.5.21",
+    "next-auth": "4.24.15",
+    "pg": "^8.13.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "resend": "^4.0.0",
+    "tweetnacl": "^1.0.3",
+    "viem": "2.55.8",
+    "zod": "^3.25.76"
   },
   "scripts": {
-    "start": "parcel src/index.html",
-    "build:contract": "cd contract && cargo build --target wasm32-unknown-unknown --release",
-    "build:web": "parcel build ./src/index.html --public-url ./ --no-minify",
-    "dev": "rm -rf neardev && npm run dev-deploy && npm run dev-start",
-    "dev-start": "env-cmd -f ./neardev/dev-account.env npm start",
-    "dev-deploy": "near dev-deploy contract/res/crossword.wasm",
-    "postdev-deploy": "env-cmd -f ./neardev/dev-account.env node new-puzzle.js",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
+    "dev": "next dev",
+    "db:migrate:v2": "node scripts/migrate-v2.mjs",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint app pages/api/auth pages/api/mpp pages/api/generate-clues.js pages/api/puzzles/create.js src/legacy src/lib/v2 src/server/v2 scripts/migrate-v2.mjs scripts/v2-worker.ts --ext .js,.jsx,.ts,.tsx",
+    "typecheck": "tsc --noEmit",
+    "audit:production": "yarn npm audit --environment production --recursive --severity high",
+    "test": "yarn test:unit && yarn test:contract:v2",
+    "test:unit": "tsx --test --test-concurrency=1 src/lib/v2/*.test.ts src/server/v2/**/*.test.ts",
+    "test:browser": "playwright test",
+    "test:browser:install": "playwright install chromium",
+    "test:contract:v2": "cargo test --manifest-path contract-v2/Cargo.toml --locked",
+    "contract:v2:build": "cargo build --manifest-path contract-v2/Cargo.toml --target wasm32-unknown-unknown --release",
+    "worker:v2": "tsx scripts/v2-worker.ts",
+    "worker:start": "yarn worker:v2"
   },
   "browserslist": {
     "production": [
@@ -49,6 +64,14 @@
     ]
   },
   "devDependencies": {
-    "parcel-bundler": "^1.12.5"
+    "@playwright/test": "^1.62.0",
+    "@types/node": "^20.17.30",
+    "@types/pg": "^8.11.0",
+    "@types/react": "^18.3.20",
+    "@types/react-dom": "^18.3.6",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "15.5.21",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
   }
 }

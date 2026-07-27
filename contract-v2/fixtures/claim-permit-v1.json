@@ -1,0 +1,13 @@
+{
+  "description": "Cross-language Ed25519 claim-permit fixture. The seed is public test material only.",
+  "contract_id": "campaigns.testnet",
+  "campaign_id": "fixture-campaign",
+  "receiver_id": "winner.testnet",
+  "nonce": 7,
+  "deadline_ms": 1730000300000,
+  "seed_base64": "KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio=",
+  "solution_public_key_base64": "GX9rI+FshTLGq8g4+s1ep4m+DHaykgM0A5v6iz02jWE=",
+  "payout_digest_base64": "QkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkI=",
+  "claim_message_base64": "Y3Jvc3N3b3JkLWNhbXBhaWduLWNsYWltOnYxEQAAAGNhbXBhaWducy50ZXN0bmV0EAAAAGZpeHR1cmUtY2FtcGFpZ24OAAAAd2lubmVyLnRlc3RuZXRCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQgcAAAAAAAAA4KcNzJIBAAA=",
+  "signature_base64": "zn+m81gzLSl3Kl6JCMXUfI7efeS5EqcPuVbrzFt5fjh4o6bOzDOZfsf/BHnvG0ViUITFoSTQ4XX+3O+Cth42Dw=="
+}

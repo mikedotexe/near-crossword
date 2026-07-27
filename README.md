@@ -1,178 +1,188 @@
-NEAR Crossword
-==================
+# Crossword Campaigns
 
-How to play with this contract
-===============================
-1. Clone the repo.
+**Fund with anything. Win anywhere.**
 
+Crossword Campaigns turns the original NEAR Crossword into a sponsor-funded
+campaign platform. A creator writes a puzzle, locks a complete USDC prize before
+publication, and shares a campaign page. Solving is free; the first valid
+solution wins.
+
+The v2 design makes two workflows possible:
+
+1. **Cross-chain jackpot** — fund with an asset currently supported by NEAR
+   Intents, solve without a NEAR wallet, and route the prize to a supported
+   destination.
+2. **x402 campaign** — pay once for AI-assisted puzzle creation through x402,
+   then publish a separately funded prize with independent creation and payout
+   receipts.
+
+“Any asset” always means a route returned by the live 1Click catalog and quote
+API. It is not a promise that every asset has liquidity.
+
+## Product boundaries
+
+- Sponsored, free-to-play, winner-take-all campaigns only in v1.
+- Prize escrow is pinned native USDC on NEAR.
+- Prize principal, routing costs, and platform fees are separate ledger values.
+- x402 pays for discrete services. It never substitutes for funded escrow.
+- Paid entry, raffles, pooled bounties, arbitrary merchant URLs, exact-asset
+  escrow, and public first-N rewards are intentionally excluded.
+- Creators know their answers and can collude or self-claim. V1 addresses this
+  honestly with sponsor identity, public evidence, beta caps, and reputation;
+  it does not claim an impossible cryptographic guarantee.
+
+## Architecture
+
+```text
+Creator / solver
+      │
+      ▼
+Next.js App Router + /api/v2
+      │
+      ├── Postgres workflow ledger
+      │     campaigns · funding orders · claims · events · durable jobs
+      │
+      ├── 1Click adapters
+      │     exact-output funding · exact-input payout · live token catalog
+      │
+      ├── x402 AI service
+      │     payment-identifier deduplication · single-use campaign receipt
+      │
+      └── gated chain worker
+            │
+            ▼
+      Crossword Campaigns v2 contract
+      pinned NEP-141 USDC escrow · claim proofs · expiry/refunds
 ```
-git clone https://github.com/near-examples/near-crossword.git
-cd near-crossword
-```
 
-2. Next, make sure you have NEAR CLI by running:
+Postgres is canonical for workflow intent and external receipts. The contract
+is canonical for escrow, claims, and refunds. Every paid or chain operation uses
+idempotency keys, compare-and-set transitions, bounded retry, and durable
+reconciliation.
 
-  ```
-  near --version
-  ```
+An x402-paid AI result returns a minimal versioned receipt handle. Campaign
+creation verifies that handle against the completed durable payment record and
+copies only a public receipt digest, network, and settlement reference into the
+campaign evidence. Each paid generation can be linked to one campaign; manual
+campaigns remain valid without one. Prompts, generated answers, payer identity,
+raw payment headers, and payment authorization never enter campaign evidence.
 
-  If you need to install `near-cli`:
+The browser derives a transient ed25519 solution key from a canonical,
+domain-separated answer representation. Only the public key is stored with the
+campaign. A claim signature binds the contract, campaign, receiver or 1Click
+deposit account, payout digest, nonce, and deadline. Answer material and private
+keys are neither sent to the API nor persisted in browser storage.
 
-  ```
-  npm install near-cli -g
-  ```
+## Application routes
 
-3. Build the smart contract
+- `/explore` — browse public, funded campaigns
+- `/create` — manual or x402-assisted campaign builder
+- `/campaigns/[slug]` — rules, prize state, timing, and evidence
+- `/campaigns/[slug]/play` — anonymous solving and winner payout choice
+- `/dashboard` — creator campaigns and recovery actions
+- `/legacy` — isolated access to the original claim flow
 
-```
-cd contract
-./build.sh
-```
+The old `crossword.puzzle.near` contract and its funds are untouched. The
+original contract source remains in `contract/`; the independent v2 contract is
+in `contract-v2/`. The former market-agent worker remains only as source
+history: no package script compiles or starts it, and `worker:start` is an alias
+for the gated v2 reconciliation worker.
 
-4. Run `near dev-deploy` to deploy the contract to `testnet`.
-5. Create a crossword, let's say that the answer to your crossword is "many clever words"
-6. Answer for your crossword from now on will be a seed phrase! Let's generate key pair out of it.
+## Local development
 
-   ```bash
-   near generate-key randomAccountId.testnet --seedPhrase='many clever words'
-   ```
+Requirements:
 
-   Now this key pair will be store on your machine under `~/.near-credentials/testnet/randomAccountId.json`
+- Node 20 and Yarn 4
+- Rust stable plus `wasm32-unknown-unknown`
+- Postgres for persistent development; deterministic in-memory mode is
+  available only outside production
 
-7. We should add your puzzle to our contract. To do that run
-   
-   ```bash
-   near call <contract-account-id> new_puzzle '{"answer_pk":"<generated-pk>"}' --accountId=<signer-acc-id> --deposit=10
-   ```
-   Where:
-      - `contract-account-id` - Account on which contract is stored. If you have used `near dev-deploy` in the first step it was autogenerated for you. It should look like `dev-<random-numbers>`.
-      - `generate-pk` - Public key from JSON generated in the step #4
-      - `accountId` - your existing testnet accountId (you can create one at https://wallet.testnet.near.org/)
-      - `deposit` - reword for the person who will solve this puzzle
-   
-   After this call your puzzle will be added to the NEAR Crossword contract. Share your Crossword with friends, the person who will be able to solve it will be able to generate the same key pair and get the reward. Let's do that in the following steps.
+Install and run the safe local mode:
 
-8. Pretend that we have solved the puzzle and generated the very same key pair. This time it should be stored at `~/.near-credentials/testnet/<contract-id>.json`. We are using `<contract-id>` here because in the next step we will need to sign the transaction with this acc.
-
-Attention! If you are using the same machine, your old key pair from `<dev-acc>` will be overwritten! Save it in some other place if you need it. Keys are stored in `~/.near-credentials/testnet/` folder.
-
-To generate the new key:
 ```bash
-near generate-key <crossword-contract-id> --seedPhrase='many clever words'
+corepack enable
+yarn install --immutable
+cp .env.example .env.local
+V2_FUNDING_MODE=mock \
+NEXT_PUBLIC_V2_DEMO_USER_ID=creator@example.test \
+NEXT_PUBLIC_APP_URL=http://localhost:3000 \
+DATABASE_URL= \
+yarn dev
 ```
 
-Also, we need to have another key that will be used later to get the reward. Let's generate it.
+Mock mode moves no funds, accepts no payment as settled, and loses its state
+when the process restarts. It is designed for product and browser testing.
+
+For Postgres-backed development:
 
 ```bash
-near generate-key keyToGetTheReward.testnet
+docker compose up -d postgres
+yarn db:migrate:v2
+yarn dev
 ```
 
-7. Let's call `submit_solution` function to solve this puzzle.
+The chain worker refuses to lease work unless
+`V2_CHAIN_BROADCAST_ENABLED=true`. Keep it false for normal development. A
+configured staging operator can start the worker with:
 
 ```bash
-near call <contract-id> submit_solution '{"solver_pk":"<PK from keyToGetTheReward.testnet>"}' --accountId=<contract-id>
+yarn worker:v2
 ```
 
-Puzzle solved! Let's get our reward!
+Set `V2_NEAR_NETWORK` explicitly to `testnet` or `mainnet`; production refuses
+to start without it, and the server rejects a mismatch with
+`NEXT_PUBLIC_NEAR_NETWORK`.
 
-8. To get the reward we need to call the `claim_reward` function with the function call key that we have added in the previous step. Before that call we should prepare the keys:
+Never enable broadcasting with a funded key until the contract account, pinned
+USDC token, network, operator, campaign amounts, and recovery destinations have
+been independently checked.
+
+## Verification
 
 ```bash
-cp ~/.near-credentials/testnet/keyToGetTheReward.testnet.json ~/.near-credentials/testnet/<contract-id>.json
+yarn lint
+yarn typecheck
+yarn audit:production
+yarn test:unit
+yarn test:browser
+yarn test:contract:v2
+yarn contract:v2:build
+yarn build
 ```
 
-And now we can claim our reward:
+The browser suite runs against explicit local mock mode. 1Click has no testnet
+environment, so automated routing tests use deterministic adapters and NEAR
+testnet token fixtures. Mainnet acceptance requires explicit small-value human
+approval and must include both successful settlement and refund recovery.
 
-```bash
-near call <contract-id> claim_reward '{"receiver_acc_id":"serhii.testnet", "crossword_pk":"<PK from randomAccountId account>", "memo":"Victory!"}' --accountId=<contract-id>
-```
+See [QA.md](QA.md) for the acceptance matrix and
+[contract-v2/README.md](contract-v2/README.md) for the claim encoding and escrow
+state machine. [docs/launch-runbook.md](docs/launch-runbook.md) separates
+staging, approved mainnet canaries, cutover, and rollback.
 
-Quick Start
-===========
+## Production configuration
 
-To run this project locally:
+Production fails closed without:
 
-1. Prerequisites: Make sure you've installed [Node.js] ≥ 12
-2. Install dependencies: `yarn install`
-3. Run the local development server: `yarn dev` (see `package.json` for a
-   full list of `scripts` you can run with `yarn`)
+- `DATABASE_URL`
+- `NEXT_PUBLIC_APP_URL`
+- `NEXTAUTH_URL`
+- `NEXTAUTH_SECRET`
+- `RESEND_API_KEY`
+- `V2_NEAR_NETWORK`
+- `NEXT_PUBLIC_NEAR_NETWORK`
+- `V2_CONTRACT_ID`
+- `NEXT_PUBLIC_V2_CONTRACT_ID`
+- `V2_USDC_ASSET_ID`
+- `V2_USDC_CONTRACT_ID`
+- `NEXT_PUBLIC_V2_USDC_CONTRACT_ID`
+- `V2_TRUSTED_CLIENT_IP_HEADER`
 
-Now you'll have a local development environment backed by the NEAR TestNet!
+The 1Click, x402, email, and chain-worker settings are documented in
+[.env.example](.env.example). Secrets, operator keys, payment credentials, and
+provider bearer tokens are server-only.
 
-Go ahead and play with the app and the code. As you make code changes, the app will automatically reload.
-
-Exploring The Code
-==================
-
-1. The "backend" code lives in the `/contract` folder. See the README there for
-   more info.
-2. The frontend code lives in the `/src` folder. `/src/index.html` is a great
-   place to start exploring. Note that it loads in `/src/index.js`, where you
-   can learn how the frontend connects to the NEAR blockchain.
-3. Tests: there are different kinds of tests for the frontend and the smart
-   contract. See `contract/README` for info about how it's tested. The frontend
-   code gets tested with [jest]. You can run both of these at once with `yarn
-   run test`.
-
-Deploy
-======
-
-Every smart contract in NEAR has its [own associated account][NEAR accounts]. When you run `yarn dev`, your smart contract gets deployed to NEAR TestNet with a throwaway account. When you're ready to make it permanent, here's how.
-
-Step 0: Install near-cli (optional)
--------------------------------------
-
-[near-cli] is a command line interface (CLI) for interacting with the NEAR blockchain. It was installed to the local `node_modules` folder when you ran `yarn install`, but for best ergonomics you may want to install it globally:
-
-    yarn install --global near-cli
-
-Or, if you'd rather use the locally-installed version, you can prefix all `near` commands with `npx`
-
-Ensure that it's installed with `near --version` (or `npx near --version`)
-
-Step 1: Create an account for the contract
-------------------------------------------
-
-Each account on NEAR can have at most one contract deployed to it. If you've already created an account such as `your-name.testnet`, you can deploy your contract to `crossword.your-name.testnet`. Assuming you've already created an account on [NEAR Wallet], here's how to create `crossword.your-name.testnet`:
-
-1. Authorize NEAR CLI, following the commands it gives you:
-
-      near login
-
-2. Create a subaccount (replace `YOUR-NAME` below with your actual account name):
-
-      near create-account crossword.YOUR-NAME.testnet --masterAccount YOUR-NAME.testnet
-
-Step 2: set contract name in code
----------------------------------
-
-Modify the line in `src/config.js` that sets the account name of the contract. Set it to the account id you used above.
-
-    const CONTRACT_NAME = process.env.CONTRACT_NAME || 'crossword.YOUR-NAME.testnet'
-
-Step 3: deploy!
----------------
-
-One command:
-
-    yarn deploy
-
-As you can see in `package.json`, this does two things:
-
-1. builds & deploys smart contract to NEAR TestNet
-2. builds & deploys frontend code to GitHub using [gh-pages]. This will only work if the project already has a repository set up on GitHub. Feel free to modify the `deploy` script in `package.json` to deploy elsewhere.
-
-Troubleshooting
-===============
-
-On Windows, if you're seeing an error containing `EPERM` it may be related to spaces in your path. Please see [this issue](https://github.com/zkat/npx/issues/209) for more details.
-
-
-  [React]: https://reactjs.org/
-  [create-near-app]: https://github.com/near/create-near-app
-  [Node.js]: https://nodejs.org/en/download/package-manager/
-  [jest]: https://jestjs.io/
-  [NEAR accounts]: https://docs.near.org/docs/concepts/account
-  [NEAR Wallet]: https://wallet.testnet.near.org/
-  [near-cli]: https://github.com/near/near-cli
-  [gh-pages]: https://github.com/tschaub/gh-pages
+No v2 mainnet contract deployment or funded acceptance campaign is implied by this
+repository. Launch still requires contract audit, staging evidence, explicit
+small-value approvals, reconciliation of the legacy account, and transfer of
+upgrade authority to the selected multisig.

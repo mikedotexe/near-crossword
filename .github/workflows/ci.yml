@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - codex/**
+
+permissions:
+  contents: read
+
+jobs:
+  application:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: near_crossword
+          POSTGRES_USER: near_crossword
+          POSTGRES_PASSWORD: near_crossword_dev
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U near_crossword -d near_crossword"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgresql://near_crossword:near_crossword_dev@127.0.0.1:5432/near_crossword
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: yarn
+      - run: corepack enable
+      - run: yarn install --immutable
+      - run: yarn audit:production
+      - run: yarn db:migrate:v2
+      - run: yarn db:migrate:v2
+      - run: yarn lint
+      - run: yarn typecheck
+      - run: yarn test:unit
+      - run: yarn build
+      - run: yarn playwright install --with-deps chromium
+      - run: yarn test:browser
+
+  contract-v2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: contract-v2
+      - run: cargo fmt --manifest-path contract-v2/Cargo.toml --check
+      - run: cargo clippy --manifest-path contract-v2/Cargo.toml --locked --all-targets -- -D warnings
+      - run: cargo test --manifest-path contract-v2/Cargo.toml --locked
+      - run: cargo build --manifest-path contract-v2/Cargo.toml --locked --target wasm32-unknown-unknown --release
