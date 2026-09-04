@@ -865,7 +865,14 @@ export function CreateCampaignForm() {
           >
             {submitStatus}
             {createdSlug ? (
-              <Link href={`/campaigns/${createdSlug}`}>
+              <Link
+                href={`/campaigns/${createdSlug}`}
+                prefetch={false}
+                onClick={(event) => {
+                  event.preventDefault();
+                  window.location.assign(`/campaigns/${createdSlug}`);
+                }}
+              >
                 Open draft <span aria-hidden="true">→</span>
               </Link>
             ) : null}

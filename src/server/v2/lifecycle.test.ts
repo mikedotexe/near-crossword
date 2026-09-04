@@ -23,6 +23,9 @@ async function fundedCampaign(
   repository: MemoryRepository,
   status: Campaign["status"],
   overrides: Partial<Parameters<MemoryRepository["createCampaign"]>[0]> = {},
+  orderOverrides: Partial<
+    Parameters<MemoryRepository["createFundingOrderIdempotent"]>[0]
+  > = {},
 ): Promise<{ campaign: Campaign; order: FundingOrder }> {
   const campaign = await repository.createCampaign({
     id: "campaign-lifecycle",
@@ -105,6 +108,7 @@ async function fundedCampaign(
     fundingReference: "intents:settlement-1",
     evidence: {},
     expiresAt: quote.deadline,
+    ...orderOverrides,
   });
   return { campaign, order: result.fundingOrder };
 }
@@ -428,6 +432,38 @@ describe("v2 campaign lifecycle services", () => {
     assert.equal(status.fundingOrder?.id, order.id);
     assert.equal(status.onChain, null);
     assert.equal(status.chainUnavailable, true);
+  });
+
+  it("does not wait on final chain state while campaign funding is still pending", async () => {
+    const repository = new MemoryRepository();
+    const { campaign, order } = await fundedCampaign(
+      repository,
+      "FUNDING",
+      {
+        chainCampaignId: null,
+        fundingReference: null,
+      },
+      {
+        status: "AWAITING_DEPOSIT",
+        depositTxHash: null,
+        settlementTxHash: null,
+        fundingReference: null,
+      },
+    );
+    let chainRead = false;
+    const status = await getCampaignLifecycleStatus(
+      repository,
+      creator,
+      campaign.id,
+      async () => {
+        chainRead = true;
+        throw new Error("chain should not be read before settlement");
+      },
+    );
+    assert.equal(status.fundingOrder?.id, order.id);
+    assert.equal(status.onChain, null);
+    assert.equal(status.chainUnavailable, false);
+    assert.equal(chainRead, false);
   });
 
   it("includes scheduled and active campaigns in public discovery", async () => {

@@ -6,6 +6,11 @@
     "node": "20.x"
   },
   "resolutions": {
+    "@toon-format/toon": "2.3.1",
+    "brace-expansion": "5.0.9",
+    "fast-uri": "3.1.6",
+    "ip-address": "10.4.0",
+    "nanoid": "3.3.18",
     "postcss": "8.5.23",
     "sharp": "0.35.3"
   },

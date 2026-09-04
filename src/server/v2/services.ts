@@ -1567,7 +1567,7 @@ export async function getCampaignLifecycleStatus(
   let chainUnavailable = false;
   if (
     campaign.contractId &&
-    !["DRAFT"].includes(campaign.status)
+    !["DRAFT", "FUNDING"].includes(campaign.status)
   ) {
     try {
       onChain = await chainReader(campaign.id);
