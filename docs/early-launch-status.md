@@ -84,3 +84,5 @@ wallet state before promising first-use compatibility.
   missing optional 1Click JWT necessarily blocks the provider.
 - 2026-09-04: Started Base/learning-rewards discovery. No product direction,
   reward model, Base migration, or activation decision has been made.
+- 2026-09-04: Mike clarified that Batches fit is optional. Product refinement
+  and subtle Base/x402 affinity remain useful even without an application.

@@ -11,6 +11,11 @@ answer questions, and receive a small crypto reward. Crosswords, NEAR, x402,
 and Base are ingredients to consider, not reasons to preserve every current
 product choice. Simplicity of explanation and an enjoyable experience matter.
 
+Mike clarified that the idea may become better without becoming a strong Base
+Batches fit. Accelerator acceptance is not the product's success criterion.
+A subtle affinity with Base and x402 is welcome; choosing a primary chain or
+reshaping the product around the program remains undecided.
+
 The current implementation is sponsor-funded, free to solve, and pays the
 first valid solution. It explicitly excludes public first-N rewards. A program
 that rewards many learners therefore requires a new eligibility and budget
@@ -61,7 +66,8 @@ hypothesis; a paid follow-on service would be optional.
 - Base could be the default place for accounts and USDC rewards if we choose
   the Base-first direction. The live NEAR contract remains an asset and source
   of working patterns; the future product's escrow design is an open decision.
-- x402 currently charges a creator for AI clue generation. It could also serve
+- The existing x402 design charges a creator for AI clue generation; that route
+  is not enabled in production. It could also serve
   a sponsor/agent API or an optional service bought with earned funds, provided
   there is a real buyer and useful output. These are proposed uses.
 - [x402 payment verification and settlement](https://docs.x402.org/core-concepts/facilitator)
@@ -98,5 +104,7 @@ total cost per retained user. Completion counts alone cannot establish demand.
 ## Decisions
 
 - 2026-09-04: Adopt an exploratory posture and keep a dated launch register.
+- 2026-09-04: Treat Batches as an optional opportunity. Continue exploring
+  light Base/x402 affinity without making accelerator fit a product requirement.
 - Open: primary audience, Base commitment, reward model, paid service, sponsor,
   business model, and whether to apply to Batches 004. No application submitted.
