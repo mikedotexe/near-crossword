@@ -1,5 +1,8 @@
 # Crossword Campaigns
 
+Early launch: [observed status and open items](docs/early-launch-status.md).
+Product direction: [discovery notebook](docs/product-discovery.md).
+
 **Fund with anything. Win anywhere.**
 
 Crossword Campaigns turns the original NEAR Crossword into a sponsor-funded

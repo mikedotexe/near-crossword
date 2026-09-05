@@ -1,5 +1,14 @@
 # Crossword Campaigns contributor guide
 
+## Early launch tracking
+
+Read `docs/early-launch-status.md` before launch-related work. After deployments,
+configuration changes, live acceptance tests, or product decisions, update its
+affected rows and dated change log with evidence and remaining work. Keep
+implemented, configured, enabled, and observed behavior distinct. Record
+tentative product ideas in `docs/product-discovery.md`; do not treat them as
+implementation decisions. Never record secret values in either document.
+
 ## Product invariant
 
 A campaign is never public or claimable until the complete native-USDC prize is
