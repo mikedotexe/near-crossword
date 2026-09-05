@@ -71,6 +71,21 @@ their use here. **Do not send real ETH or mainnet USDC to this test wallet.**
 Base Sepolia ETH and USDC faucets; the Circle faucet must be set to Base Sepolia.
 No purchase or mainnet bridge is required.
 
+## Faucet and mainnet custody posture
+
+The next funding attempt should use Coinbase Developer Platform or Base Sepolia
+faucets against the public test-deployer address above. If a faucet asks for a
+mainnet balance proof, prefer the CDP faucet while signed in, or another
+reputable faucet, before moving real ETH.
+
+If mainnet ETH is eventually needed, send only a tiny, reviewed amount from
+Coinbase on the **Base** network to a fresh production custody address whose
+backup has already been verified. Do not use the hacked MetaMask profile, do not
+reuse this test-deployer keystore for mainnet value, and do not put a mainnet
+mnemonic or private key in `.env`. A server-side production key, if we ever need
+one, should live in a dedicated secret manager or hardware-backed signer with
+explicit spending limits and a runbook.
+
 ## Continue setup
 
 1. Mike completes Coinbase Developer Platform sign-in in the open browser tab.

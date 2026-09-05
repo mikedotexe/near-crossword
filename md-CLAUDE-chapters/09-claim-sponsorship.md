@@ -94,6 +94,12 @@ in the web environment. CDP's managed paymaster uses account billing, not this
 wallet's ETH. Portal sign-in, endpoint and actual policy configuration remain
 pending; do not describe the prepared env slot as a configured provider.
 
+Mainnet custody stays out of the early launch path. For Base Sepolia, use CDP or
+Base faucets first. If a real Coinbase send is later required, it must be a tiny
+reviewed Base-network transfer to a fresh production custody address with an
+independent backup, not the compromised MetaMask profile and not the local
+test-deployer wallet. Never store a mainnet mnemonic in `.env`.
+
 Tests cover strict input/claim/factory/gas parsing, RPC pins and nonce checks,
 cookie-free wallet-context HTTP, private permit issuance, race-safe quotas,
 refresh/restart replay, expiry, signer rotation, paid claims, provider errors and
