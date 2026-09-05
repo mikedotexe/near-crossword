@@ -205,8 +205,10 @@ another compatible onboarding adapter with recipient ownership checks and
 sponsored claim gas. Session 6 verifies EOA and deployed ERC-1271 control and
 completes the local backend issuance/recovery flow. Session 7 adds default-off
 pinned ERC-6492 simulation, an explicit Base Account browser adapter and mandatory
-sponsorship request. The secure claim-specific paymaster proxy and real hosted
-passkey/gas acceptance remain open. Prove the freshly created wallet path, not just a previously
+sponsorship request. Session 8 adds the local claim-specific proxy and durable
+gas allowances (chapter 09); dedicated provider setup, live wire compatibility,
+operational recovery and real hosted passkey/gas acceptance remain open.
+Prove the freshly created wallet path, not just a previously
 funded wallet. The participant flow needs completion, email verification, payout
 pending/confirmed/failed, exhausted-budget, and expired-campaign states. Sponsors
 need lesson review, funding, progress, refunds, receipts, and private opt-in export.

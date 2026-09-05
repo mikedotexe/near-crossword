@@ -1,4 +1,4 @@
-import { createPublicClient, decodeFunctionResult, encodeFunctionData, erc20Abi, getAddress, hashMessage, http, keccak256, parseAbi, verifyMessage, type Address, type Hex } from "viem";
+import { createPublicClient, decodeFunctionData, decodeFunctionResult, encodeFunctionData, erc20Abi, getAddress, hashMessage, http, keccak256, parseAbi, sliceHex, verifyMessage, type Address, type Hex } from "viem";
 import { z } from "zod";
 import { baseNativeUsdc, learningRewardsAbi } from "../../lib/base/escrow-abi";
 import type { BaseClaim } from "../../lib/base/claim";
@@ -6,6 +6,7 @@ import type { BaseChainReader, ChainBinding, FinalizedCampaignState } from "./is
 import { AppError } from "../v2/errors";
 import { call, verifyMessage as verifyOnchainMessage } from "viem/actions";
 import { accountFactoryAbi, counterfactualCreation, type CounterfactualPolicy } from "./counterfactual";
+import { entryPointV06, smartAccountAbi, type SponsorshipOperation, type SponsorshipPolicy } from "./sponsorship-policy";
 
 export const chainHash = z.string().regex(/^0x[0-9a-fA-F]{64}$/).transform((v) => v.toLowerCase() as Hex);
 const erc1271Abi = parseAbi(["function isValidSignature(bytes32 hash, bytes signature) view returns (bytes4)"]);
@@ -198,6 +199,55 @@ export class RpcBaseChainReader implements BaseAccountingReader {
       const participantUsed = await client.readContract({ ...selector, functionName: "claimedParticipants", args: [binding.onChainId, claim.participantId] });
       if ((await this.block(block.number, signal)).hash !== blockHash) chainFailure();
       return { slotUsed, participantUsed };
+    });
+  }
+
+  async verifySponsorshipAccount(op: SponsorshipOperation, policy: SponsorshipPolicy, blockHash: Hex, signal: AbortSignal) {
+    return this.safe(async () => {
+      if (policy.chainId !== this.deployment.chainId || policy.escrow.toLowerCase() !== this.deployment.escrow) chainFailure();
+      const client = this.client(signal);
+      const finalized = await this.block("finalized", signal);
+      if (finalized.hash !== blockHash) chainFailure();
+      const latest = await this.block("latest", signal);
+      // Check current code as well as finalized code: a known upgrade must not inherit old sponsorship.
+      for (const block of [finalized, latest]) {
+        const selector = { blockHash: block.hash, requireCanonical: true } as const;
+        for (const [address, expected] of [[entryPointV06, policy.entryPointCodeHash], [policy.paymaster, policy.paymasterCodeHash],
+          [policy.factory.factory, policy.factory.factoryCodeHash]] as const) {
+          const code = await client.getCode({ address, ...selector });
+          if (!code || code === "0x" || keccak256(code) !== expected) chainFailure();
+        }
+        const implementation = await client.readContract({ address: policy.factory.factory, abi: accountFactoryAbi, functionName: "implementation", ...selector });
+        const code = await client.getCode({ address: implementation, ...selector });
+        if (!code || code === "0x" || keccak256(code) !== policy.factory.implementationCodeHash) chainFailure();
+        const ep = await client.readContract({ address: implementation, abi: smartAccountAbi, functionName: "entryPoint", ...selector });
+        if (ep.toLowerCase() !== entryPointV06) chainFailure();
+        const senderCode = await client.getCode({ address: op.sender, ...selector });
+        if (senderCode && senderCode !== "0x") {
+          if (keccak256(senderCode) !== policy.proxyCodeHash) chainFailure();
+          const impl = await client.readContract({ address: op.sender, abi: smartAccountAbi, functionName: "implementation", ...selector });
+          if (impl.toLowerCase() !== implementation.toLowerCase()) chainFailure();
+          if (block.hash === latest.hash && op.initCode !== "0x") chainFailure();
+        } else if (op.initCode === "0x") chainFailure();
+        if (op.initCode !== "0x") {
+          const creation = decodeFunctionData({ abi: accountFactoryAbi, data: sliceHex(op.initCode, 20) });
+          if (sliceHex(op.initCode, 0, 20) !== policy.factory.factory.toLowerCase() || creation.functionName !== "createAccount") chainFailure();
+          const predicted = await client.readContract({ address: policy.factory.factory, abi: accountFactoryAbi, functionName: "getAddress", args: creation.args, ...selector });
+          if (predicted.toLowerCase() !== op.sender) chainFailure();
+        }
+        if ((await this.block(block.number, signal)).hash !== block.hash) chainFailure();
+      }
+      const nonce = await client.readContract({ address: entryPointV06, abi: parseAbi(["function getNonce(address sender, uint192 key) view returns (uint256)"]),
+        functionName: "getNonce", args: [op.sender, 0n], blockHash: latest.hash, requireCanonical: true });
+      if (nonce !== BigInt(op.nonce)) chainFailure();
+      const decoded = decodeFunctionData({ abi: smartAccountAbi, data: op.callData });
+      const claim = decoded.functionName === "execute" ? { target: decoded.args[0], value: decoded.args[1], data: decoded.args[2] } :
+        decoded.functionName === "executeBatch" && decoded.args[0].length === 1 ? decoded.args[0][0] : undefined;
+      if (!claim || claim.target.toLowerCase() !== policy.escrow.toLowerCase() || claim.value !== 0n) chainFailure();
+      // Read-only current-state simulation catches a payout/pause/rotation not finalized by the scanner yet.
+      await client.call({ account: op.sender, to: policy.escrow, data: claim.data, gas: policy.maxCallGas,
+        blockHash: latest.hash, requireCanonical: true });
+      if ((await this.block(latest.number, signal)).hash !== latest.hash) chainFailure();
     });
   }
 

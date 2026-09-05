@@ -35,7 +35,38 @@ yarn test:acceptance:base-build
 
 ## Current local implementation evidence
 
-### Reshape session 7, 2026-09-04
+### Reshape session 8, 2026-09-04
+
+- Unit **254/254**, Postgres **51/51**, compiled escrow/Postgres acceptance
+  **1/1**, browser **15/15**, and built-production HTTP/packaging **1/1** pass
+  on Node 20.18.3. All thirteen migrations apply/replay in isolated local schemas.
+  Lint, standalone typecheck, production build and diff whitespace checks pass.
+- New tests cover private same-origin permit issuance and cookie-free ERC-7677
+  context, strict JSON-RPC/claim/account/factory parsing, bounded gas/expiry and
+  token-free provider output. RPC tests pin finalized/current code, implementation,
+  EntryPoint/paymaster, current nonce and read-only claim simulation. They assert
+  no broadcast method is used. Provider mocks are synthetic, not CDP acceptance.
+- PostgreSQL tests prove budget/request intent exists before the provider call,
+  concurrent deduplication, exact cache replay after restart, token refresh,
+  expiry, nonce substitution, pause/rotation/payment rejection, ambiguous-response
+  retention and independent global/per-recipient caps across campaigns.
+- Production tests also verify the sponsorship POST/OPTIONS and private permit
+  endpoint return 404 while disabled. Browser tests remain nonpaying and do not
+  open a real Base passkey or prove a provider bill. Existing compiled escrow
+  acceptance remains a separate three-recipient local contract/accounting test,
+  not an ERC-4337 bundler/paymaster acceptance test.
+- Solidity/Rust sources and dependencies were unchanged; their full standalone
+  suites and dependency audits were not rerun this session. The compiled Base
+  contract build/acceptance was rerun, retaining existing timestamp/test warnings.
+- Read-only facilitator/AWS investigation found direct settlement gas and
+  dedicated mainnet canary identities, not a CDP configuration in the repo.
+  AWS secret listing was denied and SSH timed out; no access policy was changed.
+  [Live acceptance](docs/base-sepolia-sponsorship-acceptance.md) remains open for
+  dedicated credentials, exact funded identities/budgets, actual hosted wallet/
+  provider wire compatibility, operational recovery and provider cost. No public
+  chain transfer, deploy, production migration or flag change occurred.
+
+### Reshape session 7, 2026-09-04 (historical)
 
 - Unit suite **245/245**, Postgres integration **43/43**, compiled EVM/Postgres
   acceptance **1/1**, and built-production HTTP/packaging acceptance **1/1**.

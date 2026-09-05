@@ -79,12 +79,13 @@ function fixture() {
     sponsoredGas: true,
     proxyUrl: "https://sponsorship.example.test/claim",
   };
-  return { reward, expected, provider, controls, calls, config };
+  const permit = { token: "ab".repeat(32), expiresAt: Math.floor(Date.now() / 1000) + 600, digest: reward.digest };
+  return { reward, expected, provider, controls, calls, config, permit };
 }
 test("sponsored claim sends exactly one committed zero-value escrow call with mandatory paymaster", async () => {
   const f = fixture();
   assert.equal(
-    await sendSponsoredClaim(f.provider, f.reward, f.expected, f.config),
+    await sendSponsoredClaim(f.provider, f.reward, f.expected, f.config, f.permit),
     "0xabc",
   );
   const request = f.calls.find((c) => c.method === "wallet_sendCalls")!;
@@ -103,7 +104,7 @@ test("sponsored claim sends exactly one committed zero-value escrow call with ma
     "claim",
   );
   assert.deepEqual(payload.capabilities, {
-    paymasterService: { url: f.config.proxyUrl },
+    paymasterService: { url: f.config.proxyUrl, context: { token: f.permit.token } },
   });
 });
 test("wrong account, chain, gas support, commitment or raw provider endpoint cannot send a transaction", async () => {
@@ -130,7 +131,7 @@ test("wrong account, chain, gas support, commitment or raw provider endpoint can
     const f = fixture();
     mutate(f);
     await assert.rejects(
-      sendSponsoredClaim(f.provider, f.reward, f.expected, f.config),
+      sendSponsoredClaim(f.provider, f.reward, f.expected, f.config, f.permit),
     );
     assert.ok(!f.calls.some((c) => c.method === "wallet_sendCalls"));
   }
@@ -154,9 +155,20 @@ test("wallet verification detects account change during signing and does not exp
 
 test("preflight failure does not mark a submission uncertain; persistence failure prevents sending", async () => {
   const f = fixture(); let started = false; f.controls.capable = false;
-  await assert.rejects(sendSponsoredClaim(f.provider, f.reward, f.expected, f.config, () => { started = true; }));
+  await assert.rejects(sendSponsoredClaim(f.provider, f.reward, f.expected, f.config, f.permit, () => { started = true; }));
   assert.equal(started, false);
   f.controls.capable = true;
-  await assert.rejects(sendSponsoredClaim(f.provider, f.reward, f.expected, f.config, () => { throw new Error("Storage unavailable"); }));
+  await assert.rejects(sendSponsoredClaim(f.provider, f.reward, f.expected, f.config, f.permit, () => { throw new Error("Storage unavailable"); }));
   assert.ok(!f.calls.some((call) => call.method === "wallet_sendCalls"));
+});
+
+test("an expired, absent or different-claim sponsorship permit cannot reach the wallet", async () => {
+  for (const change of ["expired", "wrong", "missing"] as const) {
+    const f = fixture();
+    if (change === "expired") f.permit.expiresAt = 0;
+    if (change === "wrong") f.permit.digest = `0x${"00".repeat(32)}`;
+    if (change === "missing") f.permit.token = "";
+    await assert.rejects(sendSponsoredClaim(f.provider, f.reward, f.expected, f.config, f.permit));
+    assert.equal(f.calls.length, 0);
+  }
 });

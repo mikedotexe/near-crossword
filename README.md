@@ -247,6 +247,10 @@ no fake Base session/database/payment fallback.
 
 See [publication and screens](md-CLAUDE-chapters/07-publication-and-screens.md),
 [Base Account and gas](md-CLAUDE-chapters/08-base-account-and-gas.md), and the
-[session checkpoint](docs/reshape-progress.md). The secure claim-specific gas
-proxy and real fresh passkey/paymaster acceptance remain open; do not expose a
+[session checkpoint](docs/reshape-progress.md). The local claim-specific gas
+proxy uses private wallet-context permits and durable allowances; see
+[chapter 09](md-CLAUDE-chapters/09-claim-sponsorship.md). It is default off and
+supports a reviewed EntryPoint 0.6 Base Sepolia profile only. Real fresh
+passkey/paymaster acceptance remains open; follow the
+[staging checklist](docs/base-sepolia-sponsorship-acceptance.md), never expose a
 keyed CDP URL or enable an unrestricted sponsorship relay.

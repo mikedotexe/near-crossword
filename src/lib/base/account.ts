@@ -29,6 +29,7 @@ export type WalletConfiguration = {
   sponsoredGas: boolean;
   proxyUrl: string | null;
 };
+export type SponsorshipPermit = { token: string; expiresAt: number; digest: Hex };
 export type AuthorizedReward = {
   status: "AUTHORIZED";
   digest: Hex;
@@ -174,6 +175,7 @@ export async function sendSponsoredClaim(
   reward: AuthorizedReward,
   expected: Parameters<typeof claimCall>[1],
   configuration: WalletConfiguration,
+  permit: SponsorshipPermit,
   beforeSubmission?: () => void,
 ) {
   if (
@@ -193,6 +195,9 @@ export async function sendSponsoredClaim(
   )
     throw new Error("A reviewed sponsorship proxy is required");
   const call = claimCall(reward, expected);
+  if (!permit || !/^[0-9a-f]{64}$/.test(permit.token) || permit.digest !== reward.digest ||
+      !Number.isSafeInteger(permit.expiresAt) || permit.expiresAt <= Math.floor(Date.now() / 1000) + 15)
+    throw new Error("A fresh claim-specific gas permit is required");
   await assertAccount(provider, expected.recipient, expected.chainId);
   const capabilities = await provider.request({
     method: "wallet_getCapabilities",
@@ -217,7 +222,7 @@ export async function sendSponsoredClaim(
         from: expected.recipient,
         atomicRequired: true,
         calls: [call],
-        capabilities: { paymasterService: { url: proxy.href } },
+        capabilities: { paymasterService: { url: proxy.href, context: { token: permit.token } } },
       },
     ],
   });

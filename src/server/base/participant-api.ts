@@ -29,7 +29,7 @@ function productionServices(pool: Pool, origin: string) {
   return { repository, recovery: new ParticipantRecovery(pool, chain), issuer: () => new BaseRewardIssuer(pool, chain, repository, participantSignerFromEnvironment(), true) };
 }
 
-async function participantContext(request: Request) {
+export async function participantContext(request: Request) {
   if (process.env.BASE_PARTICIPANT_ENABLED !== "true") throw new AppError(404, "NOT_FOUND", "Not found");
   const origin = participantOrigin();
   if (request.method !== "GET") {

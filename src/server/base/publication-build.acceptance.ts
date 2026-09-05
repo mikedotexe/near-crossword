@@ -67,6 +67,7 @@ test(
         BASE_UI_PREVIEW_ENABLED: "true",
         BASE_ACCOUNT_ENABLED: "false",
         BASE_SPONSORED_GAS_ENABLED: "false",
+        BASE_PAYMASTER_PROXY_ENABLED: "false",
         BASE_CLAIM_ISSUANCE_ENABLED: "false",
         BASE_PARTICIPANT_ENABLED: "false",
         BASE_INDEXER_ENABLED: "false",
@@ -131,6 +132,12 @@ test(
       assert.ok(ready);
       for (const path of ["/learn/preview", "/learn/studio/preview"])
         assert.equal((await fetch(origin + path)).status, 404);
+      for (const method of ["POST", "OPTIONS"]) {
+        const disabled = await fetch(origin + "/api/base/paymaster", { method });
+        assert.equal(disabled.status, 404);
+        assert.equal(disabled.headers.get("cache-control"), "no-store");
+      }
+      assert.equal((await fetch(origin + `/api/base/participants/${review.id}/sponsorship`, { method: "POST" })).status, 404);
       const path = `/api/base/reviews/${review.id}/publication`;
       assert.equal((await fetch(origin + path)).status, 401);
       const result = await fetch(origin + path, {

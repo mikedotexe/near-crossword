@@ -14,6 +14,7 @@ same change as its implementation; do not leave future plans described as live.
 | [06 Participants and recovery](06-participants-and-recovery.md) | Completion, wallet evidence, email/consent, authenticated claims and finalized receipts |
 | [07 Publication and screens](07-publication-and-screens.md) | Immutable grids, owner publication/funding links, player and studio screens |
 | [08 Base Account and gas](08-base-account-and-gas.md) | Counterfactual verification, browser wallet flow and unclosed paymaster gates |
+| [09 Claim sponsorship](09-claim-sponsorship.md) | Private wallet-context permits, strict proxy, durable gas allowances and provider acceptance |
 
 These chapters explain the system. The [work order](../docs/reshape-action-plan.md),
 [session checkpoint](../docs/reshape-progress.md), [QA evidence](../QA.md), and

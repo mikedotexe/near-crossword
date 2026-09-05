@@ -39,7 +39,7 @@ before(async () => {
   for (let pass = 0; pass < 2; pass++) {
     const migrated = spawnSync(process.execPath, ["scripts/migrate-v2.mjs"], { env: { ...process.env, DATABASE_URL: url.toString() }, encoding: "utf8", timeout: 30000 });
     assert.equal(migrated.status, 0, "Participant migrations must succeed");
-    assert.equal(migrated.stdout.split(pass ? "Already applied " : "Applied ").length - 1, 12);
+    assert.equal(migrated.stdout.split(pass ? "Already applied " : "Applied ").length - 1, 13);
   }
   Object.assign(process.env, { DATABASE_URL: url.toString(), NEXTAUTH_URL: origin, BASE_PARTICIPANT_ENABLED: "true", BASE_CLAIM_ISSUANCE_ENABLED: "false",
     V2_DATABASE_SSL: "disable", V2_TRUSTED_CLIENT_IP_HEADER: "x-real-ip", V2_FUNDING_MODE: "direct", NODE_ENV: "test" });

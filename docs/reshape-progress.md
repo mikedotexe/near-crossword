@@ -1,7 +1,7 @@
 # Reshape session checkpoint
 
-Last implementation session: 2026-09-04, America/Los_Angeles, session 7 after
-`f3b9eb3` (participant completion, wallet verification and claim/recovery APIs).
+Last implementation session: 2026-09-04, America/Los_Angeles, session 8 after
+`ce9b527` (sponsor/player screens, publication and Base Account adapter).
 
 Read this after the [work order](reshape-action-plan.md). It is a continuation
 record, not evidence of deployment. Live gates remain in
@@ -21,9 +21,10 @@ not unique humans or learning. Manual authoring remains valid.
 - Worktree: `/Users/mikepurvis/other/near-crossword-launch-candidate`
 - Branch: `codex/early-launch-discovery`
 - Planning baseline: `83d1cb8`; prior implementation commits: `8f475e3` and
-  `a373f7e`, followed by `cf560e6`, `6f38ece`, `8d7404e` and `f3b9eb3`.
-  Session 7 follows Mike's request for sponsor/player screens, safe publication,
-  and fresh Base Account onboarding with sponsored gas.
+  `a373f7e`, followed by `cf560e6`, `6f38ece`, `8d7404e`, `f3b9eb3` and `ce9b527`.
+  Session 8 follows Mike's request for the claim-only sponsorship proxy and a
+  real fresh-wallet test, with general transfer approval. Exact funded identities
+  remain unresolved; no public-chain transfer was sent.
   Subject documentation is maintained in
   [md-CLAUDE-chapters](../md-CLAUDE-chapters/README.md).
 - The original `/Users/mikepurvis/other/near-crossword` worktree remains on
@@ -36,7 +37,11 @@ not unique humans or learning. Manual authoring remains valid.
   Postgres schemas and tested compiled contracts on disposable loopback Anvil.
   Session 6 applies/replays all eleven migrations and extends the local EVM check
   through real completion/wallet/issuance/receipt recovery. Session 7 adds migration
-  012 and local publication plus counterfactual verification acceptance. No live key was read.
+  012 and local publication plus counterfactual verification acceptance. Session
+  8 adds migration 013 and local sponsorship tests. Original env names/presence,
+  facilitator documentation and AWS metadata were inspected without exposing or
+  reusing a key; no app credential value was printed or copied. Remote secret
+  listing was denied, SSH timed out, and no cloud/network access was changed.
 
 ## Milestone state
 
@@ -47,12 +52,25 @@ not unique humans or learning. Manual authoring remains valid.
 | R2b lesson/source drafts | Two live synthetic drafts validate; private review API and manual editor implemented | Representative quality evaluation and versioned paid generation orchestration |
 | R3a contract design | Implemented locally with shared typed-data fixture | Independent security review and integration review |
 | R3b contract/accounting | Pinned RPC, canonical ledger and real participant/issuer composition pass Postgres/compiled-EVM checks | Reviewed deployment/RPC/finality policy, supervised scanner, scale validation, independent security review and live acceptance |
-| R4 workflows | Sponsor/player screens, immutable approved layouts, safe publication, existing-funding API, claim recovery and pinned counterfactual simulation implemented locally | Secure claim-specific gas proxy and real fresh passkey/gas acceptance, sponsor wallet funding/control/dashboard, live email acceptance, fraud policy, retention/export |
+| R4 workflows | Sponsor/player screens, approved publication, existing-funding API, claim recovery, pinned counterfactual simulation and a strict Sepolia gas proxy implemented locally | Dedicated paymaster setup/policy, live wire compatibility and fresh passkey/gas acceptance, operator gas recovery, sponsor wallet funding/control/dashboard, live email acceptance, fraud policy, retention/export |
 | R5 Base x402 | Not started | EVM scheme/payer, facilitator configuration, first-wallet and settlement/recovery proof |
 | R6 pilot | Gated | Earlier milestones, reviewed release, explicit small budget and identities |
 
 ## What landed locally
 
+- Session 8: private sponsorship permits bind a real session to a signed reward;
+  the wallet passes a short-lived token in ERC-7677 context. The proxy checks
+  exact canonical account/claim calls, pinned code/factory/EntryPoint/paymaster,
+  current nonce and current-state claim simulation as well as finalized accounting.
+  Gas reservations and provider request identities commit before any external
+  signing request. Cache replay cannot recontact CDP; unknown outcomes retain
+  budget and block further requests. Mainnet is deliberately unsupported by this
+  initial environment profile. See [chapter 09](../md-CLAUDE-chapters/09-claim-sponsorship.md).
+- The facilitator investigation found direct settlement gas, not CDP sponsorship.
+  Its dedicated mainnet canary/signer must not become Crossword credentials.
+  Actual hosted passkey, CDP stub/expiry compatibility, funded identities and
+  provider billing remain unverified. The [acceptance checklist](base-sepolia-sponsorship-acceptance.md)
+  records the setup and transfer-specific confirmation still needed.
 - Session 7: migration 012 approves a validated connected layout separately from
   v1 funded terms, then commits a publication to both hashes. Owner preview,
   layout approval, existing-funding binding, publication and withdrawal APIs
@@ -65,8 +83,8 @@ not unique humans or learning. Manual authoring remains valid.
   claims, requires sponsorship, and never falls back to user-paid gas. The chain
   reader can separately verify pinned ERC-6492 account creation via bounded
   simulation. A synthetic local factory proves this without deploying a wallet.
-  This is **not** live Base passkey/paymaster acceptance. The claim-specific gas
-  proxy remains unimplemented; see [chapter 08](../md-CLAUDE-chapters/08-base-account-and-gas.md).
+  This is **not** live Base passkey/paymaster acceptance. Session 8 adds the local
+  proxy; provider and hosted-wallet acceptance remain open in chapters 08/09.
 - Publication withdrawal blocks new completions/allocations, but authenticated
   recovery includes the committed terms needed to redeem a previous allocation
   even when the public lesson no longer exists. No browser receipt is trusted.
@@ -162,7 +180,21 @@ NEAR. The live product has not switched networks or gained multi-recipient claim
 
 ## Verification
 
-Session 7 checks, Node 20.18.3:
+Session 8 checks, Node 20.18.3:
+
+- Unit **254/254**, Postgres **51/51**, compiled escrow/Postgres **1/1**, browser
+  **15/15**, built-production HTTP/packaging **1/1**, lint, standalone typecheck
+  and production build pass. All thirteen migrations apply/replay on isolated
+  PostgreSQL 16 schemas. No contract or dependency change; standalone Solidity/
+  Rust suites and audits were not rerun. No public-chain transaction was sent.
+- New tests independently cover global and per-recipient caps across campaigns,
+  pre-request intent, token/nonce/claim binding, changed chain/account pins,
+  current-state simulation, expiry, provider failures, restart replay and
+  same-origin session versus wallet-context HTTP boundaries. Production-off
+  sponsorship routes deny requests. Actual hosted passkey/CDP acceptance remains
+  unverified. See [QA](../QA.md) and the live-test checklist.
+
+Session 7 checks (historical), Node 20.18.3:
 
 - Unit **245/245**, Postgres **43/43**, compiled EVM/Postgres **1/1**, and built
   production HTTP/packaging **1/1**. All twelve migrations apply/replay; owned
@@ -262,10 +294,12 @@ replace the key or add stake simply to obtain an inference response.
 
 1. Read this checkpoint, action plan, launch register, and Base design; inspect
    branch/worktree state before editing. Preserve unrelated original-worktree work.
-2. Read chapters 07/08 as well as 03/04/06. Inspect the local player and studio
-   previews, then implement/review the claim-specific sponsorship proxy and its
-   scoped authentication, account-call validation, replay/expiry and gas budgets.
-   Do not configure an open relay or raw CDP URL. Keep production flags disabled.
+2. Read chapters 07/08/09 and the Sepolia sponsorship acceptance checklist.
+   Resolve the dedicated CDP endpoint/project, exact supported wallet/EntryPoint
+   profile, approved provider/code pins and capped test sponsor/recipient/recovery
+   identities. The facilitator's mainnet keys are not reusable. Do not change AWS
+   ingress/IAM to recover credentials without specific approval. Keep production
+   flags off, and do not relax unknown-outcome handling to make retries work.
 3. Prove real fresh Base Account/passkey onboarding and sponsored redemption gas
    on an explicitly approved Base Sepolia deployment. Local ERC-6492 simulation
    and a mocked browser provider are not that acceptance evidence. Build sponsor

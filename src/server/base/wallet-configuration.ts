@@ -9,6 +9,7 @@ export function walletConfiguration(): WalletConfiguration {
     if (
       !enabled ||
       process.env.BASE_SPONSORED_GAS_ENABLED !== "true" ||
+      process.env.BASE_PAYMASTER_PROXY_ENABLED !== "true" ||
       url.protocol !== "https:" ||
       url.username ||
       url.password ||

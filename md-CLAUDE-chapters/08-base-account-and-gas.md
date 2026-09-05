@@ -47,14 +47,13 @@ proxy URL**, not a CDP API URL. The raw CDP endpoint is rejected by the browser 
 configuration helper. Query strings, credentials and fragments are rejected.
 Do not configure an open relay just to make the button work.
 
-**The claim-specific sponsorship proxy is not implemented in this repository.**
-Before enabling this path, implement/review the proxy (or approve an equivalent
-external service), bind sponsorship to the real session/allocation and exact claim,
-restrict account creation/entrypoint/call encoding, enforce expiry and retry-safe
-operation identity, limit gas and sponsor budget, and configure CDP contract/function
-allowlists plus per-operation/address/global limits. A cookie-only proxy may not
-work through the wallet provider; prove the actual ERC-7677 caller/context and use
-short-lived scoped credentials without logging them. Never forward arbitrary RPC.
+Session 8 implements the local claim-specific proxy. See
+[chapter 09](09-claim-sponsorship.md) for the supported wire format, durable
+allowance/retry rules and unresolved live compatibility gates. The private permit
+endpoint requires a real session; the wallet passes its short-lived token through
+ERC-7677 context, not a site cookie. No mainnet activation is implemented.
+CDP contract/function allowlists and billing budgets still need operator review.
+Do not infer hosted-wallet compatibility or provider acceptance from local tests.
 
 Next acceptance: explicitly scoped Base Sepolia deployment, fresh browser/passkey
 with zero ETH, wallet proof, one gas-sponsored redemption, cancellation and lost

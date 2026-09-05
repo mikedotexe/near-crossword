@@ -12,7 +12,9 @@ Neither the new routes nor their signer are enabled/configured in production.
 Session 7 adds sponsor/player screens, separately approved layouts and gated
 publication. See the [publication chapter](../md-CLAUDE-chapters/07-publication-and-screens.md)
 and [Base Account chapter](../md-CLAUDE-chapters/08-base-account-and-gas.md).
-The claim-only sponsorship proxy and live fresh-wallet gas acceptance remain open.
+Session 8 adds the local claim-only proxy and durable gas allowances; see
+[chapter 09](../md-CLAUDE-chapters/09-claim-sponsorship.md). Provider and real
+fresh-wallet gas acceptance remain open.
 
 ## Implemented boundary
 
@@ -95,7 +97,7 @@ adapters. Session 6's participant API composes the reconciled RPC reader, durabl
 completion/wallet verifier and explicitly gated EOA eligibility key. The private
 routes require real database sessions and remain off by default. Session 7 adds
 the funding-binding HTTP endpoint and player/review UI. Funding binding is
-read-only on chain; sponsor wallet funding and the secure gas proxy remain open.
+read-only on chain; sponsor wallet funding and live gas acceptance remain open.
 Tests use public synthetic keys and isolated databases/local EVMs, never live funds.
 
 The trusted chain adapter must independently verify the pinned deployment and

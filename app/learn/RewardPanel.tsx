@@ -193,11 +193,15 @@ export function RewardPanel({
     }
     let batch: string;
     try {
+      const current = provider.current, version = generation.current;
+      const permit = await learningApi<import("../../src/lib/base/account").SponsorshipPermit>(`${path}/sponsorship`, { digest: authorization.digest });
+      if (generation.current !== version || provider.current !== current) throw new Error();
       batch = await sendSponsoredClaim(
-        provider.current,
+        current,
         authorization,
         { recipient, ...terms },
         wallet,
+        permit,
         () => {
           // After preflight, persist uncertainty before the wallet can send anything.
           sessionStorage.setItem(`crossword:pending:${id}`, "uncertain");

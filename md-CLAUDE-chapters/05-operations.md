@@ -13,6 +13,9 @@ verification to the disposable Anvil/Postgres acceptance path. The local EVM
 covers EOA, deployed ERC-1271 and undeployed ERC-6492 recipients; it does not prove
 a real fresh Base passkey or sponsored gas. The built-production HTTP check runs
 after `yarn build`, verifies the shipped layout source and denies practice routes.
+Session 8 adds migration 013 for short-lived gas permits and durable operator
+allowances. Never reset/delete uncertain sponsorship requests to bypass a blocked
+retry. Read chapter 09 and the Sepolia acceptance checklist before provider setup.
 Keep dependencies pinned; contract and browser regression evidence is separate
 from unit tests. Production targets Node 20.
 Run standalone typecheck and the Next build sequentially: the build regenerates

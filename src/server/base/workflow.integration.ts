@@ -15,6 +15,11 @@ import { recipient, reviewFixture, rotatedTestSigner, testSigner } from "./workf
 import { LearningPublication } from "./publication";
 import { PostgresParticipantRepository } from "./participant-repository";
 import { publicationHandlers } from "./publication-api";
+import { ClaimSponsorship } from "./sponsorship";
+import { gasPolicy, gasRequest, gasResult } from "./sponsorship.fixture";
+import { claimCall } from "../../lib/base/account";
+import { createSponsorshipHandlers } from "./sponsorship-api";
+import type { SponsorshipRequest } from "./sponsorship-policy";
 
 test("publication requires owner approval, exact layout and finalized funding; public fields exclude private evidence", async () => {
   const ctx = await setup(); const publication = new LearningPublication(pool, ctx.reader);
@@ -86,7 +91,7 @@ let outsider: string;
 let learners: string[];
 let unverified: string;
 let onChainSequence = 1n;
-const previousEnv = Object.fromEntries(["DATABASE_URL", "BASE_REVIEW_ENABLED", "NEXTAUTH_URL", "V2_DATABASE_SSL", "V2_TRUSTED_CLIENT_IP_HEADER"].map((key) => [key, process.env[key]]));
+const previousEnv = Object.fromEntries(["DATABASE_URL", "BASE_REVIEW_ENABLED", "BASE_PARTICIPANT_ENABLED", "BASE_PAYMASTER_PROXY_ENABLED", "BASE_SPONSORED_GAS_ENABLED", "NEXTAUTH_URL", "V2_DATABASE_SSL", "V2_TRUSTED_CLIENT_IP_HEADER"].map((key) => [key, process.env[key]]));
 let httpPoolOpened = false;
 
 before(async () => {
@@ -96,7 +101,7 @@ before(async () => {
       env: { ...process.env, DATABASE_URL: url.toString() }, encoding: "utf8", timeout: 30000,
     });
     assert.equal(migrated.status, 0, "Isolated migration run must succeed");
-    assert.equal(migrated.stdout.split(pass === 0 ? "Applied " : "Already applied ").length - 1, 12);
+    assert.equal(migrated.stdout.split(pass === 0 ? "Applied " : "Already applied ").length - 1, 13);
   }
   const result = await pool.query(
     `INSERT INTO users (email, email_verified)
@@ -454,4 +459,160 @@ test("private route handlers enforce real sessions, ownership, same-origin mutat
   process.env.BASE_REVIEW_ENABLED = "false";
   assert.equal((await getReview(request("GET"), context)).status, 404);
   process.env.BASE_REVIEW_ENABLED = "true";
+});
+
+async function sponsorshipSetup() {
+  const input = reviewFixture();
+  input.terms.escrow = `0x${(1000n + onChainSequence).toString(16).padStart(40, "0")}`;
+  const ctx = await setup(input); await ctx.bind();
+  const issued = await ctx.issue();
+  const policy = gasPolicy(ctx.state.escrow); policy.chainId = ctx.state.chainId;
+  const call = claimCall(issued, { recipient, chainId: ctx.state.chainId, escrow: ctx.state.escrow,
+    onChainId: ctx.state.onChainId.toString(), rewardAtomic: ctx.state.rewardAtomic.toString(), claimDeadline: ctx.state.claimDeadline });
+  const controls = { calls: 0, fail: false, accountFail: false, after: async () => {} };
+  const service = () => new ClaimSponsorship(pool, ctx.reader, { verifySponsorshipAccount: async () => { if (controls.accountFail) throw new Error("Private RPC error"); } }, policy,
+    async () => { controls.calls++; await controls.after(); if (controls.fail) throw new Error("Provider SECRET"); return gasResult(policy); });
+  const permit = await service().permit(learners[0], ctx.review.id, issued.digest);
+  const request = gasRequest(policy, recipient, call.data, permit.token);
+  return { ...ctx, policy, controls, service, issued, permit, request };
+}
+
+test("gas permit is private, claim bound and refreshed without extending a possibly signed operation", async () => {
+  const ctx = await sponsorshipSetup();
+  await assert.rejects(ctx.service().permit(outsider, ctx.review.id, ctx.issued.digest), { status: 403 });
+  const rows = await pool.query("SELECT * FROM base_gas_sponsorships WHERE allocation_id = $1", [ctx.issued.allocationId]);
+  assert.doesNotMatch(JSON.stringify(rows.rows), new RegExp(ctx.permit.token));
+  assert.equal(rows.rows[0].reserved_wei, "0");
+  const response = await ctx.service().proxy(ctx.request);
+  const fresh = await ctx.service().permit(learners[0], ctx.review.id, ctx.issued.digest);
+  assert.notEqual(fresh.token, ctx.permit.token); assert.equal(fresh.expiresAt, ctx.permit.expiresAt);
+  await assert.rejects(ctx.service().proxy(ctx.request), { status: 403 });
+  ctx.request.params[3].token = fresh.token;
+  assert.deepEqual(await ctx.service().proxy(ctx.request), response); assert.equal(ctx.controls.calls, 1);
+});
+
+test("gas requests reserve once, deduplicate concurrent requests and replay after process restart without contacting upstream", async () => {
+  const ctx = await sponsorshipSetup();
+  let enter!: () => void, release!: () => void;
+  const entered = new Promise<void>(r => { enter = r; }), gate = new Promise<void>(r => { release = r; });
+  ctx.controls.after = async () => {
+    const intent = await pool.query("SELECT s.reserved_wei, r.state FROM base_gas_sponsorships s JOIN base_gas_requests r ON r.allocation_id = s.allocation_id WHERE s.allocation_id = $1 ORDER BY r.created_at DESC LIMIT 1", [ctx.issued.allocationId]);
+    assert.equal(intent.rows[0].state, "IN_FLIGHT");
+    assert.equal(intent.rows[0].reserved_wei, ctx.policy.maxOperationWei.toString());
+    enter(); await gate;
+  };
+  const first = ctx.service().proxy(ctx.request); await entered;
+  await assert.rejects(ctx.service().proxy(ctx.request), { code: "SPONSORSHIP_UNAVAILABLE" });
+  release(); const response = await first;
+  assert.deepEqual(await ctx.service().proxy(ctx.request), response);
+  assert.equal(ctx.controls.calls, 1);
+  ctx.request.method = "pm_getPaymasterData";
+  await ctx.service().proxy(ctx.request); await ctx.service().proxy(ctx.request);
+  assert.equal(ctx.controls.calls, 2);
+  const rows = await pool.query("SELECT reserved_wei, attempts FROM base_gas_sponsorships WHERE allocation_id = $1", [ctx.issued.allocationId]);
+  assert.equal(rows.rows[0].reserved_wei, ctx.policy.maxOperationWei.toString()); assert.equal(rows.rows[0].attempts, 2);
+  ctx.request.params[0].callGasLimit = "0x186a1";
+  await assert.rejects(ctx.service().proxy(ctx.request), { status: 403 });
+});
+
+test("unknown provider outcomes survive restarts, cannot bypass by changing estimates, and retain budget", async () => {
+  const ctx = await sponsorshipSetup(); ctx.controls.fail = true;
+  await assert.rejects(ctx.service().proxy(ctx.request), { code: "SPONSORSHIP_UNAVAILABLE" });
+  ctx.controls.fail = false;
+  await assert.rejects(ctx.service().proxy(ctx.request), { code: "SPONSORSHIP_UNAVAILABLE" });
+  ctx.request.params[0].callGasLimit = "0x186a1";
+  await assert.rejects(ctx.service().proxy(ctx.request), { code: "SPONSORSHIP_UNAVAILABLE" });
+  assert.equal(ctx.controls.calls, 1);
+  const saved = await pool.query("SELECT * FROM base_gas_requests WHERE allocation_id = $1", [ctx.issued.allocationId]);
+  assert.equal(saved.rows[0].state, "UNKNOWN"); assert.equal(saved.rows[0].result, null);
+  assert.doesNotMatch(JSON.stringify(saved.rows), /SECRET/);
+});
+
+test("expired, nonce-replaced, rotated, paused, paid and unpinned accounts cannot obtain sponsorship", async () => {
+  const ctx = await sponsorshipSetup();
+  ctx.controls.accountFail = true; await assert.rejects(ctx.service().proxy(ctx.request)); ctx.controls.accountFail = false;
+  ctx.state.paused = true; await assert.rejects(ctx.service().proxy(ctx.request)); ctx.state.paused = false;
+  ctx.state.signerEpoch = 2n; await assert.rejects(ctx.service().proxy(ctx.request)); ctx.state.signerEpoch = 1n;
+  ctx.use.slotUsed = true; await assert.rejects(ctx.service().proxy(ctx.request)); ctx.use.slotUsed = false;
+  assert.equal(ctx.controls.calls, 0);
+  await ctx.service().proxy(ctx.request);
+  ctx.request.params[0].nonce = "0x1"; await assert.rejects(ctx.service().proxy(ctx.request)); ctx.request.params[0].nonce = "0x0";
+  await pool.query("UPDATE base_gas_sponsorships SET expires_at = NOW() - INTERVAL '1 second' WHERE allocation_id = $1", [ctx.issued.allocationId]);
+  await assert.rejects(ctx.service().proxy(ctx.request));
+  await assert.rejects(ctx.service().permit(learners[0], ctx.review.id, ctx.issued.digest));
+  assert.equal(ctx.controls.calls, 1);
+});
+
+test("deployment-wide gas quota is atomic across different allocations and does not consume prize principal", async () => {
+  const ctx = await sponsorshipSetup();
+  const requests: SponsorshipRequest[] = [ctx.request];
+  for (const userId of learners.slice(1, 3)) {
+    const reward = await ctx.issue(userId);
+    const permit = await ctx.service().permit(userId, ctx.review.id, reward.digest);
+    const call = claimCall(reward, { recipient, chainId: ctx.state.chainId, escrow: ctx.state.escrow,
+      onChainId: ctx.state.onChainId.toString(), rewardAtomic: ctx.state.rewardAtomic.toString(), claimDeadline: ctx.state.claimDeadline });
+    requests.push(gasRequest(ctx.policy, recipient, call.data, permit.token));
+  }
+  const results = await Promise.allSettled(requests.map(r => ctx.service().proxy(r)));
+  assert.equal(results.filter(r => r.status === "fulfilled").length, 2);
+  assert.equal(ctx.controls.calls, 2);
+  const total = await pool.query("SELECT SUM(s.reserved_wei)::TEXT AS amount FROM base_gas_sponsorships s JOIN base_reward_allocations r ON r.id = s.allocation_id WHERE r.campaign_id = $1", [ctx.review.id]);
+  assert.equal(total.rows[0].amount, ctx.policy.totalBudgetWei.toString());
+  assert.equal(ctx.state.outstandingAtomic, 300000n);
+});
+
+test("provider completion followed by signer rotation is held for recovery, never returned as sponsored success", async () => {
+  const ctx = await sponsorshipSetup(); ctx.controls.after = async () => { ctx.state.signerEpoch = 2n; };
+  await assert.rejects(ctx.service().proxy(ctx.request), { code: "SPONSORSHIP_UNAVAILABLE" });
+  assert.equal((await pool.query("SELECT state FROM base_gas_requests WHERE allocation_id = $1", [ctx.issued.allocationId])).rows[0].state, "UNKNOWN");
+});
+
+test("global gas budget and per-recipient limits are independent and cannot reset through another campaign", async () => {
+  for (const mode of ["global", "recipient"] as const) {
+    const ctx = await sponsorshipSetup();
+    if (mode === "global") { ctx.policy.totalBudgetWei = ctx.policy.maxOperationWei; ctx.policy.maxOperationsPerAccount = 10; }
+    else { ctx.policy.totalBudgetWei = ctx.policy.maxOperationWei * 10n; ctx.policy.maxOperationsPerAccount = 1; }
+    // Policy approval precedes first use; refresh the initially unused synthetic record for this fixture only.
+    await pool.query("DELETE FROM base_gas_sponsorships WHERE allocation_id = $1", [ctx.issued.allocationId]);
+    ctx.request.params[3].token = (await ctx.service().permit(learners[0], ctx.review.id, ctx.issued.digest)).token;
+    await ctx.service().proxy(ctx.request);
+    const input = reviewFixture(); input.terms.escrow = ctx.policy.escrow;
+    const another = await setup(input); await another.bind();
+    const target = mode === "global" ? rotatedTestSigner.address : recipient;
+    const reward = await another.issue(learners[1], "TEST_ONLY_VERIFIED", target);
+    let calls = 0;
+    const service = new ClaimSponsorship(pool, another.reader, { verifySponsorshipAccount: async () => {} }, ctx.policy, async () => { calls++; return gasResult(ctx.policy); });
+    const permit = await service.permit(learners[1], another.review.id, reward.digest);
+    const call = claimCall(reward, { recipient: target, chainId: another.state.chainId, escrow: another.state.escrow,
+      onChainId: another.state.onChainId.toString(), rewardAtomic: another.state.rewardAtomic.toString(), claimDeadline: another.state.claimDeadline });
+    await assert.rejects(service.proxy(gasRequest(ctx.policy, target, call.data, permit.token)), { status: 403 });
+    assert.equal(calls, 0);
+  }
+});
+
+test("permit HTTP requires real owner session and origin; proxy uses scoped context without cookies and denies arbitrary RPC", async () => {
+  const ctx = await sponsorshipSetup();
+  process.env.BASE_PARTICIPANT_ENABLED = "true"; process.env.BASE_PAYMASTER_PROXY_ENABLED = "true"; process.env.BASE_SPONSORED_GAS_ENABLED = "true";
+  const handlers = createSponsorshipHandlers(() => ctx.service());
+  const token = randomUUID();
+  await pool.query("INSERT INTO sessions (user_id, session_token, expires) VALUES ($1, $2, NOW() + INTERVAL '1 hour')", [learners[0], token]);
+  const context = { params: Promise.resolve({ id: ctx.review.id }) };
+  const request = (body: unknown, cookie = "", origin = "https://crossword.example.test") => new Request("https://crossword.example.test/api/base/paymaster", {
+    method: "POST", headers: { "content-type": "application/json", "x-real-ip": "127.0.0.1", origin, cookie }, body: JSON.stringify(body) });
+  assert.equal((await handlers.permit(request({ digest: ctx.issued.digest }), context)).status, 401);
+  const cookie = `next-auth.session-token=${token}`;
+  assert.equal((await handlers.permit(request({ digest: ctx.issued.digest }, cookie, "https://elsewhere.test"), context)).status, 403);
+  const grant = await handlers.permit(request({ digest: ctx.issued.digest }, cookie), context);
+  assert.equal(grant.status, 200); assert.equal(grant.headers.get("cache-control"), "no-store");
+  ctx.request.params[3].token = (await grant.json()).token;
+  const response = await handlers.proxy(request(ctx.request, "", "https://wallet.example.test"));
+  assert.equal(response.status, 200); assert.equal(response.headers.get("access-control-allow-origin"), "*");
+  assert.equal(response.headers.get("access-control-allow-credentials"), null);
+  assert.equal((await response.json()).id, ctx.request.id);
+  const bad = await handlers.proxy(request({ ...ctx.request, method: "eth_sendRawTransaction" }));
+  assert.equal(bad.status, 403); assert.equal(ctx.controls.calls, 1);
+  assert.equal((await handlers.options()).status, 204);
+  process.env.BASE_PAYMASTER_PROXY_ENABLED = "false";
+  assert.equal((await handlers.proxy(request(ctx.request))).status, 404);
+  assert.equal((await handlers.options()).status, 404);
 });
