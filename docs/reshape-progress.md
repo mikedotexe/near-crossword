@@ -1,7 +1,7 @@
 # Reshape session checkpoint
 
-Last implementation session: 2026-09-04, America/Los_Angeles, session 8 after
-`ce9b527` (sponsor/player screens, publication and Base Account adapter).
+Last setup session: 2026-09-05, America/Los_Angeles, session 9 after
+`3362ad5` (claim-only proxy and durable gas allowances).
 
 Read this after the [work order](reshape-action-plan.md). It is a continuation
 record, not evidence of deployment. Live gates remain in
@@ -27,6 +27,13 @@ not unique humans or learning. Manual authoring remains valid.
   remain unresolved; no public-chain transfer was sent.
   Subject documentation is maintained in
   [md-CLAUDE-chapters](../md-CLAUDE-chapters/README.md).
+- Session 9 prepares a disabled `.env.local` in this worktree and a dedicated
+  encrypted Base Sepolia deployer outside the repo, with its password in macOS
+  Keychain. Offline recovery passed; the wallet has zero observed test balances.
+  The CDP dashboard is waiting at sign-in: no endpoint, policy or billing was
+  configured. See [local setup](base-sepolia-local-setup.md). The encrypted
+  deployer is not a paymaster or fresh participant wallet, and no mainnet funding
+  or transaction-specific approval is implied by creating it.
 - The original `/Users/mikepurvis/other/near-crossword` worktree remains on
   `codex/crossword-campaigns` with pre-existing changes. Do not overwrite it or
   assume it is the launch-candidate branch. Recheck both worktrees next session.
@@ -52,12 +59,16 @@ not unique humans or learning. Manual authoring remains valid.
 | R2b lesson/source drafts | Two live synthetic drafts validate; private review API and manual editor implemented | Representative quality evaluation and versioned paid generation orchestration |
 | R3a contract design | Implemented locally with shared typed-data fixture | Independent security review and integration review |
 | R3b contract/accounting | Pinned RPC, canonical ledger and real participant/issuer composition pass Postgres/compiled-EVM checks | Reviewed deployment/RPC/finality policy, supervised scanner, scale validation, independent security review and live acceptance |
-| R4 workflows | Sponsor/player screens, approved publication, existing-funding API, claim recovery, pinned counterfactual simulation and a strict Sepolia gas proxy implemented locally | Dedicated paymaster setup/policy, live wire compatibility and fresh passkey/gas acceptance, operator gas recovery, sponsor wallet funding/control/dashboard, live email acceptance, fraud policy, retention/export |
+| R4 workflows | Sponsor/player screens, approved publication, claim recovery and strict Sepolia gas proxy implemented locally; disabled local env and encrypted test deployer prepared | CDP sign-in/endpoint/policy, live wire compatibility and fresh passkey/gas acceptance, operator gas recovery, sponsor wallet funding/control/dashboard, live email acceptance, fraud policy, retention/export |
 | R5 Base x402 | Not started | EVM scheme/payer, facilitator configuration, first-wallet and settlement/recovery proof |
 | R6 pilot | Gated | Earlier milestones, reviewed release, explicit small budget and identities |
 
 ## What landed locally
 
+- Session 9: local configuration and encrypted test-deployer preparation only.
+  No runtime code, dependency, database or contract change. CDP managed
+  sponsorship uses account billing, not an ETH-funded seed wallet. Provider
+  configuration and all live spending/acceptance remain open.
 - Session 8: private sponsorship permits bind a real session to a signed reward;
   the wallet passes a short-lived token in ERC-7677 context. The proxy checks
   exact canonical account/claim calls, pinned code/factory/EntryPoint/paymaster,
@@ -180,6 +191,18 @@ NEAR. The live product has not switched networks or gained multi-recipient claim
 
 ## Verification
 
+Session 9 checks, Node 20.18.3:
+
+- Focused sponsorship tests **8/8**. The ignored local env is mode 0600, chain
+  84532, with all twelve included gates/review flags false and endpoint/key slots
+  empty. Player/editor previews return 200; disabled paymaster POST returns 404.
+- Encrypted wallet recovery derives the address and an offline message signature
+  independently recovers it with viem. Base Sepolia read-only RPC verifies chain
+  84532 and zero ETH/USDC, nonce 0 and no code at block 46429850.
+- No provider request, broadcast, funded transaction, production configuration,
+  migration or deployment. Full build, browser, database, contract suites and
+  audits were not rerun for this local configuration/documentation-only session.
+
 Session 8 checks, Node 20.18.3:
 
 - Unit **254/254**, Postgres **51/51**, compiled escrow/Postgres **1/1**, browser
@@ -295,6 +318,8 @@ replace the key or add stake simply to obtain an inference response.
 1. Read this checkpoint, action plan, launch register, and Base design; inspect
    branch/worktree state before editing. Preserve unrelated original-worktree work.
 2. Read chapters 07/08/09 and the Sepolia sponsorship acceptance checklist.
+   Resume CDP Portal sign-in; read the new local setup record before touching
+   credentials. Reuse the encrypted test-deployer wallet, do not regenerate it.
    Resolve the dedicated CDP endpoint/project, exact supported wallet/EntryPoint
    profile, approved provider/code pins and capped test sponsor/recipient/recovery
    identities. The facilitator's mainnet keys are not reusable. Do not change AWS

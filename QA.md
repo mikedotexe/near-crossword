@@ -35,6 +35,24 @@ yarn test:acceptance:base-build
 
 ## Current local implementation evidence
 
+### Reshape session 9, 2026-09-05: local setup only
+
+- Focused sponsorship tests **8/8** pass on Node 20.18.3. No runtime code,
+  dependency, database or contract changed; full build/browser/database/contract
+  suites and audits were not rerun. Session 8's broader evidence remains below.
+- New ignored launch-candidate `.env.local` is mode 0600, chain 84532, with all
+  twelve included gates/review flags false; provider and eligibility-key slots
+  remain empty. Player/editor previews return HTTP 200 and disabled paymaster
+  POST returns 404. No provider request is needed for these checks.
+- New encrypted test-deployer wallet has verified keystore recovery and an
+  independently checked offline message signature. A read-only Base Sepolia
+  query confirms zero test ETH/USDC, nonce 0 and no code at block 46429850.
+  Keystore/password remain outside Git; no private value or signature is evidence.
+- The CDP Portal is at sign-in, not a completed setup. No CDP endpoint, project
+  policy, billing, payment, sponsored claim or fresh hosted passkey is verified.
+  No public-chain transaction or production change occurred. See
+  [local setup and recovery](docs/base-sepolia-local-setup.md).
+
 ### Reshape session 8, 2026-09-04
 
 - Unit **254/254**, Postgres **51/51**, compiled escrow/Postgres acceptance

@@ -208,6 +208,10 @@ pinned ERC-6492 simulation, an explicit Base Account browser adapter and mandato
 sponsorship request. Session 8 adds the local claim-specific proxy and durable
 gas allowances (chapter 09); dedicated provider setup, live wire compatibility,
 operational recovery and real hosted passkey/gas acceptance remain open.
+Session 9 prepares a disabled local env profile and a dedicated encrypted
+Sepolia deployer with verified recovery. CDP sign-in/endpoint/policy are still
+pending; its managed sponsorship is account-billed, separate from deployer ETH.
+See [local setup](base-sepolia-local-setup.md). These preparations do not close R4.
 Prove the freshly created wallet path, not just a previously
 funded wallet. The participant flow needs completion, email verification, payout
 pending/confirmed/failed, exhausted-budget, and expired-campaign states. Sponsors

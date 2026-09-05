@@ -1,8 +1,12 @@
 # Base Sepolia sponsorship acceptance
 
-Status: preparation only, 2026-09-04. No public-chain transaction or fresh hosted
+Status: preparation only, updated 2026-09-05. No public-chain transaction or fresh hosted
 wallet test has been performed for Crossword. Local synthetic proofs are in
 [QA](../QA.md); architecture is in [chapter 09](../md-CLAUDE-chapters/09-claim-sponsorship.md).
+Session 9 adds an encrypted test-deployer wallet and disabled local env profile;
+see [local setup and recovery](base-sepolia-local-setup.md). CDP sign-in and
+actual endpoint/policy configuration remain pending. Managed CDP sponsorship is
+account-billed, not an ETH deposit into this separate deployment wallet.
 
 ## Existing infrastructure investigation
 
@@ -31,15 +35,17 @@ exists. A dedicated Crossword paymaster configuration remains required.
 
 1. Open [CDP Portal](https://portal.cdp.coinbase.com), use a dedicated Crossword
    project and choose Paymaster under Onchain Tools, **Base Sepolia**. Keep its
-   private endpoint only in `BASE_PAYMASTER_UPSTREAM_URL` in the original repo's
-   ignored `.env` or the intended staging secret store. Never paste it in chat
+   private endpoint only in `BASE_PAYMASTER_UPSTREAM_URL` in the launch-candidate
+   worktree's ignored `.env.local` or the intended staging secret store. The
+   original repo is a different branch. Never paste the endpoint in chat
    or put it in the public `BASE_SPONSORED_CLAIM_PROXY_URL` variable.
 2. Configure a deny-by-default contract/function allowlist for the separately
    deployed Crossword escrow's `claim` function. Review factory/account creation
    support and per-operation, per-address and total billing caps. Do not allow
    arbitrary calls to the factory or all methods just to pass a wallet prompt.
-3. Choose a dedicated Base Sepolia sponsor/deployer wallet and its recovery
-   address, separately from the fresh participant and server eligibility signer.
+3. A dedicated encrypted Base Sepolia deployer wallet is now recorded in
+   [local setup](base-sepolia-local-setup.md). Confirm its sponsor/refund role
+   for the exact campaign, separately from the fresh participant and server eligibility signer.
    Never put a sponsor/deployer key into the web service. Use test-only faucet
    funds; no bridge or mainnet purchase is required for this test.
 4. Confirm the exact funded preview once addresses and estimates are known.
@@ -47,7 +53,8 @@ exists. A dedicated Crossword paymaster configuration remains required.
    principal, total deployment/funding gas at most 0.001 test ETH, no mainnet
    funds. Separately approve the CDP sponsorship/billing cap. The user approved
    transfers in general but directed identity discovery instead of selecting
-   a payer, recipient and refund address; those fields remain unresolved.
+   a complete payer, recipient and refund configuration. Wallet creation alone
+   does not resolve the campaign/participant identities or approve a transaction.
 
 ## Engineering: staging and no-spend checks
 

@@ -254,3 +254,6 @@ supports a reviewed EntryPoint 0.6 Base Sepolia profile only. Real fresh
 passkey/paymaster acceptance remains open; follow the
 [staging checklist](docs/base-sepolia-sponsorship-acceptance.md), never expose a
 keyed CDP URL or enable an unrestricted sponsorship relay.
+The [local Sepolia setup record](docs/base-sepolia-local-setup.md) distinguishes
+the disabled launch-candidate env, encrypted test-deployer wallet and pending
+CDP account-billed paymaster setup. Never put a deployer seed/key in the web env.

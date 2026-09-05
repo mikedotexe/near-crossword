@@ -85,6 +85,15 @@ format/expiry behavior is not yet observed; incompatible data must fail closed.
 
 ## Verification and remaining work
 
+Session 9 prepares the launch-candidate's ignored `.env.local`, with chain 84532
+and every spending gate disabled. An encrypted test-deployer keystore outside
+the repo has a separate macOS Keychain password and verified offline recovery;
+its public identity and recovery locations are in
+[local setup](../docs/base-sepolia-local-setup.md). No seed or deployer key belongs
+in the web environment. CDP's managed paymaster uses account billing, not this
+wallet's ETH. Portal sign-in, endpoint and actual policy configuration remain
+pending; do not describe the prepared env slot as a configured provider.
+
 Tests cover strict input/claim/factory/gas parsing, RPC pins and nonce checks,
 cookie-free wallet-context HTTP, private permit issuance, race-safe quotas,
 refresh/restart replay, expiry, signer rotation, paid claims, provider errors and

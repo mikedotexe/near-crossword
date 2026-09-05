@@ -16,6 +16,11 @@ after `yarn build`, verifies the shipped layout source and denies practice route
 Session 8 adds migration 013 for short-lived gas permits and durable operator
 allowances. Never reset/delete uncertain sponsorship requests to bypass a blocked
 retry. Read chapter 09 and the Sepolia acceptance checklist before provider setup.
+Session 9's disabled Base profile lives in the launch-candidate `.env.local`,
+not the original repo's `.env`. The test-deployer wallet is outside both repos;
+read [local setup](../docs/base-sepolia-local-setup.md) for its public address and
+encrypted recovery locations. Do not regenerate it after an interrupted step,
+copy its key to the web service, or mistake it for CDP paymaster funding.
 Keep dependencies pinned; contract and browser regression evidence is separate
 from unit tests. Production targets Node 20.
 Run standalone typecheck and the Next build sequentially: the build regenerates

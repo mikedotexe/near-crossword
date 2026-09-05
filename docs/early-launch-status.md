@@ -2,7 +2,7 @@
 
 Last public-site/config checks: 2026-09-04, America/Los_Angeles (2026-09-05 00:06 UTC).
 Last provider checks: 2026-09-04, America/Los_Angeles (2026-09-05 02:44 UTC).
-Local implementation update: 2026-09-04; no subsequent production change.
+Local setup update: 2026-09-05; no subsequent production change.
 
 This is the working record for the public launch. Read it before changing launch
 configuration. Product possibilities belong in [product discovery](product-discovery.md);
@@ -46,7 +46,7 @@ credential is not, by itself, proof that a provider is unusable.
 | L11 | Private consent and verified-email persistence locally implemented; policy acceptance pending | Google server sign-in persists verification only for a matching linked subject/email. Optional campaign-scoped contact consent has versioned opt-in/withdrawal and email binding; no export exists. Rewards do not require opt-in. | Complete actual email/OAuth callback acceptance (L05), private sponsor export, retention/deletion and pilot fraud policy. Account/email/wallet control does not prove unique humans or learning; multiple-account and collusion risks remain. |
 | L12 | Key and inference accepted; staking linkage unverified | Protected auth control returned 401 for an invalid key and 200 for the supplied key. Successful inference and matching billing records are observed. Intended default organization, staking-credit source, farm/pool/rate, and stake amount/destination remain unverified. | Mike confirms the intended organization's credit source and exact staking setup in R1. A replacement key or extra stake is not required merely to repeat the working call. |
 | L13 | Bounded live source drafts passed; broader acceptance open | Gateway GLM 5.1 with documented thinking disabled produced two validated three-entry drafts in 12.1/13.7 seconds; billed costs were $0.0022806/$0.002725. This is the local default only. Earlier GLM 5.3/Qwen timeouts and direct Gemma TLS resets remain unexplained, with failed-request billing unknown. | Engineering follows the [sanitized evaluation record](near-ai-evaluation-2026-09-04.md) for representative source/clue quality, layout, reliability and paid delivery/recovery. Do not equate two synthetic successes with publication readiness or production activation. |
-| L14 | Strict proxy local; provider/fresh-wallet acceptance OPEN | Session 8 adds session-issued wallet-context permits, exact claim/account/factory/EntryPoint decoding, pinned code/current-state checks and durable bounded gas allowances. The initial environment profile is Sepolia/EntryPoint 0.6 only. No dedicated CDP configuration or exact funded identities are available locally. The facilitator uses direct settlement gas; its mainnet keys must not be reused. | Follow the Sepolia acceptance checklist: dedicated CDP endpoint and billing policy, actual wallet/stub/expiry compatibility, reviewed deployment/code pins, exact transfer approval, fresh zero-ETH passkey, cancellation/recovery, finalized payout and provider bill. Operational recovery still needs live evidence. Keep production sponsorship disabled. |
+| L14 | Strict proxy local; provider/fresh-wallet acceptance OPEN | Session 8 adds the strict Sepolia/EntryPoint 0.6 proxy and durable allowances. Session 9 prepares a disabled local env and encrypted test deployer with verified recovery and zero observed test balances. CDP Portal remains at sign-in; endpoint, policy and billing are not configured. Managed sponsorship is account-billed, separate from deployer ETH. Facilitator mainnet keys remain untouched. | Mike completes CDP sign-in; engineering follows the Sepolia checklist for the private endpoint, approved billing policy, actual wallet/stub/expiry compatibility, reviewed deployment/code pins, exact transfer approval, fresh zero-ETH passkey, cancellation/recovery, finalized payout and provider bill. Keep production sponsorship disabled. |
 
 ## Facilitator inventory
 
@@ -85,6 +85,15 @@ wallet state before promising first-use compatibility.
 
 ## Change log
 
+- 2026-09-05, session 9: Prepared a disabled Base Sepolia `.env.local` in the
+  launch-candidate worktree and a dedicated encrypted test-deployer wallet with
+  a separate macOS Keychain password. Recovery and independent offline signature
+  checks passed; a read-only query observed zero ETH/USDC and nonce/code at block
+  46429850. Sponsorship tests 8/8; nonpaying previews 200 and disabled proxy 404.
+  CDP Portal is awaiting Mike's sign-in. No endpoint, allowlist, billing cap,
+  credit balance or payment method was configured. No credential value was
+  printed; no chain transaction, production configuration/migration/deployment,
+  AWS change or facilitator-key reuse. See [local setup](base-sepolia-local-setup.md).
 - 2026-09-04, session 8: Implemented the local claim-only gas proxy and migration
   013. Unit 254/254, Postgres 51/51, browser 15/15, compiled escrow acceptance 1/1,
   production HTTP/packaging 1/1, lint/typecheck and build pass. Mike approved
