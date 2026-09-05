@@ -7,8 +7,8 @@ Next session: [implementation checkpoint](docs/reshape-progress.md).
 
 The product description below covers the current NEAR v2 application. The
 agreed Base, many-recipient learning experience is under development; the
-[Base escrow design](docs/base-reward-contract.md) is not yet an implemented
-contract. This branch uses NEAR AI for generation, while production remains
+[Base escrow](contract-base/README.md) is implemented and tested locally but
+not integrated or deployed. This branch uses NEAR AI for generation, while production remains
 on the release recorded in the launch register.
 
 **Fund with anything. Win anywhere.**
@@ -129,6 +129,9 @@ Real clue generation uses `NEAR_AI_API_KEY`, optional `NEAR_AI_BASE_URL`
 candidate `z-ai/glm-5.3-flash`). It has no Anthropic dependency or fallback.
 Leave `X402_ENABLED=false` until provider and payment acceptance checks pass.
 See the [backend guide](src/server/v2/README.md) for limits and recovery behavior.
+Source-grounded lessons are available through a separate draft generator and
+the opt-in `yarn ai:evaluate --env-file /path/to/ignored/.env` check, not yet the
+public creator route. See [live check results](docs/near-ai-evaluation-2026-09-04.md).
 
 For Postgres-backed development:
 
@@ -164,6 +167,10 @@ yarn test:unit
 yarn test:browser
 yarn test:contract:v2
 yarn contract:v2:build
+git submodule update --init --recursive
+yarn contract:base:fmt
+yarn test:contract:base
+yarn contract:base:build
 yarn build
 ```
 

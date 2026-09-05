@@ -98,8 +98,26 @@ There is no Anthropic fallback. A new generation checks provider configuration;
 cached terminal results do not need provider/facilitator access, and settlement
 recovery with durable entries does not regenerate. The `X402_ENABLED` kill switch
 still applies to all of these paths. Local injected-client tests are not live
-model or payment evidence. Source-grounded lesson generation and Base payments
-are subsequent work in the [reshape plan](../../../docs/reshape-action-plan.md).
+model or payment evidence. Base payments remain subsequent work in the
+[reshape plan](../../../docs/reshape-action-plan.md).
+
+`NearAiLearningDraftGenerator` reuses the bounded `NearAiStructuredClient` but
+does not change the existing clue API or its durable paid-receipt shape. It takes
+1-5 pasted sources (maximum 24,000 text characters total), generates a short
+lesson plus 3-12 entries, and requires exact quoted evidence for every paragraph
+and clue. Answers must occur as whole words in their evidence. Source IDs,
+duplicate answers, malformed output, and model-supplied approval/reward fields
+are validated or rejected. URLs are provenance only and are never fetched.
+Manifest SHA-256 hashes refer to the trimmed source text actually sent to the
+provider. Full source text is not duplicated in the returned manifest.
+
+The returned `learning-draft:v1` always has `reviewStatus=REQUIRES_REVIEW`.
+Matching a quote does not prove factual support, puzzle quality, or learning.
+Draft prose is untrusted plain text, not executable HTML. Do not expose private
+drafts/answer evidence in public campaign receipts. Human review, publication
+guards, source retention, and a separately versioned paid lesson workflow must
+be implemented with R4/R5 before adding a public route. This module neither
+decides eligibility nor creates claim authorizations.
 
 The create page includes a keyless application-side payer adapter for
 `@fastnear/wallet`. It offers only wallets that advertise timeout-aware NEP-366

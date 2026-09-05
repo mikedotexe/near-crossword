@@ -419,6 +419,77 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@foundry-rs/forge-darwin-amd64@npm:1.7.1":
+  version: 1.7.1
+  resolution: "@foundry-rs/forge-darwin-amd64@npm:1.7.1"
+  bin:
+    forge: bin/forge
+  conditions: os=darwin & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@foundry-rs/forge-darwin-arm64@npm:1.7.1":
+  version: 1.7.1
+  resolution: "@foundry-rs/forge-darwin-arm64@npm:1.7.1"
+  bin:
+    forge: bin/forge
+  conditions: os=darwin & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@foundry-rs/forge-linux-amd64@npm:1.7.1":
+  version: 1.7.1
+  resolution: "@foundry-rs/forge-linux-amd64@npm:1.7.1"
+  bin:
+    forge: bin/forge
+  conditions: os=linux & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@foundry-rs/forge-linux-arm64@npm:1.7.1":
+  version: 1.7.1
+  resolution: "@foundry-rs/forge-linux-arm64@npm:1.7.1"
+  bin:
+    forge: bin/forge
+  conditions: os=linux & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@foundry-rs/forge-win32-amd64@npm:1.7.1":
+  version: 1.7.1
+  resolution: "@foundry-rs/forge-win32-amd64@npm:1.7.1"
+  bin:
+    forge: bin/forge.exe
+  conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@foundry-rs/forge@npm:1.7.1":
+  version: 1.7.1
+  resolution: "@foundry-rs/forge@npm:1.7.1"
+  dependencies:
+    "@foundry-rs/forge-darwin-amd64": "npm:1.7.1"
+    "@foundry-rs/forge-darwin-arm64": "npm:1.7.1"
+    "@foundry-rs/forge-linux-amd64": "npm:1.7.1"
+    "@foundry-rs/forge-linux-arm64": "npm:1.7.1"
+    "@foundry-rs/forge-win32-amd64": "npm:1.7.1"
+  dependenciesMeta:
+    "@foundry-rs/forge-darwin-amd64":
+      optional: true
+    "@foundry-rs/forge-darwin-arm64":
+      optional: true
+    "@foundry-rs/forge-linux-amd64":
+      optional: true
+    "@foundry-rs/forge-linux-arm64":
+      optional: true
+    "@foundry-rs/forge-win32-amd64":
+      optional: true
+  bin:
+    forge: bin.mjs
+  checksum: 10c0/e8c1277eb99706e296d3b40ae5785df39b19a6b85611f3d916fb49e91ae529623ccad335898f0d9e59435f6d1460fa613bb9fcbd0dcd114ec4177414164c9315
+  languageName: node
+  linkType: hard
+
 "@gar/promise-retry@npm:^1.0.0":
   version: 1.0.2
   resolution: "@gar/promise-retry@npm:1.0.2"
@@ -1173,6 +1244,13 @@ __metadata:
   dependencies:
     semver: "npm:^7.3.5"
   checksum: 10c0/26e376d780f60ff16e874a0ac9bc3399186846baae0b6e1352286385ac134d900cc5dafaded77f38d77f86898fc923ae1cee9d7399f0275b1aa24878915d722b
+  languageName: node
+  linkType: hard
+
+"@openzeppelin/contracts@npm:5.6.1":
+  version: 5.6.1
+  resolution: "@openzeppelin/contracts@npm:5.6.1"
+  checksum: 10c0/f00ecd2b63ca99361e772a9355a587345a2b2af8ead3e88996e0bd1eef89221c3f762cfb77632c1a6ea866a5d3bc030eea1790bd9d326d8ad71f8edee20a5b37
   languageName: node
   linkType: hard
 
@@ -4033,14 +4111,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"js-yaml@npm:^4.1.0":
-  version: 4.3.0
-  resolution: "js-yaml@npm:4.3.0"
+"js-yaml@npm:4.3.1":
+  version: 4.3.1
+  resolution: "js-yaml@npm:4.3.1"
   dependencies:
     argparse: "npm:^2.0.1"
   bin:
     js-yaml: bin/js-yaml.js
-  checksum: 10c0/058b30473d6915ca5b4feb11e2f7d4d97242f98d00a798ed48dd90b46b7c640398afe9128c5db22c5300f8c6528fe2a174b9a93f351a70ebc28c6203938d8bff
+  checksum: 10c0/13c500ca322e0c3f8c81686e6ecda96d2ea37b45247a420c17c7db36932d6965cc27391abc2d1a104501600e7f0d947a5f8b7be6db619c4fefa87901b3512807
   languageName: node
   linkType: hard
 
@@ -4505,6 +4583,8 @@ __metadata:
     "@fastnear/near-connect": "npm:0.10.6"
     "@fastnear/utils": "npm:0.9.13"
     "@fastnear/wallet": "npm:2.3.0"
+    "@foundry-rs/forge": "npm:1.7.1"
+    "@openzeppelin/contracts": "npm:5.6.1"
     "@playwright/test": "npm:^1.62.0"
     "@types/node": "npm:^20.17.30"
     "@types/pg": "npm:^8.11.0"

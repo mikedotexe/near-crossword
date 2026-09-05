@@ -28,6 +28,8 @@ an operator balance or infer settlement from an unrelated shared balance.
 - `src/lib/v2/` — browser/server claim-message conformance helpers
 - `migrations/v2/` — append-only Postgres workflow schema
 - `contract-v2/` — independent pinned-USDC campaign escrow contract
+- `contract-base/` — separately tested Base learning reward escrow, not deployed
+- `src/lib/base/` — new Base EIP-712 claim helper and shared conformance fixture
 - `src/legacy/`, `contract/` — isolated legacy compatibility; do not migrate or
   redeploy as part of v2 work
 - `worker/` — retained upstream agent worker with hardened URL and secret

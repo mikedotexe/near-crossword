@@ -6,8 +6,10 @@ staking, and paid pilot results must be recorded separately in
 
 Implementation has begun. Read the [session checkpoint](reshape-progress.md)
 for completed slices, test evidence, working branch, and next-session order.
-The NEAR AI clue adapter is locally tested; the [Base contract specification](base-reward-contract.md)
-is written but not implemented. R2 and R3 remain open as full milestones.
+The NEAR AI clue/source-draft generators and [Base contract](../contract-base/README.md)
+are implemented and locally tested. Live inference attempts have not succeeded;
+application integration and deployment remain open. R2 and R3 remain open as
+full milestones rather than being closed by isolated code/tests.
 
 ## Product and architecture decisions
 
@@ -110,10 +112,17 @@ there or at [`/v1/models`](https://cloud-api.near.ai/v1/models). Do not configur
 
 First evaluation candidate: `z-ai/glm-5.3-flash`. The catalog lists it as ready,
 TEE-hosted, and supporting structured outputs. `deepseek-ai/DeepSeek-V4-Flash`
-is a second candidate. Neither has been tested for this app yet. The
+is a second candidate. The first GLM app request timed out; no candidate has
+completed a live app draft yet. The
 [model documentation](https://docs.near.ai/cloud/models) distinguishes TEE-hosted
 models from third-party proxies; privacy claims must match the chosen model
 and actual verification, and do not hide data from our own application.
+
+Session 2 found an advertised Gemma 4 route in the direct-endpoint registry,
+despite its absence from the gateway catalog. Direct connections reset from
+this host. Mike supplied the local key; key presence is no longer the missing
+step, but successful inference and credit linkage remain unverified. See the
+[dated evaluation record](near-ai-evaluation-2026-09-04.md) before more live tests.
 
 Configuration implemented in the adapter branch, not yet deployed:
 
@@ -134,11 +143,20 @@ Provider replacement completed locally in the first implementation session:
   Cached results can replay without provider/facilitator access while x402 is
   enabled. Saved generated entries remain reusable for settlement recovery.
 
-Remaining R2 work:
+Source-draft implementation completed locally in session 2:
 
-- Extend generation from topic-only pairs to source-grounded lesson/clue drafts,
-  preserving review before publication. Reject malformed, duplicate, truncated,
-  or unusable output. Evaluate clue correctness, layout viability, latency,
+- Added `NearAiLearningDraftGenerator` with bounded pasted sources, hashed source
+  manifests, exact quoted references, strict lesson/answer validation, and an
+  unconditional required-review state. Reused the existing provider limits and
+  sanitized error handling. Added fixture-driven tests and a bounded evaluator.
+- Kept the public topic-only route, payment scope, and cached result shape
+  unchanged. Source URLs are references, not automatic fetch targets. The
+  generator does not authorize rewards or certify that a cited statement is true.
+
+Remaining R2/R4 integration work:
+
+- Wire source drafts into private authoring with persisted human approval and
+  a separately versioned paid workflow. Evaluate clue correctness, layout viability, latency,
   token cost, and retry behavior on representative sponsor material.
 - Preserve the existing verification/generation/settlement ordering and durable
   payment identifiers. Provider rejection, exhausted credits, or failed output
@@ -155,9 +173,10 @@ and official native-USDC contract for each environment.
 The [first contract specification](base-reward-contract.md) chooses prefunded
 fixed reward slots, recipient-bound EIP-712 authorizations, campaign-scoped
 participant IDs, no slot recycling, sponsor-controlled pause/signer epochs,
-and refunds after the redemption deadline. It defines the application trust
-boundary and exact signature fields. Implement and test these rules before
-calling R3 complete. The application still attests completion and participant
+and refunds after the redemption deadline. These rules now have local Solidity,
+EOA/ERC-1271 and viem conformance tests, event checks, and stateful solvency tests.
+Database issuance, event ingestion/reorg recovery, and independent review remain
+before R3 can be considered complete. The application still attests completion and participant
 policy; contract receipts cannot prove learning or unique humans.
 
 Reuse the existing Postgres workflow/reconciliation patterns, with additive

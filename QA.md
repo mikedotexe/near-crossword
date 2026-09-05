@@ -30,7 +30,40 @@ yarn build
 
 ## Current local implementation evidence
 
-### Reshape session, 2026-09-04
+### Reshape session 2, 2026-09-04
+
+Local implementation, not deployment:
+
+- Application unit suite **203/203** under Node 20.20.2. Includes shared Base
+  typed-data digest/signature fixtures, source bounds/provenance/approval checks,
+  and the unchanged x402 clue-generation recovery tests.
+- Base contract suite **29/29**: 28 unit/fuzz tests plus a stateful invariant
+  with 128 sequences, 64 calls per sequence (8,192 calls), and zero unexpected
+  reverts. Exhaustion fuzzing runs 256 examples. Events reconstruct funding,
+  payout and refund facts; chain/domain/recipient/slot/participant/epoch replay,
+  ERC-1271, pause, deadline, token failure and reentrancy cases pass.
+- Solidity 0.8.30 / Forge 1.7.1 / OpenZeppelin 5.6.1 / forge-std 1.16.2 are
+  pinned. Format check and compilation pass. The wrapper's failure propagation
+  was checked with an invalid Forge option returning a nonzero exit code.
+- Browser regression **8/8** across desktop/mobile Chromium; lint, typecheck,
+  production dependency audit, immutable install, and Node 20 production build
+  pass. The existing next-auth/nodemailer peer warning remains. Rust unchanged
+  and not rerun; the earlier Rust evidence remains historical.
+- The full dependency audit (including contract/build dependencies) initially
+  found [GHSA-5p4m-2wfm-xmqj](https://github.com/advisories/GHSA-5p4m-2wfm-xmqj)
+  in ESLint's `js-yaml` 4.3.0. A compatible 4.3.1 resolution fixes it; full
+  high-severity audit, lint, YAML parsing, and the Node 20 build then passed.
+- Source drafts always require review and have no public route/paid workflow
+  yet. Quote inclusion is validated, not factual entailment or learning quality.
+  Base event tests are not production ingestion/reorg-recovery evidence.
+- Live NEAR AI attempts with the supplied local key did not produce a draft.
+  See [evaluation results](docs/near-ai-evaluation-2026-09-04.md) for timeouts,
+  stale model names, direct-endpoint resets, advertised Gemma 4, and next checks.
+  No usage/cost or staking-credit linkage was verified; timed-out calls may have
+  consumed provider credits. No x402 settlement, chain transaction, deployment,
+  database migration, or Render/production flag change was performed.
+
+### Reshape session 1, 2026-09-04
 
 The separate `codex/early-launch-discovery` branch replaces the direct Anthropic
 adapter with NEAR AI. Checks used Node 24.4.0, injected provider/facilitator

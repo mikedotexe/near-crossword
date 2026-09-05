@@ -1,7 +1,8 @@
 # Base learning reward contract design
 
-Status: R3 design checkpoint, 2026-09-04. This specifies the first implementation;
-no Solidity contract, deployment, or new reward claim is delivered by this document.
+Status: R3 local implementation checkpoint, 2026-09-04. The specification now has
+a [Solidity implementation and tests](../contract-base/README.md). It is not
+deployed, independently audited, or connected to application claim issuance.
 See the [work order](reshape-action-plan.md) and [session checkpoint](reshape-progress.md).
 
 ## First-version decision
@@ -228,9 +229,11 @@ link a wallet to this campaign publicly; explain that before wallet binding.
 
 ## Implementation and acceptance checklist
 
-Next session should implement `contract-base/` with pinned Foundry/OpenZeppelin
-dependencies and a small `viem` typed-data helper using the existing JS stack.
-No mainnet key or account setup is needed for this work.
+`contract-base/` now pins Solidity 0.8.30, Forge 1.7.1, OpenZeppelin 5.6.1, and
+forge-std 1.16.2. The `viem` helper and Solidity tests share a digest/signature
+fixture. Local funding/claim/refund events and stateful solvency tests pass.
+The database/API integration and live event ingestion below remain next work;
+these tests are not a production deployment or audit.
 
 - Unit tests for exact prefunding, bad timing/amounts, token failures, fee-on-
   transfer rejection, unauthorized controls, unknown campaigns, and cancellation.
