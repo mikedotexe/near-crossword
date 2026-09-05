@@ -38,7 +38,8 @@ credential is not, by itself, proof that a provider is unusable.
 | L07 | Unverified | End-to-end cross-chain routes, route-refund recovery, production x402 delivery/replay, audit closure, and operational ownership are not established by the website cutover. | Complete the relevant [runbook](launch-runbook.md) and [QA](../QA.md) items for the chosen product scope; preserve unresolved items if scope changes. |
 | L08 | Preserved; reconciliation open | The old contract/application remain accessible. The runbook still records outstanding legacy claims and funds. | Reconcile actual claim/key and balance state before changing legacy access. Historical amounts are not current balance observations. |
 | L09 | Integration gap | Crossword currently validates only NEAR x402 networks and uses a NEAR browser payer. The facilitator also has a Base deployment. | A Base product needs EVM resource-server and wallet integration plus a deliberate reward/escrow design; changing the URL alone cannot supply this. |
-| L10 | Discovery | Current campaigns have one winning solver. Learning rewards for many people would change the reward contract and eligibility model. | Choose audience, sponsor value, reward eligibility, and budget policy before implementing the pivot. |
+| L10 | Leading direction recorded; implementation pending | Sponsor-funded learning campaigns with many small rewards are now the leading product direction. The live contract still has one winner. | Define the many-recipient budget/claim contract, eligibility checks, and first small pilot using the [working brief](product-discovery.md#working-product-brief). |
+| L11 | Product default proposed | Verify email at reward claim; keep contacts off-chain and share only with a separate sponsor opt-in. Email control and payout receipts do not establish unique humans or learning. | Define private contact export, consent records, repeat-claim defenses, and the distinction between public spending evidence and application-reported completions. |
 
 ## Facilitator inventory
 
@@ -86,3 +87,7 @@ wallet state before promising first-use compatibility.
   reward model, Base migration, or activation decision has been made.
 - 2026-09-04: Mike clarified that Batches fit is optional. Product refinement
   and subtle Base/x402 affinity remain useful even without an application.
+- 2026-09-04: Recorded sponsor-funded learning campaigns as the leading
+  direction, with proposed fixed USDC rewards, private opt-in contacts, and
+  campaign-level accounting. Base is a proposed first network for the new
+  experience; production remains NEAR. All existing activation gates remain open.

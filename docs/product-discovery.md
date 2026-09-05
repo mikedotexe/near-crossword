@@ -1,6 +1,8 @@
 # Product discovery
 
-Started 2026-09-04. This is a discussion notebook, not an approved roadmap.
+Started 2026-09-04. This notebook records the leading product direction and its
+remaining assumptions. It does not authorize production activation or movement
+of funds.
 Operational facts and launch dependencies live in [early launch status](early-launch-status.md).
 
 ## Starting point
@@ -48,9 +50,10 @@ adding a Base payment option or mentioning x402.
 | Playable product onboarding | Apps turn a first lesson or first useful action into a small rewarded challenge. | An app team pays to help new users understand and use its product. | Is this more effective than ordinary onboarding or existing quests? |
 | Earn, then use | Complete a challenge, earn a small balance, and optionally spend some on a genuinely useful service. | A sponsor funds first use; services earn payment for something the learner wants. | Is the service useful enough without an incentive, and does the extra step help? |
 
-Current assistant hypothesis, not a team decision: begin by exploring playable
-product onboarding, with a short crossword as the first format. Keep a daily
-ritual and an optional earn-then-use experience available as directions to test.
+The discussion now leans toward sponsor-funded learning campaigns, with a short
+crossword as the first format. The daily ritual and optional earn-then-use
+experience remain possible extensions. The working brief below supersedes the
+earlier equally open comparison of these three concepts.
 
 Candidate one-sentence explanation: "Apps pay people to learn how to use them."
 Candidate player promise: "Learn something useful. Earn your first onchain dollars."
@@ -60,6 +63,87 @@ about its app. An eligible learner completes it, receives a predetermined small
 reward, and gets a useful next action. Eligibility, reward amount, pool limits,
 and fee model remain undecided. Participation would remain free under this
 hypothesis; a paid follow-on service would be optional.
+
+## Working product brief
+
+**Sponsor-funded learning campaigns with verifiable on-chain rewards.**
+
+Sponsor explanation: "Fund a short learning experience. Reward the people who
+complete it. See exactly where your campaign money goes."
+
+Player explanation: "Learn something. Solve a little puzzle. Earn a reward."
+
+Mike's latest contribution makes the paying customer concrete: a sponsor might
+allocate $10,000 to a campaign and want the application to manage small rewards
+for many participants, show campaign spending, and potentially support email
+follow-up. That figure is an illustrative business scenario, not an approved
+deposit, launch budget, or validated demand signal.
+
+### Proposed first-version defaults
+
+- Customer: an app or ecosystem team with a specific topic or product to teach.
+  Start with a few campaigns we help produce and review personally. Sponsors
+  share campaigns with their existing audiences; new-user acquisition is an
+  outcome to validate, not reach we can promise today.
+- Experience: a short sponsored lesson and an approachable crossword, a known
+  reward, clear eligibility, a campaign deadline, and an optional useful next
+  action. Keep the crossword as the first format and retain `crossword.xyz`.
+- Rewards: a prefunded pool of USDC, a fixed amount per qualifying completion,
+  and one reward per eligible participant per campaign. Enforce available
+  budget, show exhaustion clearly, and return unused funds under stated rules.
+  This replaces the current single-winner model in the proposed new mode.
+- Accounts: allow people to try the puzzle first; verify email before claiming
+  a reward. This establishes account control, not unique humanity. Exact
+  eligibility and repeat-claim defenses still need definition and testing.
+- Contact sharing: keep email off-chain. Separate sign-in from an explicit
+  optional choice to share an address with the named sponsor for follow-up.
+  Do not make marketing opt-in a reward condition in the proposed initial
+  version. Export only those opted-in contacts privately; report opt-in counts
+  separately from rewarded completions. Do not publish email/wallet mappings
+  or plain email hashes on-chain.
+- Sponsor view: show funded budget, reserved/pending rewards, confirmed payouts,
+  available balance, explicit fees, and refunds, with campaign-linked transaction
+  references. Report completions, opted-in contacts, and useful follow-on actions
+  separately so a payment is not presented as proof of conversion.
+- Business model: initially quote a campaign setup/platform fee separately
+  from the reward pool. Validate pricing with the first clients. The service
+  includes content setup, campaign operation, reporting, and support.
+- Chain: lean toward Base as the first reward network for the new experience,
+  subject to an implementation review. Use one settlement network and USDC
+  initially. The existing NEAR deployment remains the actual live system;
+  Base rewards and a contract migration have not been implemented or approved.
+- x402: retain a real paid service role, starting with optional AI-assisted
+  campaign preparation; consider an optional purchase with earned funds later.
+  Sponsor/agent API access is a later extension, not a requirement for the first
+  customer. The reward pool and payout rules remain separate from service fees.
+
+Illustration: a $10,000 reward pool with a $0.50 reward can cover at most 20,000
+qualifying payouts, assuming platform fees and transaction costs are separately
+budgeted. That is capacity, not a promise of 20,000 distinct people or leads.
+
+### What the proof means
+
+The intended on-chain accounting proves campaign deposits, enforced budget
+limits, recipient addresses, payout amounts, and refunds. Application reports
+can link each payout to a completion record. They must distinguish that
+application assertion from independently verifiable chain evidence.
+
+A payout does not prove that the recipient is a unique human, learned the
+material, became a customer, or was not controlled by the operator. A smart
+contract checking our eligibility authorization still trusts that authorization.
+The product claim should therefore be verifiable fund distribution, with
+separately evaluated participant quality, rather than fully trustless learning
+or acquisition. If a sponsor needs stronger eligibility guarantees, that is a
+specific capability to build and validate.
+
+### Deliberately open
+
+Exact reward size and fee; the first sponsor and lesson; eligibility controls;
+wallet onboarding; the Base versus NEAR implementation decision; and how to
+reserve rewards during a claim all remain open. We have substantial reusable
+payment and recovery components, but the many-recipient contract, participant
+quality controls, and Base integration are not solved by the existing canary.
+The first funded pilot should be small and separately scoped.
 
 ## Where the technology earns its place
 
@@ -78,7 +162,7 @@ hypothesis; a paid follow-on service would be optional.
 - Cross-chain routing can be reconsidered after choosing the first audience;
   it does not have to be part of the first experience to justify earlier work.
 
-## Questions to explore
+## Earlier discovery questions
 
 1. What should bring someone here: a daily puzzle they enjoy, or an app they
    want to understand? Is the crossword the enduring product or the first format?
@@ -106,5 +190,10 @@ total cost per retained user. Completion counts alone cannot establish demand.
 - 2026-09-04: Adopt an exploratory posture and keep a dated launch register.
 - 2026-09-04: Treat Batches as an optional opportunity. Continue exploring
   light Base/x402 affinity without making accelerator fit a product requirement.
-- Open: primary audience, Base commitment, reward model, paid service, sponsor,
-  business model, and whether to apply to Batches 004. No application submitted.
+- 2026-09-04: Leading direction is sponsor-funded learning campaigns with many
+  small rewards and verifiable campaign accounting. Mike identifies campaign
+  sponsors as potential clients and raises private email follow-up as a useful
+  capability. Record the defaults above as recommendations to iterate from.
+- Open: first sponsor, price, eligibility, wallet experience, final network and
+  contract choice, paid-service scope, and whether to apply to Batches 004.
+  No application submitted or new product flow activated.
