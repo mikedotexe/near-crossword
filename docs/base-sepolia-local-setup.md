@@ -1,6 +1,6 @@
 # Local Base Sepolia setup
 
-Recorded 2026-09-05, sessions 9-10. Preparation only: no deployment, payment,
+Recorded 2026-09-05, sessions 9-11. Preparation only: no deployment, payment,
 campaign funding, provider sponsorship request, or production change.
 
 ## Configuration state
@@ -10,17 +10,18 @@ campaign funding, provider sponsorship request, or production change.
 - Its new ignored `.env.local` is owner-readable/writable only (0600). It sets
   chain 84532 and the public `https://sepolia.base.org` RPC. All claim, signing,
   indexer, sponsorship, publication, x402 and broadcast gates remain false.
-- `BASE_PAYMASTER_UPSTREAM_URL` is still an empty slot, **not a working
-  credential**. CDP sign-in is complete and the Base Sepolia Paymaster
-  configuration page displays a private endpoint for the current project, but
-  the portal copy action did not reach the system clipboard from Codex. Paste it
-  manually into this local file or the intended staging secret store; never chat
-  it or publish it as `NEXT_PUBLIC_*`.
+- `BASE_PAYMASTER_UPSTREAM_URL` is present in this ignored local file. Its shape
+  validates as the CDP Base Sepolia RPC path, and a read-only `eth_chainId` call
+  returned `0x14a34`. The endpoint was not printed or committed. It is still a
+  private credential, not a public proxy URL and not a launch gate by itself.
 - The Base Sepolia Paymaster portal page currently shows Paymaster enabled with
   a visible default $1 global limit, $1 per-user limit, 1000 per-user operations
   and no contract allowlist. Treat that as **not live-ready** until the escrow is
   deployed, the claim contract/function allowlist is set, and provider/billing
   evidence is reviewed.
+- Deployment preflight is recorded in
+  [base-sepolia-deployment-preflight-2026-09-05.md](base-sepolia-deployment-preflight-2026-09-05.md).
+  It estimates the escrow deployment but does not approve or broadcast it.
 - Code/deployment pins, provider limits and the public HTTPS proxy URL remain
   blank. No addresses or review flags were guessed to bypass the gates.
 - The original repo's `.env`, facilitator credentials, AWS and Render remain
@@ -97,10 +98,8 @@ explicit spending limits and a runbook.
 
 ## Continue setup
 
-1. Put the dedicated Base Sepolia Paymaster endpoint into
-   `BASE_PAYMASTER_UPSTREAM_URL` in this worktree's `.env.local`, never chat or
-   a `NEXT_PUBLIC_` variable. Keep the public proxy URL separate. No endpoint has
-   been saved yet.
+1. Get explicit approval for the exact deployment preflight, then broadcast the
+   Base Sepolia escrow deployment and record the transaction/deployment anchor.
 2. Add the deployed escrow and exact `claim` function to the CDP contract
    allowlist before any proxy activation. The current default project settings
    are visible but not accepted as the final launch policy.

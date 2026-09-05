@@ -93,10 +93,12 @@ its public identity and recovery locations are in
 in the web environment. Session 10 funded that deployer with CDP Base Sepolia
 faucets: 0.0001 test ETH and 1 native test USDC. CDP's managed paymaster uses
 account billing, not this wallet's ETH. CDP sign-in is complete and the Base
-Sepolia Paymaster page exposes a private endpoint, but the local
-`BASE_PAYMASTER_UPSTREAM_URL` slot remains blank until it is pasted without
-logging. The visible default portal policy has no contract allowlist and must not
-be treated as live-ready.
+Sepolia Paymaster page exposes a private endpoint. Session 11 validates that the
+endpoint is present locally and returns Base Sepolia from a read-only chain check
+without printing it. The visible default portal policy has no contract allowlist
+and must not be treated as live-ready. The deployment preflight is recorded in
+[the 2026-09-05 preflight](../docs/base-sepolia-deployment-preflight-2026-09-05.md);
+it still needs explicit approval before any broadcast.
 
 Mainnet custody stays out of the early launch path. For Base Sepolia, use CDP or
 Base faucets first. If a real Coinbase send is later required, it must be a tiny

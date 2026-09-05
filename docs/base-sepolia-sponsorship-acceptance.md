@@ -7,9 +7,9 @@ CDP faucet transfers funded the test deployer on Base Sepolia. Local synthetic p
 Session 9 adds an encrypted test-deployer wallet and disabled local env profile;
 see [local setup and recovery](base-sepolia-local-setup.md). Session 10 confirms
 0.0001 test ETH and 1 native test USDC balances. CDP sign-in is complete, but the
-local endpoint slot is still blank and actual allowlist/policy acceptance remain
-pending. Managed CDP sponsorship is account-billed, not an ETH deposit into this
-separate deployment wallet.
+local endpoint slot is now present and read-only checked as Base Sepolia. Actual
+allowlist/policy acceptance remain pending. Managed CDP sponsorship is
+account-billed, not an ETH deposit into this separate deployment wallet.
 
 ## Existing infrastructure investigation
 
@@ -24,7 +24,7 @@ Read-only inspection found:
   Sepolia config is a software profile, not evidence of a live Sepolia service.
 - CDP now shows the current project's Base Sepolia Paymaster page with a private
   endpoint and default testnet policy, but no Crossword escrow/function
-  allowlist. The endpoint has not been persisted locally yet.
+  allowlist. The endpoint is persisted only in ignored local/staging env.
 - The existing AWS CLI identity is the `for-easy-dns` IAM user. EC2 confirms the
   recorded facilitator instance is running at its recorded address.
   `secretsmanager:ListSecrets` is denied, and SSH to the configured facilitator
@@ -70,6 +70,8 @@ exists. A dedicated Crossword paymaster configuration remains required.
    `0x036CbD53842c5426634e7929541eC2318f3dCF7e`. Before broadcast, show the exact
    deployer, constructor, gas envelope and expected contract address, obtain
    confirmation, and persist the signed transaction/hash for ambiguous recovery.
+   Current preflight is recorded in
+   [the 2026-09-05 deployment preflight](base-sepolia-deployment-preflight-2026-09-05.md).
 2. Record deployment anchor/code hash and independently verify RPC chain, token,
    canonical history and finality policy. Configure an isolated staging Postgres
    target, migrations through 013 and a supervised healthy scanner. Do not point

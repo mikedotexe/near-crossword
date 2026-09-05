@@ -1,7 +1,7 @@
 # Reshape session checkpoint
 
-Last setup session: 2026-09-05, America/Los_Angeles, session 10 after
-`184379a` (faucet-first custody note).
+Last setup session: 2026-09-05, America/Los_Angeles, session 11 after
+`4c6fd0e` (CDP faucet funding state).
 
 Read this after the [work order](reshape-action-plan.md). It is a continuation
 record, not evidence of deployment. Live gates remain in
@@ -31,8 +31,9 @@ not unique humans or learning. Manual authoring remains valid.
   encrypted Base Sepolia deployer outside the repo, with its password in macOS
   Keychain. Offline recovery passed. Session 10 uses the CDP Base Sepolia faucet
   to fund it with 0.0001 test ETH and 1 native test USDC, then opens the Base
-  Sepolia Paymaster configuration page. The private endpoint is visible there
-  but not saved locally; the visible default policy has no contract allowlist.
+  Sepolia Paymaster configuration page. Session 11 validates the private endpoint
+  locally with a read-only chain check and prepares the escrow deployment
+  preflight; the visible default policy still has no contract allowlist.
   See [local setup](base-sepolia-local-setup.md). The encrypted deployer is not a
   paymaster or fresh participant wallet, and no mainnet funding or
   transaction-specific approval is implied by creating/funding it.
@@ -61,7 +62,7 @@ not unique humans or learning. Manual authoring remains valid.
 | R2b lesson/source drafts | Two live synthetic drafts validate; private review API and manual editor implemented | Representative quality evaluation and versioned paid generation orchestration |
 | R3a contract design | Implemented locally with shared typed-data fixture | Independent security review and integration review |
 | R3b contract/accounting | Pinned RPC, canonical ledger and real participant/issuer composition pass Postgres/compiled-EVM checks | Reviewed deployment/RPC/finality policy, supervised scanner, scale validation, independent security review and live acceptance |
-| R4 workflows | Sponsor/player screens, approved publication, claim recovery and strict Sepolia gas proxy implemented locally; disabled local env and encrypted test deployer funded by CDP faucet | Endpoint persistence, CDP allowlist/policy, live wire compatibility and fresh passkey/gas acceptance, operator gas recovery, sponsor wallet funding/control/dashboard, live email acceptance, fraud policy, retention/export |
+| R4 workflows | Sponsor/player screens, approved publication, claim recovery and strict Sepolia gas proxy implemented locally; disabled local env, funded test deployer, validated CDP endpoint and deployment preflight | Escrow broadcast/anchor, CDP allowlist/policy, live wire compatibility and fresh passkey/gas acceptance, operator gas recovery, sponsor wallet funding/control/dashboard, live email acceptance, fraud policy, retention/export |
 | R5 Base x402 | Not started | EVM scheme/payer, facilitator configuration, first-wallet and settlement/recovery proof |
 | R6 pilot | Gated | Earlier milestones, reviewed release, explicit small budget and identities |
 
@@ -72,6 +73,11 @@ not unique humans or learning. Manual authoring remains valid.
   database or contract change. CDP managed sponsorship uses account billing, not
   an ETH-funded seed wallet. Provider endpoint persistence, contract allowlist and
   all live spending/acceptance remain open.
+- Session 11: private CDP endpoint presence/shape was validated from the ignored
+  local env, then a read-only chain check returned Base Sepolia. The escrow
+  deployment preflight computed the expected contract address, runtime code hash
+  and gas envelope without signing or broadcasting. Explicit approval is still
+  required before deployment. Contract allowlist and live acceptance remain open.
 - Session 8: private sponsorship permits bind a real session to a signed reward;
   the wallet passes a short-lived token in ERC-7677 context. The proxy checks
   exact canonical account/claim calls, pinned code/factory/EntryPoint/paymaster,
@@ -193,6 +199,17 @@ The payment scheme/browser payer is still
 NEAR. The live product has not switched networks or gained multi-recipient claims.
 
 ## Verification
+
+Session 11 checks, Node 20.18.3:
+
+- `.env.local` contains a validly shaped CDP Base Sepolia paymaster endpoint,
+  with file mode 0600 and all recorded gates false. The private endpoint returned
+  `0x14a34` for read-only `eth_chainId`; its value was not printed. Contract
+  build artifacts were current, and `yarn test:contract:base` passed 29/29.
+  Deployment preflight estimates
+  `LearningRewards(0x036CbD53842c5426634e7929541eC2318f3dCF7e)` at 1,824,295 gas,
+  suggests a 2,239,154 gas limit and expects
+  `0x77fdCEF7d08c54eD2a87FD54fBf24a660fa2A304` from deployer nonce 0.
 
 Session 10 checks, Node 20.18.3:
 

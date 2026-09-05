@@ -46,7 +46,7 @@ credential is not, by itself, proof that a provider is unusable.
 | L11 | Private consent and verified-email persistence locally implemented; policy acceptance pending | Google server sign-in persists verification only for a matching linked subject/email. Optional campaign-scoped contact consent has versioned opt-in/withdrawal and email binding; no export exists. Rewards do not require opt-in. | Complete actual email/OAuth callback acceptance (L05), private sponsor export, retention/deletion and pilot fraud policy. Account/email/wallet control does not prove unique humans or learning; multiple-account and collusion risks remain. |
 | L12 | Key and inference accepted; staking linkage unverified | Protected auth control returned 401 for an invalid key and 200 for the supplied key. Successful inference and matching billing records are observed. Intended default organization, staking-credit source, farm/pool/rate, and stake amount/destination remain unverified. | Mike confirms the intended organization's credit source and exact staking setup in R1. A replacement key or extra stake is not required merely to repeat the working call. |
 | L13 | Bounded live source drafts passed; broader acceptance open | Gateway GLM 5.1 with documented thinking disabled produced two validated three-entry drafts in 12.1/13.7 seconds; billed costs were $0.0022806/$0.002725. This is the local default only. Earlier GLM 5.3/Qwen timeouts and direct Gemma TLS resets remain unexplained, with failed-request billing unknown. | Engineering follows the [sanitized evaluation record](near-ai-evaluation-2026-09-04.md) for representative source/clue quality, layout, reliability and paid delivery/recovery. Do not equate two synthetic successes with publication readiness or production activation. |
-| L14 | Strict proxy local; provider/fresh-wallet acceptance OPEN | Session 8 adds the strict Sepolia/EntryPoint 0.6 proxy and durable allowances. Session 9 prepares a disabled local env and encrypted test deployer with verified recovery. Session 10 funds it through CDP faucet with 0.0001 Base Sepolia ETH and 1 native test USDC, then inspects Base Sepolia Paymaster. The private endpoint is visible in CDP but not saved locally; default policy has no contract allowlist. Managed sponsorship is account-billed, separate from deployer ETH. Facilitator mainnet keys remain untouched. | Paste the private endpoint into the ignored launch-candidate `.env.local`, deploy/review the escrow, add claim-only allowlist and approved billing policy, then prove actual wallet/stub/expiry compatibility, reviewed deployment/code pins, exact transfer approval, fresh zero-ETH passkey, cancellation/recovery, finalized payout and provider bill. Keep production sponsorship disabled. |
+| L14 | Strict proxy local; provider/fresh-wallet acceptance OPEN | Session 8 adds the strict Sepolia/EntryPoint 0.6 proxy and durable allowances. Session 9 prepares a disabled local env and encrypted test deployer with verified recovery. Session 10 funds it through CDP faucet with 0.0001 Base Sepolia ETH and 1 native test USDC, then inspects Base Sepolia Paymaster. Session 11 validates the private endpoint locally with a read-only Base Sepolia chain check and records an escrow deployment preflight. Default CDP policy has no contract allowlist. Managed sponsorship is account-billed, separate from deployer ETH. Facilitator mainnet keys remain untouched. | Get explicit deployment approval, deploy/review the escrow, add claim-only allowlist and approved billing policy, then prove actual wallet/stub/expiry compatibility, reviewed deployment/code pins, exact transfer approval, fresh zero-ETH passkey, cancellation/recovery, finalized payout and provider bill. Keep production sponsorship disabled. |
 
 ## Facilitator inventory
 
@@ -85,6 +85,17 @@ wallet state before promising first-use compatibility.
 
 ## Change log
 
+- 2026-09-05, session 11: Mike added the CDP endpoint to the ignored local env.
+  Engineering validated endpoint shape without printing it, confirmed all local
+  gates remain false, and received `0x14a34` from a read-only endpoint chain
+  check. Contract build artifacts are current and Base contract tests pass 29/29.
+  Deployment preflight for `LearningRewards` with native Base Sepolia USDC
+  estimates 1,824,295 gas, suggests 2,239,154 gas and 0.000015674078 test ETH
+  max cost, and expects
+  `0x77fdCEF7d08c54eD2a87FD54fBf24a660fa2A304` from deployer nonce 0. No signing,
+  broadcast, provider paymaster request, allowlist, production setting, mainnet
+  transfer or credential print. See
+  [deployment preflight](base-sepolia-deployment-preflight-2026-09-05.md).
 - 2026-09-05, session 10: Mike completed CDP sign-in. CDP faucet requests funded
   the test deployer with 0.0001 Base Sepolia ETH and 1 native test USDC; public
   RPC verified both balances. Base Sepolia Paymaster configuration is visible and
