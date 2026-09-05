@@ -12,6 +12,7 @@ import { ParticipantRecovery } from "./participant-recovery";
 import { PostgresParticipantRepository } from "./participant-repository";
 import { ReconciledBaseChainReader } from "./reconciled-chain-reader";
 import { realUserId } from "./review";
+import { counterfactualPolicyFromEnvironment } from "./counterfactual";
 
 export function participantSignerFromEnvironment(): BaseClaimSigner {
   try {
@@ -22,10 +23,10 @@ export function participantSignerFromEnvironment(): BaseClaimSigner {
 }
 
 function productionServices(pool: Pool, origin: string) {
-  const rpc = new RpcBaseChainReader(baseDeploymentFromEnvironment());
+  const rpc = new RpcBaseChainReader(baseDeploymentFromEnvironment(), { counterfactual: counterfactualPolicyFromEnvironment() });
   const chain = new ReconciledBaseChainReader(pool, rpc);
-  const repository = new PostgresParticipantRepository(pool, chain, rpc, origin);
-  return { repository, recovery: new ParticipantRecovery(pool, chain), issuer: () => new BaseRewardIssuer(pool, chain, repository, participantSignerFromEnvironment()) };
+  const repository = new PostgresParticipantRepository(pool, chain, rpc, origin, true);
+  return { repository, recovery: new ParticipantRecovery(pool, chain), issuer: () => new BaseRewardIssuer(pool, chain, repository, participantSignerFromEnvironment(), true) };
 }
 
 async function participantContext(request: Request) {

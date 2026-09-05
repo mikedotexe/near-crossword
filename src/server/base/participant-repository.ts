@@ -4,7 +4,7 @@ import { getAddress, type Address, type Hex } from "viem";
 import { createSiweMessage } from "viem/siwe";
 import { AppError } from "../v2/errors";
 import { bounded } from "./bounded";
-import { conflict, notFound, transaction } from "./database";
+import { assertPublished, conflict, notFound, transaction } from "./database";
 import { matchingState, type BaseChainReader, type ChainBinding, type EligibilityVerifier } from "./issuer";
 import { currentReview } from "./review-repository";
 import { realUserId, sha256, validId } from "./review";
@@ -36,7 +36,7 @@ async function verifiedEmail(client: PoolClient, userId: string) {
 
 export class PostgresParticipantRepository implements EligibilityVerifier {
   constructor(private readonly pool: Pool, private readonly chain: BaseChainReader, private readonly wallet: WalletControlVerifier,
-    private readonly origin: string) { participantOrigin(origin); }
+    private readonly origin: string, private readonly requirePublication = false) { participantOrigin(origin); }
 
   async complete(userId: string, campaignId: string, raw: unknown) {
     realUserId(userId); validId(campaignId);
@@ -50,6 +50,7 @@ export class PostgresParticipantRepository implements EligibilityVerifier {
       const existing = await client.query("SELECT completed_at FROM base_participant_completions WHERE campaign_id = $1 AND revision = $2 AND user_id = $3",
         [campaignId, input.revision, userId]);
       if (existing.rowCount) return { status: "COMPLETED" as const, revision: input.revision, completedAt: new Date(existing.rows[0].completed_at).toISOString() };
+      if (this.requirePublication) await assertPublished(client, campaignId, input.revision);
       const now = Math.floor(Date.now() / 1000);
       if (state.closed || state.paused || now < state.startsAt || now >= state.endsAt) conflict("The completion window is not open");
       if (!correctAnswers(input.answers, current.review.submission.draft.entries.map((entry) => entry.answer))) {

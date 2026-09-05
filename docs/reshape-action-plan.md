@@ -164,8 +164,9 @@ Remaining R2/R4 integration work:
   Participant completion, wallet verification, optional contact consent and
   authenticated claim/recovery now have a gated backend path (session 6;
   [chapter 06](../md-CLAUDE-chapters/06-participants-and-recovery.md)).
-  Connect the generator through a separately versioned paid workflow and build
-  the review UI. Evaluate clue correctness, layout viability, latency,
+  Session 7 adds the manual review/player UI, layout approval, publication and
+  existing-funding binding; see chapters 07/08. Connect the generator through a
+  separately versioned paid workflow. Evaluate clue correctness, layout viability, latency,
   token cost, and retry behavior on representative sponsor material.
 - Preserve the existing verification/generation/settlement ordering and durable
   payment identifiers. Provider rejection, exhausted credits, or failed output
@@ -202,11 +203,17 @@ from confirmed chain events and reconcile with the application ledger.
 Implement [Base Account](https://docs.base.org/sdks/base-account/overview) or
 another compatible onboarding adapter with recipient ownership checks and
 sponsored claim gas. Session 6 verifies EOA and deployed ERC-1271 control and
-completes the local backend issuance/recovery flow; counterfactual wallets remain
-unsupported. Prove the freshly created wallet path, not just a previously
+completes the local backend issuance/recovery flow. Session 7 adds default-off
+pinned ERC-6492 simulation, an explicit Base Account browser adapter and mandatory
+sponsorship request. The secure claim-specific paymaster proxy and real hosted
+passkey/gas acceptance remain open. Prove the freshly created wallet path, not just a previously
 funded wallet. The participant flow needs completion, email verification, payout
 pending/confirmed/failed, exhausted-budget, and expired-campaign states. Sponsors
 need lesson review, funding, progress, refunds, receipts, and private opt-in export.
+The local studio now handles manual authoring, approval, reviewed connected grids,
+linking already-funded campaigns and publication/withdrawal. It does not yet send
+sponsor funding/control transactions or provide reporting/export. Public withdrawal
+preserves private recovery; its layout commitment is separate from v1 funded terms.
 
 For x402, replace NEAR-only resource-server validation and browser signing with
 the Base EVM scheme for the new flow. Use `https://base.x402.mikedotexe.com` with

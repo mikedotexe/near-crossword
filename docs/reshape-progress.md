@@ -1,7 +1,7 @@
 # Reshape session checkpoint
 
-Last implementation session: 2026-09-04, America/Los_Angeles, session 6 after
-`8d7404e` (reconciled Base accounting and contributor chapters).
+Last implementation session: 2026-09-04, America/Los_Angeles, session 7 after
+`f3b9eb3` (participant completion, wallet verification and claim/recovery APIs).
 
 Read this after the [work order](reshape-action-plan.md). It is a continuation
 record, not evidence of deployment. Live gates remain in
@@ -21,20 +21,22 @@ not unique humans or learning. Manual authoring remains valid.
 - Worktree: `/Users/mikepurvis/other/near-crossword-launch-candidate`
 - Branch: `codex/early-launch-discovery`
 - Planning baseline: `83d1cb8`; prior implementation commits: `8f475e3` and
-  `a373f7e`, followed by `cf560e6`, `6f38ece` and `8d7404e`. Session 6 follows Mike's
-  request for participant completion, wallet verification and claim/recovery APIs.
+  `a373f7e`, followed by `cf560e6`, `6f38ece`, `8d7404e` and `f3b9eb3`.
+  Session 7 follows Mike's request for sponsor/player screens, safe publication,
+  and fresh Base Account onboarding with sponsored gas.
   Subject documentation is maintained in
   [md-CLAUDE-chapters](../md-CLAUDE-chapters/README.md).
 - The original `/Users/mikepurvis/other/near-crossword` worktree remains on
   `codex/crossword-campaigns` with pre-existing changes. Do not overwrite it or
   assume it is the launch-candidate branch. Recheck both worktrees next session.
-- No merge, push, Render configuration change, production migration, chain
+- No merge, push, Render configuration change, production migration,
   public-chain transaction, or deployment was performed. The original ignored `.env` was not
   edited or copied. Session 3 applied all nine migrations twice to isolated local
   schemas. Session 5 applied all ten migrations twice to fresh isolated local
   Postgres schemas and tested compiled contracts on disposable loopback Anvil.
   Session 6 applies/replays all eleven migrations and extends the local EVM check
-  through real completion/wallet/issuance/receipt recovery. No live key was read.
+  through real completion/wallet/issuance/receipt recovery. Session 7 adds migration
+  012 and local publication plus counterfactual verification acceptance. No live key was read.
 
 ## Milestone state
 
@@ -42,14 +44,36 @@ not unique humans or learning. Manual authoring remains valid.
 | --- | --- | --- |
 | R1 account/credits | Key accepted; live inference and billing records observed | Intended default organization's credit source/staking linkage and exact farm/pool/rate |
 | R2a provider adapter | GLM 5.1 non-thinking default passes live bounded SDK/source requests | Representative quality, reliability, layout and cost evaluation; real credit-exhaustion acceptance |
-| R2b lesson/source drafts | Two live synthetic drafts validate; private persisted review API implemented | Human quality/layout review, review UI and versioned paid generation orchestration |
+| R2b lesson/source drafts | Two live synthetic drafts validate; private review API and manual editor implemented | Representative quality evaluation and versioned paid generation orchestration |
 | R3a contract design | Implemented locally with shared typed-data fixture | Independent security review and integration review |
 | R3b contract/accounting | Pinned RPC, canonical ledger and real participant/issuer composition pass Postgres/compiled-EVM checks | Reviewed deployment/RPC/finality policy, supervised scanner, scale validation, independent security review and live acceptance |
-| R4 workflows | Review/approval, persisted completion, EOA/deployed-wallet control, gated claim/recovery, Google email persistence and optional consent locally tested | Publication/layout and sponsor/player UI, funding-binding API, fresh Base Account/sponsored gas, live email acceptance, fraud policy, retention/export |
+| R4 workflows | Sponsor/player screens, immutable approved layouts, safe publication, existing-funding API, claim recovery and pinned counterfactual simulation implemented locally | Secure claim-specific gas proxy and real fresh passkey/gas acceptance, sponsor wallet funding/control/dashboard, live email acceptance, fraud policy, retention/export |
 | R5 Base x402 | Not started | EVM scheme/payer, facilitator configuration, first-wallet and settlement/recovery proof |
 | R6 pilot | Gated | Earlier milestones, reviewed release, explicit small budget and identities |
 
 ## What landed locally
+
+- Session 7: migration 012 approves a validated connected layout separately from
+  v1 funded terms, then commits a publication to both hashes. Owner preview,
+  layout approval, existing-funding binding, publication and withdrawal APIs
+  enforce immutable revisions. No v1 hash fixture or reward principal changes.
+- Public `/learn` and `/learn/:id` plus private `/learn/studio` screens now cover
+  manual source/lesson/clue editing, terms, approval, solving, email return paths,
+  optional consent and finalized receipt recovery. No AI charge or chain funding
+  is triggered by editing. Local-only practice/editor previews cannot pay rewards.
+- The Base Account browser adapter is gated, checks identity/network and exact
+  claims, requires sponsorship, and never falls back to user-paid gas. The chain
+  reader can separately verify pinned ERC-6492 account creation via bounded
+  simulation. A synthetic local factory proves this without deploying a wallet.
+  This is **not** live Base passkey/paymaster acceptance. The claim-specific gas
+  proxy remains unimplemented; see [chapter 08](../md-CLAUDE-chapters/08-base-account-and-gas.md).
+- Publication withdrawal blocks new completions/allocations, but authenticated
+  recovery includes the committed terms needed to redeem a previous allocation
+  even when the public lesson no longer exists. No browser receipt is trusted.
+- The SDK's transitive Axios 1.16.0 failed a high-severity audit. It is now resolved
+  to patched 1.18.1. The crossword library's answer logging is isolated, and its
+  source is explicitly included in Next server tracing. New chapters 07/08 record
+  the architecture, acceptance evidence and remaining boundaries.
 
 - `src/server/v2/ai.ts`: shared `NearAiStructuredClient` and `NearAiGenerator`
   through the existing clue interface, with
@@ -138,7 +162,23 @@ NEAR. The live product has not switched networks or gained multi-recipient claim
 
 ## Verification
 
-Session 6 checks, Node 20.18.3:
+Session 7 checks, Node 20.18.3:
+
+- Unit **245/245**, Postgres **43/43**, compiled EVM/Postgres **1/1**, and built
+  production HTTP/packaging **1/1**. All twelve migrations apply/replay; owned
+  test servers and database are stopped after verification.
+- Solidity **29/29**, including fuzz and stateful solvency; immutable install and
+  both high-severity dependency audits pass. Rust unchanged/not rerun.
+- Browser **15/15** covers practice persistence, anonymous sign-in return, correct
+  answer order, separate consent, receipt-only paid state, sponsor approval/layout/
+  binding/publication/withdrawal, recovery of withdrawn lessons and mobile overflow.
+  Desktop/player/studio and phone screenshots were inspected; browser mocks do
+  not prove real provider acceptance. Lint and standalone typecheck pass.
+- Production compilation, private runtime layout loading and disabled production
+  previews have been verified. The production build check is now in CI. No
+  Render/env/live-chain/provider changes were made. Full detail is in [QA](../QA.md).
+
+Session 6 checks (historical), Node 20.18.3:
 
 - Unit suite **238/238**; Postgres suite **40/40**, adding participant
   proof/HTTP/consent/auth coverage. Details are recorded in [QA](../QA.md). All eleven migrations
@@ -222,13 +262,14 @@ replace the key or add stake simply to obtain an inference response.
 
 1. Read this checkpoint, action plan, launch register, and Base design; inspect
    branch/worktree state before editing. Preserve unrelated original-worktree work.
-2. Read chapters 03/04/06 and `base-learning-workflow.md`. Build the sponsor review
-   and participant UI over the existing private APIs, with a reviewed deterministic
-   layout/publication boundary and owner-only funding-binding workflow. Preserve
-   funded commitments; layout/policy changes may require a new terms version.
-   Keep participant issuance and chain broadcast disabled during implementation.
-3. Prove fresh Base Account onboarding, wallet-specific signatures and sponsored
-   redemption gas; current support is EOA/deployed ERC-1271 only. Resolve live
+2. Read chapters 07/08 as well as 03/04/06. Inspect the local player and studio
+   previews, then implement/review the claim-specific sponsorship proxy and its
+   scoped authentication, account-call validation, replay/expiry and gas budgets.
+   Do not configure an open relay or raw CDP URL. Keep production flags disabled.
+3. Prove real fresh Base Account/passkey onboarding and sponsored redemption gas
+   on an explicitly approved Base Sepolia deployment. Local ERC-6492 simulation
+   and a mocked browser provider are not that acceptance evidence. Build sponsor
+   wallet create/fund/control and its reporting views. Resolve live
    email acceptance, explicit sponsor export/retention and pilot fraud policy.
    Account uniqueness is not human uniqueness. Keep consent optional and private.
    Compose funding and redemption with the existing reconciled reader. Production activation

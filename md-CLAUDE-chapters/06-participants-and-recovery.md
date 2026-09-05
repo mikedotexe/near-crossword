@@ -1,7 +1,7 @@
 # Participants and recovery
 
-Implemented locally in session 6, 2026-09-04. This is a gated backend workflow,
-not a deployed player experience. Keep the [work order](../docs/reshape-action-plan.md)
+Implemented locally in sessions 6-7, 2026-09-04. This remains gated and undeployed;
+chapter 07 covers the new player experience. Keep the [work order](../docs/reshape-action-plan.md)
 and [launch register](../docs/early-launch-status.md) separate from local evidence.
 
 ## Entry points and gates
@@ -9,7 +9,8 @@ and [launch register](../docs/early-launch-status.md) separate from local eviden
 `BASE_PARTICIPANT_ENABLED` defaults false. All routes below require a real,
 unexpired database session, not a demo identity. The campaign ID is the application
 UUID. It must reference an approved, funding-bound immutable revision. Approval
-and funding do not resolve layout/publication policy or make a campaign discoverable.
+alone do not publish a campaign. Session 7 requires an active publication for new
+production completions/allocations; existing allocations recover after withdrawal.
 
 | Route under `/api/base/participants/:id` | Request and result |
 | --- | --- |
@@ -45,8 +46,8 @@ Submitted answers and their digests are never persisted or logged. Existing
 completions replay without moving their timestamp; completion reserves no funds.
 New completion requires the open completion window and an unpaused, open campaign.
 
-Completion requires sign-in but not verified email. A future browser may let
-someone play anonymously, then submit their completed board after sign-in. There
+Completion requires sign-in but not verified email. The player screen permits
+anonymous solving, then submits the completed board after sign-in. There
 is no anonymous completion credential that can be copied between accounts.
 Wallet challenges and allocations require persisted verified email.
 
@@ -61,10 +62,11 @@ Wallet control uses EIP-191 EOA verification or ERC-1271 at a pinned canonical
 finalized block on the configured deployment's chain. Contract code takes
 precedence, with no EOA fallback after contract rejection. Contract reads have a
 200,000-gas ceiling, bounded transport, no CCIP lookup or transaction sending.
-Counterfactual ERC-6492 and pre-delegation envelopes are deliberately unsupported:
-no factory/delegation simulation is executed. Fresh Base Account onboarding and
-real wallet-specific signatures remain an explicit pilot gate, not proven by a
-generic locally deployed ERC-1271 fixture.
+Session 7 adds a separate default-off ERC-6492 path with pinned factory and
+implementation code, canonical creation/predicted-recipient checks and bounded
+simulation. Delegation preparation remains unsupported. See chapter 08; real
+fresh passkey/paymaster acceptance remains a pilot gate, not proven by the local
+synthetic CREATE2/ERC-1271 fixture.
 
 After verification, a unique private eligibility receipt records the challenge
 and signature hash, not the signature. The same proof can replay the same receipt
@@ -99,6 +101,8 @@ campaign restriction. Responses include the finalized `asOf` block. `RECOVERABLE
 means no matching finalized payment yet, not proof that no transaction is pending.
 It requires a fresh proof and POST to obtain/replay an authorization. No slot is
 released on an HTTP error, slow finality, pause, timeout or expiry.
+The private response also includes committed reward terms for browser recovery
+when a sponsor has withdrawn the public lesson. It contains no answer/signature.
 
 ## Email, consent and remaining policy
 

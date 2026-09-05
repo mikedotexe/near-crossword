@@ -29,11 +29,48 @@ cargo clippy --manifest-path contract-v2/Cargo.toml --locked --all-targets -- -D
 yarn test:contract:v2
 yarn contract:v2:build
 yarn build
+# Requires that production build and a disposable TEST_DATABASE_URL.
+yarn test:acceptance:base-build
 ```
 
 ## Current local implementation evidence
 
-### Reshape session 6, 2026-09-04
+### Reshape session 7, 2026-09-04
+
+- Unit suite **245/245**, Postgres integration **43/43**, compiled EVM/Postgres
+  acceptance **1/1**, and built-production HTTP/packaging acceptance **1/1**.
+  Twelve migrations apply/replay on disposable local PostgreSQL 16. No live keys,
+  production migrations, public-chain calls or paid inference were used.
+- Publication tests cover ownership, same-origin private layout approval, stale
+  commitments, revision/funding races, concurrent publication, answer-free public
+  fields, withdrawal blocking new completions/allocations, and unchanged recovery
+  of existing allocations. Existing v1 funded terms and fixtures are unchanged.
+- Real compiled escrow acceptance now pays three recipients: EOA, deployed
+  ERC-1271, and a synthetic counterfactual CREATE2 wallet. ERC-6492 verification
+  leaves the recipient undeployed. Later deployment and authority revocation are
+  checked without falling back to an old key. This is not a hosted Base passkey,
+  bundler, CDP or sponsored-gas test.
+- Production HTTP acceptance starts/stops its own built Next server, authenticates
+  a synthetic database session, exercises actual private layout generation,
+  verifies dependency tracing, and asserts both practice routes return 404 even
+  with the preview flag set. This check is included in CI after `yarn build`.
+- Solidity **29/29**, including 256 fuzz runs and 128 invariant sequences with
+  8,192 calls and zero unexpected reverts. Rust was not changed or rerun.
+- Immutable install and high-severity production/full-tree audits pass after
+  resolving the SDK's transitive Axios 1.16.0 to patched 1.18.1. Existing
+  next-auth/nodemailer and transitive peer warnings remain. The real email gate
+  remains open; no production mail/provider credentials were read.
+- Browser checks found and fixed webpack's rewriting of module resolution for
+  the layout source, async consent feedback, review-grid input styling and footer
+  contrast. The dependency upgrade initially invalidated a running dev cache;
+  checks were restarted against the clean install rather than weakening assertions.
+- Browser **15/15** including eight existing regressions; desktop/phone player
+  and studio screenshots inspected. Lint and standalone typecheck pass. Production
+  build and built-server checks are recorded in the session checkpoint. The secure
+  claim-specific paymaster proxy and real fresh-wallet sponsorship remain **OPEN**
+  in launch item L14; the browser must not receive a raw keyed CDP URL.
+
+### Reshape session 6, 2026-09-04 (historical)
 
 - Full unit suite **238/238**, Postgres integration **40/40**, expanded compiled
   EVM/Postgres acceptance **1/1**, lint, typecheck and Next production build pass

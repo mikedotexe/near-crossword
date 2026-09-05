@@ -232,3 +232,21 @@ V2 has a private, direct-USDC mainnet canary at
 `crossword-campaigns-v2.mike.near`; it is not a public launch. See the dated
 [canary evidence](docs/mainnet-canary-2026-07-27.md) and [`QA.md`](QA.md) for
 what it proves and the remaining launch gates.
+
+## Learning reshape: local screens
+
+The separate Base learning flow now has `/learn` and `/learn/studio` screens,
+reviewed connected layouts, publication/withdrawal and authenticated reward
+recovery. It is not deployed or activated. All Base flags default off; the
+studio links already-funded campaigns but does not yet send sponsor transactions.
+
+For synthetic, nonpaying UI previews, start the development server with
+`BASE_UI_PREVIEW_ENABLED=true`, then visit `/learn/preview` and
+`/learn/studio/preview`. These routes always return 404 in production. There is
+no fake Base session/database/payment fallback.
+
+See [publication and screens](md-CLAUDE-chapters/07-publication-and-screens.md),
+[Base Account and gas](md-CLAUDE-chapters/08-base-account-and-gas.md), and the
+[session checkpoint](docs/reshape-progress.md). The secure claim-specific gas
+proxy and real fresh passkey/paymaster acceptance remain open; do not expose a
+keyed CDP URL or enable an unrestricted sponsorship relay.

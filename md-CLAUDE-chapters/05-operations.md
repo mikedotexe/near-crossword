@@ -8,9 +8,11 @@ copy. Inspect both before work; never reset, overwrite or implicitly merge them.
 Follow [QA](../QA.md) with coverage scaled to the change. Database integrations
 must use an explicit disposable local `TEST_DATABASE_URL`, never fall back to
 production `DATABASE_URL`. Apply new additive migrations and verify replay.
-Session 6 adds migration 011 and a real completion/wallet/claim/recovery acceptance
-path on disposable Anvil/Postgres. The local EVM covers an EOA and a deployed
-ERC-1271 wallet; it does not prove freshly onboarded Base Account or sponsored gas.
+Session 7 reaches migration 012 and adds publication plus synthetic counterfactual
+verification to the disposable Anvil/Postgres acceptance path. The local EVM
+covers EOA, deployed ERC-1271 and undeployed ERC-6492 recipients; it does not prove
+a real fresh Base passkey or sponsored gas. The built-production HTTP check runs
+after `yarn build`, verifies the shipped layout source and denies practice routes.
 Keep dependencies pinned; contract and browser regression evidence is separate
 from unit tests. Production targets Node 20.
 Run standalone typecheck and the Next build sequentially: the build regenerates

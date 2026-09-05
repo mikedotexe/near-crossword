@@ -78,3 +78,37 @@ contract TestIssuer is IERC1271 {
             : bytes4(0xffffffff);
     }
 }
+
+// Local-only CREATE2 fixture with the Base account factory's creation/read interface.
+contract TestAccountFactory {
+    address public immutable implementation;
+
+    constructor(address implementation_) {
+        implementation = implementation_;
+    }
+
+    function getAddress(bytes[] calldata owners, uint256 nonce) public view returns (address) {
+        require(owners.length == 1 && owners[0].length == 32);
+        bytes memory initCode =
+            abi.encodePacked(type(TestIssuer).creationCode, abi.encode(abi.decode(owners[0], (address))));
+        return address(
+            uint160(
+                uint256(
+                    keccak256(
+                        abi.encodePacked(
+                            bytes1(0xff), address(this), keccak256(abi.encode(owners, nonce)), keccak256(initCode)
+                        )
+                    )
+                )
+            )
+        );
+    }
+
+    function createAccount(bytes[] calldata owners, uint256 nonce) external returns (address account) {
+        account = getAddress(owners, nonce);
+        if (account.code.length == 0) {
+            account =
+                address(new TestIssuer{salt: keccak256(abi.encode(owners, nonce))}(abi.decode(owners[0], (address))));
+        }
+    }
+}

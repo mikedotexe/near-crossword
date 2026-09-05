@@ -28,6 +28,8 @@ export class ParticipantRecovery {
     matchingState(loaded.review, loaded.binding, state, this.chain.maxFinalizedLagSeconds);
     const common = { campaignId, revision: loaded.review.revision, completed: loaded.completed, emailVerified: loaded.emailVerified,
       consent: loaded.consent, chainId: loaded.binding.chainId, escrow: loaded.binding.escrow,
+      rewardTerms: { chainId: loaded.binding.chainId, escrow: loaded.binding.escrow, onChainId: loaded.binding.onChainId.toString(),
+        rewardAtomic: loaded.review.submission.terms.rewardAtomic, claimDeadline: loaded.review.submission.terms.claimDeadline },
       asOf: { blockHash: state.blockHash, blockNumber: state.blockNumber.toString(), blockTimestamp: state.blockTimestamp } };
     const allocation = loaded.allocation;
     const now = Math.floor(Date.now() / 1000);

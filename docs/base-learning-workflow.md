@@ -9,6 +9,10 @@ reconciled-reader guard. See the [Base accounting chapter](../md-CLAUDE-chapters
 Session 6 adds the real participant eligibility verifier, gated signing composition
 and authenticated claim/recovery routes. See the [participant chapter](../md-CLAUDE-chapters/06-participants-and-recovery.md).
 Neither the new routes nor their signer are enabled/configured in production.
+Session 7 adds sponsor/player screens, separately approved layouts and gated
+publication. See the [publication chapter](../md-CLAUDE-chapters/07-publication-and-screens.md)
+and [Base Account chapter](../md-CLAUDE-chapters/08-base-account-and-gas.md).
+The claim-only sponsorship proxy and live fresh-wallet gas acceptance remain open.
 
 ## Implemented boundary
 
@@ -46,8 +50,9 @@ material conflicts. Editing uses optimistic revision checks and removes current
 approval by appending a new unapproved revision. Prior revisions and approvals
 remain available in the private ledger. Approval records reviewer identity,
 time, private review hash, and public terms hash. After a verified funding
-binding, edits are rejected. Review approval is not publication: crossword
-layout viability, final eligibility/privacy text, and sponsor UX remain open.
+binding, edits are rejected. Review approval is not publication: session 7 adds
+separate layout approval and publication checks. Final eligibility/privacy policy
+approval and the sponsor's wallet funding/management controls remain open.
 
 ## Versioned commitments
 
@@ -88,8 +93,9 @@ experience need reviewed versioning before funding, not silent hash changes.
 `BaseRewardIssuer` requires explicitly injected chain, eligibility, and signer
 adapters. Session 6's participant API composes the reconciled RPC reader, durable
 completion/wallet verifier and explicitly gated EOA eligibility key. The private
-routes require real database sessions and remain off by default. A funding-binding
-HTTP endpoint, public player/review UI and relayer still need implementation.
+routes require real database sessions and remain off by default. Session 7 adds
+the funding-binding HTTP endpoint and player/review UI. Funding binding is
+read-only on chain; sponsor wallet funding and the secure gas proxy remain open.
 Tests use public synthetic keys and isolated databases/local EVMs, never live funds.
 
 The trusted chain adapter must independently verify the pinned deployment and

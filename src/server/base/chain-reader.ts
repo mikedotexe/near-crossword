@@ -4,6 +4,8 @@ import { baseNativeUsdc, learningRewardsAbi } from "../../lib/base/escrow-abi";
 import type { BaseClaim } from "../../lib/base/claim";
 import type { BaseChainReader, ChainBinding, FinalizedCampaignState } from "./issuer";
 import { AppError } from "../v2/errors";
+import { call, verifyMessage as verifyOnchainMessage } from "viem/actions";
+import { accountFactoryAbi, counterfactualCreation, type CounterfactualPolicy } from "./counterfactual";
 
 export const chainHash = z.string().regex(/^0x[0-9a-fA-F]{64}$/).transform((v) => v.toLowerCase() as Hex);
 const erc1271Abi = parseAbi(["function isValidSignature(bytes32 hash, bytes signature) view returns (bytes4)"]);
@@ -74,7 +76,7 @@ export interface BaseAccountingReader extends BaseChainReader {
 export class RpcBaseChainReader implements BaseAccountingReader {
   readonly deployment: BaseDeployment;
   get maxFinalizedLagSeconds() { return this.deployment.maxFinalizedLagSeconds; }
-  constructor(config: BaseDeployment, private readonly options: { fetch?: typeof fetch; allowLocalChain?: boolean } = {}) {
+  constructor(config: BaseDeployment, private readonly options: { fetch?: typeof fetch; allowLocalChain?: boolean; counterfactual?: CounterfactualPolicy } = {}) {
     this.deployment = parseBaseDeployment(config, options.allowLocalChain);
   }
   private client(signal: AbortSignal) {
@@ -201,8 +203,10 @@ export class RpcBaseChainReader implements BaseAccountingReader {
 
   async verifyWalletMessage(input: { recipient: Address; message: string; signature: Hex }, signal: AbortSignal) {
     return this.safe(async () => {
-      // Do not execute counterfactual factories or delegation preparation during verification.
-      if (input.signature.endsWith("6492".repeat(16)) || input.signature.endsWith("8010".repeat(16))) return false;
+      // Delegation preparation is not supported. Counterfactual simulation is separately pinned.
+      if (input.signature.endsWith("8010".repeat(16))) return false;
+      const wrapped = input.signature.endsWith("6492".repeat(16));
+      if (wrapped && !this.options.counterfactual) return false;
       const block = await this.block("finalized", signal);
       const now = Math.floor(Date.now() / 1000);
       if (block.timestamp > now + 30 || block.timestamp < now - this.maxFinalizedLagSeconds) chainFailure();
@@ -211,7 +215,19 @@ export class RpcBaseChainReader implements BaseAccountingReader {
       const selector = { blockHash: block.hash, requireCanonical: true } as const;
       const code = await client.getCode({ address: input.recipient, ...selector });
       let valid: boolean;
-      if (code && code !== "0x") {
+      if (wrapped) {
+        const policy = this.options.counterfactual!;
+        const creation = counterfactualCreation(input.signature, policy);
+        const factoryCode = await client.getCode({ address: policy.factory, ...selector });
+        if (!factoryCode || keccak256(factoryCode) !== policy.factoryCodeHash) return false;
+        const implementation = await client.readContract({ address: policy.factory, abi: accountFactoryAbi, functionName: "implementation", ...selector });
+        const implementationCode = await client.getCode({ address: implementation, ...selector });
+        if (!implementationCode || keccak256(implementationCode) !== policy.implementationCodeHash) return false;
+        const predicted = await client.readContract({ address: policy.factory, abi: accountFactoryAbi, functionName: "getAddress", args: [creation.owners, creation.nonce], ...selector });
+        if (predicted.toLowerCase() !== input.recipient.toLowerCase()) return false;
+        const boundedClient = client.extend((base) => ({ call: (args: Parameters<typeof call>[1]) => call(base, { ...args, gas: 1000000n }) }));
+        valid = await verifyOnchainMessage(boundedClient, { address: input.recipient, message: input.message, signature: input.signature, ...selector });
+      } else if (code && code !== "0x") {
         // Contract authority wins, including delegated EOAs. Never fall back to an old EOA key.
         const result = await client.call({ to: input.recipient, gas: 200000n, ...selector,
           data: encodeFunctionData({ abi: erc1271Abi, functionName: "isValidSignature", args: [hashMessage(input.message), input.signature] }) });

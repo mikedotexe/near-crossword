@@ -15,7 +15,11 @@ const securityHeaders = [
 module.exports = {
   poweredByHeader: false,
   reactStrictMode: true,
+  outputFileTracingIncludes: {
+    "/*": ["./node_modules/crossword-layout-generator/package.json", "./node_modules/crossword-layout-generator/src/layout_generator.js"],
+  },
   serverExternalPackages: [
+    "crossword-layout-generator",
     "pg",
     "@fastnear/intents",
     "@x402/core",

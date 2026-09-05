@@ -4,6 +4,8 @@ import { parseAbi } from "viem";
 export const learningRewardsAbi = parseAbi([
   "struct CampaignTerms { uint256 rewardAtomic; uint32 maxClaims; uint64 startsAt; uint64 endsAt; uint64 claimDeadline; bytes32 termsHash; address eligibilitySigner; }",
   "struct Campaign { address sponsor; CampaignTerms terms; uint256 fundedAtomic; uint256 refundedAtomic; uint64 signerEpoch; uint32 paidCount; bool paused; bool closed; }",
+  "struct Claim { uint256 campaignId; uint32 slot; bytes32 participantId; address recipient; uint256 amount; uint64 deadline; uint64 signerEpoch; }",
+  "function claim(Claim authorization, bytes signature)",
   "function token() view returns (address)",
   "function totalReserved() view returns (uint256)",
   "function campaignCount() view returns (uint256)",

@@ -1,7 +1,18 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { PixelMark } from "./PixelMark";
 
 export function SiteFooter() {
+  const pathname = usePathname();
+  if (pathname?.startsWith("/learn")) return (
+    <footer className="learn-footer"><div className="shell">
+      <span>Crossword Learning</span>
+      <nav aria-label="Footer"><Link href="/learn">Lessons</Link><Link href="/learn/studio">Sponsor studio</Link><Link href="/legacy">Legacy crossword</Link></nav>
+      <small>Reward terms vary by campaign.</small>
+    </div></footer>
+  );
   return (
     <footer className="site-footer">
       <div className="shell site-footer__grid">

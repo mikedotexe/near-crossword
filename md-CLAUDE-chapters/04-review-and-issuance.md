@@ -21,7 +21,9 @@ private claim/recovery APIs, Google verified-email persistence and separate opti
 contact consent. Read [chapter 06](06-participants-and-recovery.md) for request
 shapes, supported wallets and remaining policy/UX work. The production composition
 uses separate default-off participant/signing gates; no funded key is configured.
-The review/player UI and fresh-wallet onboarding remain implementation work.
+Session 7 adds the review/player UI, approved layouts and publication (chapter 07),
+plus pinned counterfactual verification and a gated Base Account adapter (chapter
+08). Real passkey/paymaster acceptance and the secure sponsorship proxy remain open.
 
 Schema, API shapes, commitments and existing database test evidence are in the
 [backend workflow](../docs/base-learning-workflow.md). Keep private contact export,

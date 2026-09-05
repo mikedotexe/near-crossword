@@ -12,6 +12,64 @@ import { getDatabasePool } from "../v2/repository-factory";
 import { BaseRewardIssuer, type BaseChainReader, type BaseClaimSigner, type EligibilityVerifier, type FinalizedCampaignState } from "./issuer";
 import { PostgresReviewRepository, type PrivateReview } from "./review-repository";
 import { recipient, reviewFixture, rotatedTestSigner, testSigner } from "./workflow.fixture";
+import { LearningPublication } from "./publication";
+import { PostgresParticipantRepository } from "./participant-repository";
+import { publicationHandlers } from "./publication-api";
+
+test("publication requires owner approval, exact layout and finalized funding; public fields exclude private evidence", async () => {
+  const ctx = await setup(); const publication = new LearningPublication(pool, ctx.reader);
+  const preview = await publication.preview(owner, ctx.review.id);
+  assert.equal(preview.approved, false);
+  await assert.rejects(publication.preview(outsider, ctx.review.id), { status: 404 });
+  await assert.rejects(publication.approveLayout(owner, ctx.review.id, { ...preview, revision: 2 }), { status: 409 });
+  await assert.rejects(publication.publish(owner, ctx.review.id, preview));
+  await publication.approveLayout(owner, ctx.review.id, preview);
+  await assert.rejects(publication.publish(owner, ctx.review.id, preview));
+  await ctx.issuer.bindApprovedCampaign(owner, ctx.review.id, ctx.state.onChainId, preview);
+  const results = await Promise.all(Array.from({ length: 5 }, () => publication.publish(owner, ctx.review.id, preview)));
+  assert.equal(new Set(results.map((r) => r.publicationHash)).size, 1);
+  const publicView = await publication.get(ctx.review.id);
+  assert.equal(publicView.availability, "OPEN"); assert.equal(publicView.remainingSlots, 3);
+  assert.equal(publicView.termsHash, ctx.review.termsHash);
+  assert.doesNotMatch(JSON.stringify(publicView), /WALLET|LEDGER|TRANSFER|sourceId|quote|reviewHash|sourceManifest|submission|email/);
+  assert.ok((await publication.list()).some((l) => l.id === ctx.review.id));
+  ctx.state.observedAt -= 61;
+  await assert.rejects(publication.get(ctx.review.id), { status: 409 });
+  await assert.rejects(publication.publish(owner, ctx.review.id, preview), { status: 409 });
+});
+
+test("withdrawal blocks new completions and allocations but preserves an existing allocation and immutable publication", async () => {
+  const ctx = await setup(); const publication = new LearningPublication(pool, ctx.reader);
+  const preview = await publication.preview(owner, ctx.review.id);
+  await publication.approveLayout(owner, ctx.review.id, preview); await ctx.bind(); await publication.publish(owner, ctx.review.id, preview);
+  const issuer = new BaseRewardIssuer(pool, ctx.reader, ctx.eligibility, ctx.signer, true);
+  const input = { campaignId: ctx.review.id, userId: learners[0], recipient, proof: "TEST_ONLY_VERIFIED" };
+  const issued = await issuer.issue(input);
+  await publication.withdraw(owner, ctx.review.id, preview);
+  assert.equal((await publication.list()).some((l) => l.id === ctx.review.id), false);
+  await assert.rejects(publication.get(ctx.review.id), { status: 404 });
+  assert.equal((await issuer.issue(input)).allocationId, issued.allocationId);
+  await assert.rejects(issuer.issue({ ...input, userId: learners[1] }), { status: 409 });
+  const participants = new PostgresParticipantRepository(pool, ctx.reader, { verifyWalletMessage: async () => true }, "https://crossword.example.test", true);
+  await assert.rejects(participants.complete(learners[1], ctx.review.id, { revision: 1, answers: ["WALLET", "LEDGER", "TRANSFER"] }), { status: 409 });
+  await publication.publish(owner, ctx.review.id, preview);
+  assert.equal((await publication.get(ctx.review.id)).remainingSlots, 2);
+  await participants.complete(learners[1], ctx.review.id, { revision: 1, answers: ["WALLET", "LEDGER", "TRANSFER"] });
+  await assert.rejects(reviews.revise(owner, ctx.review.id, 1, reviewFixture()), { status: 409 });
+  assert.equal((await pool.query("SELECT COUNT(*) FROM base_learning_publications WHERE campaign_id = $1", [ctx.review.id])).rows[0].count, "1");
+});
+
+test("review revisions cannot inherit layout approval or race old layout expectations into funding", async () => {
+  const ctx = await setup(); const publication = new LearningPublication(pool, ctx.reader);
+  const preview = await publication.preview(owner, ctx.review.id);
+  await publication.approveLayout(owner, ctx.review.id, preview);
+  const changed = reviewFixture(); changed.draft.title = "A revised private lesson";
+  const revision = await reviews.revise(owner, ctx.review.id, 1, changed);
+  assert.equal((await publication.preview(owner, ctx.review.id)).approved, false);
+  await assert.rejects(publication.approveLayout(owner, ctx.review.id, preview), { status: 409 });
+  await reviews.approve(owner, revision.id, revision.revision, revision.reviewHash, revision.termsHash);
+  await assert.rejects(ctx.issuer.bindApprovedCampaign(owner, ctx.review.id, ctx.state.onChainId, preview), { status: 409 });
+});
 
 // Never fall back to DATABASE_URL. Each run owns only its random, isolated schema.
 const connectionString = process.env.TEST_DATABASE_URL;
@@ -38,7 +96,7 @@ before(async () => {
       env: { ...process.env, DATABASE_URL: url.toString() }, encoding: "utf8", timeout: 30000,
     });
     assert.equal(migrated.status, 0, "Isolated migration run must succeed");
-    assert.equal(migrated.stdout.split(pass === 0 ? "Applied " : "Already applied ").length - 1, 11);
+    assert.equal(migrated.stdout.split(pass === 0 ? "Applied " : "Already applied ").length - 1, 12);
   }
   const result = await pool.query(
     `INSERT INTO users (email, email_verified)
@@ -383,6 +441,14 @@ test("private route handlers enforce real sessions, ownership, same-origin mutat
   const approval = { revision: 1, reviewHash: draft.reviewHash, termsHash: draft.termsHash };
   assert.equal((await approveReview(request("POST", approval, outsiderToken), context)).status, 404);
   assert.equal((await approveReview(request("POST", approval), context)).status, 200);
+  assert.equal((await publicationHandlers.preview(request("GET", undefined, outsiderToken), context)).status, 404);
+  const layoutResponse = await publicationHandlers.preview(request("GET"), context);
+  assert.equal(layoutResponse.status, 200); assert.equal(layoutResponse.headers.get("cache-control"), "no-store");
+  const grid = await layoutResponse.json();
+  const layoutApproval = { action: "approve-layout", expected: { revision: grid.revision, termsHash: grid.termsHash, layoutHash: grid.layoutHash } };
+  assert.equal((await publicationHandlers.update(request("POST", layoutApproval, outsiderToken), context)).status, 404);
+  assert.equal((await publicationHandlers.update(request("POST", layoutApproval, token, "https://elsewhere.test"), context)).status, 403);
+  assert.equal((await publicationHandlers.update(request("POST", layoutApproval), context)).status, 200);
   const read = await getReview(request("GET"), context);
   assert.equal((await read.json()).status, "APPROVED");
   process.env.BASE_REVIEW_ENABLED = "false";

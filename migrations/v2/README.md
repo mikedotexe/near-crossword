@@ -15,6 +15,9 @@ adds private completion, expiring wallet challenges, durable eligibility receipt
 and optional contact-consent history. These are append-only additions tested on
 disposable local databases, not production migrations. Existing allocation receipt
 IDs are preserved rather than backfilled with fabricated participant evidence.
+Migration 012 adds immutable layout approvals and publication/withdrawal records.
+It does not rewrite v1 funded terms or previous approvals. All twelve migrations
+apply/replay in local integration tests; production application remains gated.
 
 The migration runner holds a Postgres advisory lock, applies every migration in
 one transaction, records an immutable checksum, and refuses to continue if an

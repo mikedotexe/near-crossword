@@ -14,20 +14,22 @@ const navigation = [
 export function SiteHeader() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const learning = pathname?.startsWith("/learn");
+  const links = learning ? [{ href: "/learn", label: "Lessons" }, { href: "/learn/studio", label: "Sponsor studio" }, { href: "/explore", label: "NEAR campaigns" }] : navigation;
 
   return (
     <header className="site-header">
       <div className="shell site-header__inner">
         <Link
           className="wordmark"
-          href="/"
+          href={learning ? "/learn" : "/"}
           aria-label="Crossword Campaigns home"
           onClick={() => setMenuOpen(false)}
         >
           <PixelMark compact />
           <span>
             Crossword
-            <small>Campaigns</small>
+            <small>{learning ? "Learn" : "Campaigns"}</small>
           </span>
         </Link>
 
@@ -49,10 +51,10 @@ export function SiteHeader() {
           aria-label="Main navigation"
           className={`site-navigation${menuOpen ? " is-open" : ""}`}
         >
-          {navigation.map((item) => {
+          {links.map((item) => {
             const active =
               pathname === item.href ||
-              pathname?.startsWith(`${item.href}/`) === true;
+              (item.href !== "/learn" && pathname?.startsWith(`${item.href}/`) === true);
             return (
               <Link
                 key={item.href}
@@ -66,7 +68,7 @@ export function SiteHeader() {
           })}
           <Link
             className="button button--ink button--small"
-            href="/create"
+            href={learning ? "/learn/studio/new" : "/create"}
             onClick={() => setMenuOpen(false)}
           >
             Start a campaign

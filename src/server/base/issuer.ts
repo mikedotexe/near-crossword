@@ -3,7 +3,7 @@ import type { Pool, PoolClient, QueryResultRow } from "pg";
 import { getAddress, hashTypedData, verifyTypedData, type Address, type Hex } from "viem";
 import { baseClaimDigest, baseClaimTypedData, type BaseClaim } from "../../lib/base/claim";
 import { AppError } from "../v2/errors";
-import { conflict, notFound, transaction } from "./database";
+import { assertPublished, conflict, notFound, transaction } from "./database";
 import { realUserId, validId } from "./review";
 import { currentReview, type PrivateReview } from "./review-repository";
 import { bounded } from "./bounded";
@@ -109,14 +109,16 @@ export class BaseRewardIssuer {
   constructor(
     private readonly pool: Pool,
     private readonly chain: BaseChainReader,
-    private readonly eligibility: EligibilityVerifier,
-    private readonly signer: BaseClaimSigner,
+    private readonly eligibility?: EligibilityVerifier,
+    private readonly signer?: BaseClaimSigner,
+    private readonly requirePublication = false,
   ) {}
 
-  async bindApprovedCampaign(ownerId: string, campaignId: string, onChainId: bigint) {
+  async bindApprovedCampaign(ownerId: string, campaignId: string, onChainId: bigint, expected?: { revision: number; termsHash: string; layoutHash: string }) {
     realUserId(ownerId); validId(campaignId);
     if (onChainId <= 0n || onChainId >= 1n << 256n) conflict("Invalid on-chain campaign identifier");
     const review = await transaction(this.pool, (client) => currentReview(client, campaignId, ownerId));
+    if (expected && (review.revision !== expected.revision || review.termsHash !== expected.termsHash)) conflict("Reviewed funding material changed");
     if (review.status !== "APPROVED") conflict("Human approval is required before binding funding");
     const binding = { chainId: review.submission.terms.chainId, escrow: review.submission.terms.escrow as Address, onChainId };
     const state = await this.readState(binding);
@@ -131,6 +133,10 @@ export class BaseRewardIssuer {
         conflict("Review changed during funding verification");
       }
       freshState(state, this.chain.maxFinalizedLagSeconds);
+      if (expected) {
+        const layout = await client.query("SELECT layout_hash, terms_hash FROM base_learning_layouts WHERE campaign_id = $1 AND revision = $2", [campaignId, current.revision]);
+        if (current.revision !== expected.revision || layout.rows[0]?.layout_hash !== expected.layoutHash || layout.rows[0]?.terms_hash !== expected.termsHash) conflict("Approve the current layout before linking funding");
+      }
       const existing = await client.query("SELECT * FROM base_reward_campaigns WHERE campaign_id = $1", [campaignId]);
       if (existing.rowCount) {
         const previous = bindingFromRow(existing.rows[0]);
@@ -169,6 +175,8 @@ export class BaseRewardIssuer {
   }
 
   async issue(input: { campaignId: string; userId: string; recipient: Address; proof: unknown }) {
+    const signer = this.signer, eligibility = this.eligibility;
+    if (!signer || !eligibility) throw new AppError(503, "BASE_ISSUANCE_UNAVAILABLE", "Reward signing is not configured");
     validId(input.campaignId); realUserId(input.userId);
     let recipient: Address;
     try {
@@ -179,11 +187,11 @@ export class BaseRewardIssuer {
     if (sameAddress(recipient, loaded.binding.escrow)) conflict("Escrow cannot be the reward recipient");
     const state = await this.readState(loaded.binding);
     matchingState(loaded.review, loaded.binding, state, this.chain.maxFinalizedLagSeconds); available(state);
-    if (!sameAddress(this.signer.address, state.signer)) conflict("The current eligibility signer is not configured");
+    if (!sameAddress(signer.address, state.signer)) conflict("The current eligibility signer is not configured");
 
     let receiptId: string;
     try {
-      const verified = await bounded((signal) => this.eligibility.verify({ ...input, recipient, revision: loaded.review.revision }, signal), 15000);
+      const verified = await bounded((signal) => eligibility.verify({ ...input, recipient, revision: loaded.review.revision }, signal), 15000);
       receiptId = validId(verified.receiptId);
     } catch {
       throw new AppError(403, "BASE_ELIGIBILITY_REQUIRED", "Verified completion and wallet ownership are required");
@@ -209,6 +217,7 @@ export class BaseRewardIssuer {
       let allocation = existing.rows[0];
       if (allocation && !sameAddress(allocation.recipient, recipient)) conflict("An allocated reward cannot change recipient");
       if (!allocation) {
+        if (this.requirePublication) await assertPublished(client, input.campaignId, review.revision);
         if (unixNow() >= state.endsAt) conflict("The completion and new-allocation window has ended");
         if (nextSlot >= state.maxClaims) conflict("All reward slots are allocated");
         const result = await client.query(
@@ -240,7 +249,7 @@ export class BaseRewardIssuer {
     await this.assertUnused(loaded.binding, reserved.claim, state);
     let signature = reserved.signature;
     try {
-      if (!signature) signature = await bounded((signal) => this.signer.sign(reserved.typedData, signal), 15000);
+      if (!signature) signature = await bounded((signal) => signer.sign(reserved.typedData, signal), 15000);
       if (!await verifyTypedData({ ...reserved.typedData, address: state.signer, signature })) throw new Error();
     } catch {
       throw new AppError(503, "BASE_SIGNING_UNAVAILABLE", "Reward reservation is saved; authorization can be retried");

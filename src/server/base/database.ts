@@ -26,3 +26,8 @@ export function conflict(message: string): never {
 export function notFound(): never {
   throw new AppError(404, "NOT_FOUND", "Learning campaign not found");
 }
+
+export async function assertPublished(client: PoolClient, id: string, revision: number) {
+  const result = await client.query("SELECT 1 FROM base_learning_publications WHERE campaign_id = $1 AND revision = $2 AND withdrawn_at IS NULL", [id, revision]);
+  if (!result.rowCount) conflict("This lesson is not accepting new completions or allocations");
+}

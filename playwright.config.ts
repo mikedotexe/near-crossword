@@ -1,6 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const port = 3107;
+const port = Number(process.env.PLAYWRIGHT_PORT || 3107);
 const baseURL = `http://127.0.0.1:${port}`;
 
 export default defineConfig({
@@ -25,6 +25,11 @@ export default defineConfig({
     timeout: 120_000,
     env: {
       DATABASE_URL: "",
+      BASE_UI_PREVIEW_ENABLED: "true",
+      BASE_REVIEW_ENABLED: "true",
+      BASE_PUBLICATION_ENABLED: "true",
+      BASE_ACCOUNT_ENABLED: "false",
+      BASE_SPONSORED_GAS_ENABLED: "false",
       NEXT_PUBLIC_APP_URL: baseURL,
       NEXT_PUBLIC_V2_DEMO_USER_ID: "creator@example.test",
       V2_CHAIN_BROADCAST_ENABLED: "false",
