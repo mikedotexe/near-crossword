@@ -1,9 +1,10 @@
 # Product discovery
 
-Started 2026-09-04. This notebook records the leading product direction and its
+Started 2026-09-04. This notebook records the agreed product direction and its
 remaining assumptions. It does not authorize production activation or movement
 of funds.
 Operational facts and launch dependencies live in [early launch status](early-launch-status.md).
+Execution work is listed in the [reshape action plan](reshape-action-plan.md).
 
 ## Starting point
 
@@ -15,8 +16,8 @@ product choice. Simplicity of explanation and an enjoyable experience matter.
 
 Mike clarified that the idea may become better without becoming a strong Base
 Batches fit. Accelerator acceptance is not the product's success criterion.
-A subtle affinity with Base and x402 is welcome; choosing a primary chain or
-reshaping the product around the program remains undecided.
+A subtle affinity with Base and x402 is welcome. Mike has since agreed to USDC
+on Base for the new rewards; accelerator participation remains undecided.
 
 The current implementation is sponsor-funded, free to solve, and pays the
 first valid solution. It explicitly excludes public first-N rewards. A program
@@ -50,7 +51,7 @@ adding a Base payment option or mentioning x402.
 | Playable product onboarding | Apps turn a first lesson or first useful action into a small rewarded challenge. | An app team pays to help new users understand and use its product. | Is this more effective than ordinary onboarding or existing quests? |
 | Earn, then use | Complete a challenge, earn a small balance, and optionally spend some on a genuinely useful service. | A sponsor funds first use; services earn payment for something the learner wants. | Is the service useful enough without an incentive, and does the extra step help? |
 
-The discussion now leans toward sponsor-funded learning campaigns, with a short
+The agreed direction is sponsor-funded learning campaigns, with a short
 crossword as the first format. The daily ritual and optional earn-then-use
 experience remain possible extensions. The working brief below supersedes the
 earlier equally open comparison of these three concepts.
@@ -108,10 +109,12 @@ deposit, launch budget, or validated demand signal.
 - Business model: initially quote a campaign setup/platform fee separately
   from the reward pool. Validate pricing with the first clients. The service
   includes content setup, campaign operation, reporting, and support.
-- Chain: lean toward Base as the first reward network for the new experience,
-  subject to an implementation review. Use one settlement network and USDC
-  initially. The existing NEAR deployment remains the actual live system;
-  Base rewards and a contract migration have not been implemented or approved.
+- Chain: USDC on Base is agreed for the new reward experience. Use one
+  settlement network initially. The existing NEAR deployment remains the actual
+  live system; the new Base contract and reward flow still require implementation.
+- AI: use NEAR AI Cloud for campaign preparation, with operator-owned NEAR
+  staking intended to fund inference credits. An API key is still required.
+  Exact stake configuration and model evaluation are tracked in the action plan.
 - x402: retain a real paid service role, starting with optional AI-assisted
   campaign preparation; consider an optional purchase with earned funds later.
   Sponsor/agent API access is a later extension, not a requirement for the first
@@ -139,7 +142,7 @@ specific capability to build and validate.
 ### Deliberately open
 
 Exact reward size and fee; the first sponsor and lesson; eligibility controls;
-wallet onboarding; the Base versus NEAR implementation decision; and how to
+wallet onboarding; the Base contract design; and how to
 reserve rewards during a claim all remain open. We have substantial reusable
 payment and recovery components, but the many-recipient contract, participant
 quality controls, and Base integration are not solved by the existing canary.
@@ -147,13 +150,15 @@ The first funded pilot should be small and separately scoped.
 
 ## Where the technology earns its place
 
-- Base could be the default place for accounts and USDC rewards if we choose
-  the Base-first direction. The live NEAR contract remains an asset and source
+- Base is the selected reward network. The live NEAR contract remains an asset and source
   of working patterns; the future product's escrow design is an open decision.
 - The existing x402 design charges a creator for AI clue generation; that route
   is not enabled in production. It could also serve
   a sponsor/agent API or an optional service bought with earned funds, provided
   there is a real buyer and useful output. These are proposed uses.
+- NEAR AI is the chosen replacement for direct Anthropic access. Operator
+  compute funding and sponsor reward funds remain independent; participants
+  will not need a NEAR wallet for AI that prepares their Base campaign.
 - [x402 payment verification and settlement](https://docs.x402.org/core-concepts/facilitator)
   do not establish that someone learned, qualifies for a reward, or deserves a
   payout. Reward eligibility and sponsor budget accounting remain our work.
@@ -194,6 +199,9 @@ total cost per retained user. Completion counts alone cannot establish demand.
   small rewards and verifiable campaign accounting. Mike identifies campaign
   sponsors as potential clients and raises private email follow-up as a useful
   capability. Record the defaults above as recommendations to iterate from.
-- Open: first sponsor, price, eligibility, wallet experience, final network and
-  contract choice, paid-service scope, and whether to apply to Batches 004.
+- 2026-09-04: Mike confirms the product direction and USDC on Base, and requests
+  NEAR AI inference funded by staking as part of the reshape. Record concrete
+  work items in the action plan; no funds moved or production provider changed.
+- Open: first sponsor, price, eligibility, wallet experience, Base contract
+  design, NEAR AI account/stake/model, and whether to apply to Batches 004.
   No application submitted or new product flow activated.

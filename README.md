@@ -2,6 +2,7 @@
 
 Early launch: [observed status and open items](docs/early-launch-status.md).
 Product direction: [discovery notebook](docs/product-discovery.md).
+Agreed reshape: [Base rewards and NEAR AI action plan](docs/reshape-action-plan.md).
 
 **Fund with anything. Win anywhere.**
 
