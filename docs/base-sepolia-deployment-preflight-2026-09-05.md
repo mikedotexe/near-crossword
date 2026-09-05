@@ -70,7 +70,8 @@ ambiguous.
 | Deployer nonce after deployment | 1 |
 | Deployer balance after deployment | 0.000088826683397187 test ETH |
 | Deployer USDC after deployment | 1 native test USDC |
-| Latest/finalized observation | Latest `46440324`, finalized `46439633`; deployment block not finalized yet |
+| Latest/finalized observation | Later observation: latest `46441104`, finalized `46440531`; deployment block finalized |
+| Finalized deployment code hash | `0xebc5371a9a09231045c01981600b619436374e6226048855a6116d1d0c2dce00` |
 
 The artifact runtime template hash differs from the actual deployed runtime hash
 because constructor immutables are patched into runtime bytecode. Pin the actual
@@ -104,10 +105,9 @@ allowlist, not that our proxy has accepted real CDP `pm_getPaymaster*` responses
 
 ## Remaining launch gates
 
-1. Wait for the deployment block to be finalized, then verify the finalized code
-   hash and deployment anchor.
-2. Configure the independent eligibility signer and create one tiny test
-   campaign after explicit transaction approval.
+1. Wait for approval transaction finality, then verify allowance at a finalized
+   block before campaign creation.
+2. Create one tiny test campaign after explicit transaction approval.
 3. Prove the hosted Base Account/paymaster wire path with a genuinely fresh
    zero-ETH participant wallet and exact finalized `RewardPaid` receipt.
 4. Keep every production and local spending gate disabled until that acceptance
