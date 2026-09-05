@@ -17,7 +17,7 @@ import {
   MemoryRepository,
   resetMemoryRepositoryForTests,
 } from "./memory-repository";
-import type { AiGenerator } from "./ai";
+import { NearAiGenerator, type AiGenerator } from "./ai";
 import { AppError } from "./errors";
 import { digestJson } from "./validation";
 
@@ -82,7 +82,6 @@ beforeEach(() => {
   (process.env as Record<string, string | undefined>).NODE_ENV = "test";
   delete process.env.V2_FUNDING_MODE;
   process.env.X402_ENABLED = "true";
-  process.env.ANTHROPIC_API_KEY = "test-only-not-used";
   resetMemoryRepositoryForTests();
 });
 
@@ -138,6 +137,63 @@ function request(header: string): Request {
 }
 
 describe("x402 AI idempotency", () => {
+  it("checks provider configuration before asking for a new payment", async () => {
+    const calls = { verify: 0, settle: 0 };
+    const header = paymentHeader("payment_identifier_preflight", "authorization");
+    const body = { topic: "payments", tone: "clever", count: 3 };
+    const generator: AiGenerator = {
+      assertConfigured: () => { throw new AppError(503, "AI_NOT_CONFIGURED", "AI is unavailable"); },
+      generate: async () => { throw new Error("must not generate"); },
+    };
+    await assert.rejects(
+      paidAiGeneration(request(header), body, body, new MemoryRepository(), generator, {
+        server: fakeServer(header, calls) as never,
+      }),
+      (error: unknown) => error instanceof AppError && error.code === "AI_NOT_CONFIGURED",
+    );
+    assert.deepEqual(calls, { verify: 0, settle: 0 });
+  });
+
+  for (const failure of ["credits", "invalid draft"] as const) {
+    it(`does not settle when NEAR AI returns ${failure}`, async () => {
+      const previousKey = process.env.NEAR_AI_API_KEY;
+      process.env.NEAR_AI_API_KEY = "near-ai-test-secret";
+      try {
+        const repository = new MemoryRepository();
+        const identifier = `payment_identifier_provider_${failure.replace(" ", "_")}`;
+        const header = paymentHeader(identifier, "authorization");
+        const calls = { verify: 0, settle: 0 };
+        const body = { topic: "payments", tone: "clever", count: 3 };
+        let generationCalls = 0;
+        const generator = new NearAiGenerator({ fetch: async () => {
+          generationCalls++;
+          return failure === "credits"
+            ? Response.json({ error: { message: "near-ai-test-secret" } }, { status: 402 })
+            : Response.json({ choices: [{ finish_reason: "length", message: { content: "{}" } }] });
+        } });
+        await assert.rejects(
+          paidAiGeneration(request(header), body, body, repository, generator, {
+            server: fakeServer(header, calls) as never,
+          }),
+          (error: unknown) => error instanceof AppError && error.code === (
+            failure === "credits" ? "AI_CREDITS_EXHAUSTED" : "AI_RESPONSE_INVALID"
+          ),
+        );
+        assert.deepEqual(calls, { verify: 1, settle: 0 });
+        const record = await repository.getIdempotency("AI_GENERATE_X402_V2", "x402:ai-generate", identifier);
+        assert.equal(record?.state, "FAILED");
+        assert.doesNotMatch(JSON.stringify(record), /near-ai-test-secret/);
+        const retried = await paidAiGeneration(request(header), body, body, repository, generator);
+        assert.equal(retried.headers.get("x-idempotent-replay"), "true");
+        assert.equal(generationCalls, 1);
+        assert.equal(calls.settle, 0);
+      } finally {
+        if (previousKey === undefined) delete process.env.NEAR_AI_API_KEY;
+        else process.env.NEAR_AI_API_KEY = previousKey;
+      }
+    });
+  }
+
   it("scopes re-signed retries to the same durable payment identifier", () => {
     const id = "payment_identifier_123";
     const first = x402PaymentIdentity(paymentHeader(id, "first-signature"));
@@ -218,13 +274,16 @@ describe("x402 AI idempotency", () => {
     assert.equal(calls.verify, 1);
     assert.equal(calls.settle, 1);
 
+    const unavailableGenerator: AiGenerator = {
+      assertConfigured: () => { throw new Error("provider is now unavailable"); },
+      generate: async () => { throw new Error("must recover without generating"); },
+    };
     const recovered = await paidAiGeneration(
       request(header),
       body,
       body,
       repository,
-      generator,
-      { server: server as never },
+      unavailableGenerator,
     );
     assert.equal(recovered.status, 200);
     assert.equal(recovered.headers.get("x-idempotent-replay"), "true");

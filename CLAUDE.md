@@ -9,6 +9,12 @@ implemented, configured, enabled, and observed behavior distinct. Record
 tentative product ideas in `docs/product-discovery.md`; do not treat them as
 implementation decisions. Never record secret values in either document.
 
+For the agreed Base/NEAR AI reshape, read `docs/reshape-action-plan.md`, then
+`docs/reshape-progress.md` for the current session checkpoint. Update that
+checkpoint after implementation sessions with tests and the next concrete work.
+Use `docs/base-reward-contract.md` for the proposed Base interface; do not apply
+its encoding to existing NEAR claims or treat design as deployed functionality.
+
 ## Product invariant
 
 A campaign is never public or claimable until the complete native-USDC prize is

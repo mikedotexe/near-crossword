@@ -4,6 +4,11 @@ Agreed direction recorded 2026-09-04. This plan covers the reshape; deployment,
 staking, and paid pilot results must be recorded separately in
 [early launch status](early-launch-status.md).
 
+Implementation has begun. Read the [session checkpoint](reshape-progress.md)
+for completed slices, test evidence, working branch, and next-session order.
+The NEAR AI clue adapter is locally tested; the [Base contract specification](base-reward-contract.md)
+is written but not implemented. R2 and R3 remain open as full milestones.
+
 ## Product and architecture decisions
 
 - Sponsor-funded lessons and crosswords, with a fixed reward for each eligible
@@ -110,7 +115,7 @@ is a second candidate. Neither has been tested for this app yet. The
 models from third-party proxies; privacy claims must match the chosen model
 and actual verification, and do not hide data from our own application.
 
-Proposed configuration, to become effective with the adapter implementation:
+Configuration implemented in the adapter branch, not yet deployed:
 
 | Variable | Value or purpose |
 | --- | --- |
@@ -118,15 +123,19 @@ Proposed configuration, to become effective with the adapter implementation:
 | `NEAR_AI_BASE_URL` | `https://cloud-api.near.ai/v1` |
 | `V2_AI_MODEL` | Initially `z-ai/glm-5.3-flash`; confirm by evaluation |
 
-Code changes are localized but extend beyond changing an environment variable:
+Provider replacement completed locally in the first implementation session:
 
-- Replace `AnthropicAiGenerator` in `src/server/v2/ai.ts` through the existing
-  `AiGenerator` interface. Use the official compatible SDK and preserve strict
-  output validation, request deadlines, and bounded token use.
-- Update `app/api/v2/ai/generate/route.ts`, which instantiates Anthropic directly.
-- Remove the hard-coded `ANTHROPIC_API_KEY` prerequisite in
-  `src/server/v2/x402-ai.ts`; provider readiness must come from the selected
-  implementation. Update configuration documentation and tests accordingly.
+- Replaced `AnthropicAiGenerator` with `NearAiGenerator` in
+  `src/server/v2/ai.ts` through the existing `AiGenerator` interface. The pinned
+  compatible SDK, strict validation, 30-second deadline, and output-token cap
+  have injected-client test coverage. Updated the route and removed the old SDK.
+- Removed the hard-coded `ANTHROPIC_API_KEY` prerequisite in
+  `src/server/v2/x402-ai.ts`; provider readiness now comes from the implementation.
+  Cached results can replay without provider/facilitator access while x402 is
+  enabled. Saved generated entries remain reusable for settlement recovery.
+
+Remaining R2 work:
+
 - Extend generation from topic-only pairs to source-grounded lesson/clue drafts,
   preserving review before publication. Reject malformed, duplicate, truncated,
   or unusable output. Evaluate clue correctness, layout viability, latency,
@@ -143,13 +152,13 @@ Build a separate Solidity campaign escrow using established
 Keep the current Rust contract for its existing campaigns. Pin the Base network
 and official native-USDC contract for each environment.
 
-The initial design should bind an eligibility authorization to the campaign,
-recipient, fixed amount, opaque one-time claim ID, expiry, chain, and contract.
-The application verifies completion and participant policy before issuing it.
-The contract rejects reuse and enforces sponsor-approved budget and timing.
-Opaque IDs must not expose email addresses. Exact reward reservation and expiry
-rules must ensure the interface never promises an unbacked payout. Define
-signer ownership, rotation, pause, and refund behavior in the contract review.
+The [first contract specification](base-reward-contract.md) chooses prefunded
+fixed reward slots, recipient-bound EIP-712 authorizations, campaign-scoped
+participant IDs, no slot recycling, sponsor-controlled pause/signer epochs,
+and refunds after the redemption deadline. It defines the application trust
+boundary and exact signature fields. Implement and test these rules before
+calling R3 complete. The application still attests completion and participant
+policy; contract receipts cannot prove learning or unique humans.
 
 Reuse the existing Postgres workflow/reconciliation patterns, with additive
 schema changes for campaign versions/networks, many participants and rewards,

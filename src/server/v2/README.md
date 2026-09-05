@@ -61,7 +61,7 @@ provider again or counting released principal as escrow.
 
 Paid AI generation is enabled only with `X402_ENABLED=true`,
 `X402_FACILITATOR_URL`, `X402_PAY_TO`, `X402_NETWORK`,
-`X402_ASSET` (or `V2_USDC_CONTRACT_ID`), and `ANTHROPIC_API_KEY`. It uses x402
+`X402_ASSET` (or `V2_USDC_CONTRACT_ID`), and `NEAR_AI_API_KEY`. It uses x402
 v2, the NEAR exact scheme, and a required `payment-identifier`. Generation runs
 after verification and settlement runs only after generation succeeds. The
 result is durably cached by payment identifier; a retry with a different body is
@@ -80,6 +80,26 @@ payer identity, prompts, and generated answers are never copied into campaign
 or operation-event evidence. Manual campaigns do not require a handle.
 Mock mode emits a non-settling 402 challenge and never treats a header as proof
 of payment.
+
+`NearAiGenerator` uses the official OpenAI-compatible SDK against NEAR AI Cloud,
+not the OpenAI or Anthropic inference services. `NEAR_AI_BASE_URL` defaults to
+`https://cloud-api.near.ai/v1`; only that gateway and NEAR AI's direct
+`https://<slug>.completions.near.ai/v1` endpoints are accepted. Redirects are
+disabled. `V2_AI_MODEL` defaults to the evaluation candidate
+`z-ai/glm-5.3-flash`, with a 30-second total deadline, 4,096 output-token limit,
+and no automatic provider retries. Staking supplies credits but does not remove
+the API-key requirement. No wallet/staking key belongs in this adapter.
+
+Structured JSON output must contain exactly the requested 3-12 distinct valid
+clue/answer pairs; truncated, malformed, duplicate, or extra-field output is
+rejected before settlement. Provider authentication, credit exhaustion, rate
+limits, and timeouts return sanitized errors without raw response bodies.
+There is no Anthropic fallback. A new generation checks provider configuration;
+cached terminal results do not need provider/facilitator access, and settlement
+recovery with durable entries does not regenerate. The `X402_ENABLED` kill switch
+still applies to all of these paths. Local injected-client tests are not live
+model or payment evidence. Source-grounded lesson generation and Base payments
+are subsequent work in the [reshape plan](../../../docs/reshape-action-plan.md).
 
 The create page includes a keyless application-side payer adapter for
 `@fastnear/wallet`. It offers only wallets that advertise timeout-aware NEP-366

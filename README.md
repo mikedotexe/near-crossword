@@ -3,6 +3,13 @@
 Early launch: [observed status and open items](docs/early-launch-status.md).
 Product direction: [discovery notebook](docs/product-discovery.md).
 Agreed reshape: [Base rewards and NEAR AI action plan](docs/reshape-action-plan.md).
+Next session: [implementation checkpoint](docs/reshape-progress.md).
+
+The product description below covers the current NEAR v2 application. The
+agreed Base, many-recipient learning experience is under development; the
+[Base escrow design](docs/base-reward-contract.md) is not yet an implemented
+contract. This branch uses NEAR AI for generation, while production remains
+on the release recorded in the launch register.
 
 **Fund with anything. Win anywhere.**
 
@@ -116,6 +123,12 @@ yarn dev
 
 Mock mode moves no funds, accepts no payment as settled, and loses its state
 when the process restarts. It is designed for product and browser testing.
+
+Real clue generation uses `NEAR_AI_API_KEY`, optional `NEAR_AI_BASE_URL`
+(default `https://cloud-api.near.ai/v1`), and `V2_AI_MODEL` (initial evaluation
+candidate `z-ai/glm-5.3-flash`). It has no Anthropic dependency or fallback.
+Leave `X402_ENABLED=false` until provider and payment acceptance checks pass.
+See the [backend guide](src/server/v2/README.md) for limits and recovery behavior.
 
 For Postgres-backed development:
 

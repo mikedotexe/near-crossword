@@ -30,6 +30,38 @@ yarn build
 
 ## Current local implementation evidence
 
+### Reshape session, 2026-09-04
+
+The separate `codex/early-launch-discovery` branch replaces the direct Anthropic
+adapter with NEAR AI. Checks used Node 24.4.0, injected provider/facilitator
+clients, and explicit browser mock mode with broadcasting disabled:
+
+- NEAR AI and x402 focused tests: **48/48**, including bounded structured
+  requests, exact-count/unique answer validation, truncation, response-body
+  deadlines, credit exhaustion, secret-safe errors, no settlement on generation
+  failure, and cached-result recovery without provider/facilitator availability.
+- Full application unit tests: **178/178**. Browser regression tests: **8/8**
+  across desktop and mobile Chromium.
+- Lint, typecheck, and Next production build pass. The production dependency
+  audit passes the configured high-severity threshold; this is not a claim
+  that all transitive low-severity findings have disappeared.
+- Repeated the full **178/178** unit suite and production build under Node
+  **20.20.2**, matching the deployment's Node 20 major version; both pass.
+- Immutable dependency installation passes, with the existing `next-auth`
+  peer warning for `nodemailer` 10 versus its requested ^7.0.7. This session
+  does not resolve that compatibility warning; actual email sign-in remains L05
+  in the [launch register](docs/early-launch-status.md).
+- No Rust changes or Rust checks in this session. The Base contract is still
+  a [design](docs/base-reward-contract.md), with its own future test matrix.
+- No live NEAR AI inference, credit measurement, paid x402 settlement, Base
+  deployment, or production configuration change. Source-grounded lesson
+  generation is not implemented. Live model compatibility remains unverified.
+
+See the [session checkpoint](docs/reshape-progress.md) for the next work. These
+results do not supersede the older chain evidence or close launch gates.
+
+### Historical NEAR v2 baseline, 2026-07-27
+
 Independently rerun on **2026-07-27** with broadcasting disabled and no live
 funds:
 

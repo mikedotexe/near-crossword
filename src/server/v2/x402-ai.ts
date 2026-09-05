@@ -527,11 +527,6 @@ export async function paidAiGeneration(
   if (process.env.X402_ENABLED !== "true") {
     throw new AppError(503, "X402_DISABLED", "x402 AI generation is not enabled");
   }
-  if (!process.env.ANTHROPIC_API_KEY) {
-    throw new AppError(503, "AI_NOT_CONFIGURED", "AI generation is not configured");
-  }
-
-  const bundle = options.server ?? (await getServer());
   const now = options.now ?? Date.now;
   const paymentHeader = request.headers.get("payment-signature");
   const identity = paymentHeader ? x402PaymentIdentity(paymentHeader) : null;
@@ -564,6 +559,9 @@ export async function paidAiGeneration(
     }
   }
 
+  // Cached results and already-generated settlements do not need provider access.
+  if (!existing) generator.assertConfigured?.();
+  const bundle = options.server ?? (await getServer());
   const adapter = new RequestAdapter(request, rawBody);
   const context: HTTPRequestContext = {
     adapter,

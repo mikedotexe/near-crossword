@@ -15,7 +15,6 @@
     "sharp": "0.35.3"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.39.0",
     "@defuse-protocol/nearintents-mpp-sdk": "0.1.1",
     "@defuse-protocol/one-click-sdk-typescript": "0.1.25",
     "@fastnear/api": "0.9.13",
@@ -32,6 +31,7 @@
     "next": "15.5.21",
     "next-auth": "4.24.15",
     "nodemailer": "10.0.0",
+    "openai": "7.10.0",
     "pg": "^8.13.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

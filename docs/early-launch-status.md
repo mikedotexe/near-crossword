@@ -1,11 +1,13 @@
 # Early launch status
 
-Last checked: 2026-09-04, America/Los_Angeles (2026-09-05 00:06 UTC).
+Last live checks: 2026-09-04, America/Los_Angeles (2026-09-05 00:06 UTC).
+Local implementation update: 2026-09-04; no subsequent production change.
 
 This is the working record for the public launch. Read it before changing launch
 configuration. Product possibilities belong in [product discovery](product-discovery.md);
 they are not approved implementation work merely because they appear there.
 The agreed reshape and its work order are in [the action plan](reshape-action-plan.md).
+Multi-session implementation state is in [the checkpoint](reshape-progress.md).
 
 ## Current baseline
 
@@ -32,17 +34,17 @@ credential is not, by itself, proof that a provider is unusable.
 | --- | --- | --- | --- |
 | L01 | Gated | Render has `V2_CHAIN_BROADCAST_ENABLED=false`. Operator account/key variables are absent from the web service. | Decide which campaign workflow to launch; verify a separately configured worker, account, permissions, and recovery procedure before enabling broadcasts. |
 | L02 | Gated | `X402_ENABLED`, `X402_FACILITATOR_URL`, `X402_NETWORK`, `X402_PAY_TO`, `X402_ASSET`, and `X402_FACILITATOR_BEARER_TOKEN` are unset in Render. | Choose network, approved recipient, price, and instance-specific credential. Prove unpaid challenge, payment, delivered result, and replay behavior. The asset can fall back to `V2_USDC_CONTRACT_ID` in current code. |
-| L03 | Superseded setup; runtime still gated | Direct Anthropic access is being replaced by NEAR AI in the agreed plan. The deployed route still requires `ANTHROPIC_API_KEY`. | Implement R2, including removal of the hard-coded Anthropic prerequisite; do not add a dummy Anthropic key to bypass it. |
+| L03 | Adapter locally tested; runtime still gated | Engineering replaced direct Anthropic with NEAR AI in the implementation branch, including the hard-coded prerequisite. The deployed route is unchanged and still requires `ANTHROPIC_API_KEY`. | Engineering completes R2 source/lesson drafts and live evaluation after R1, then reviews deployment. Do not add a dummy Anthropic key or enable paid generation based only on unit tests. |
 | L04 | Optional configuration; flow unverified | Both `ONE_CLICK_JWT` and `ONECLICK_JWT` are absent. Current code treats this as an optional partner token; the public token catalog already worked at launch. | Confirm provider requirements for the intended route and prove quote, funding, payout, and refund behavior. Do not call this broken solely because a JWT is missing. |
 | L05 | Partially verified | Resend key and sender are configured; provider discovery returns HTTP 200. | Complete an actual email sign-in, including inbox receipt, production callback, and authenticated session. |
 | L06 | Historical proof only | The July 27 private mainnet canary proves direct 0.10 USDC funding, claim, and replay rejection. It used an earlier WASM hash. | Compare deployed contract code with the reviewed release and attach current public-runtime acceptance evidence. See [canary](mainnet-canary-2026-07-27.md). |
 | L07 | Unverified | End-to-end cross-chain routes, route-refund recovery, production x402 delivery/replay, audit closure, and operational ownership are not established by the website cutover. | Complete the relevant [runbook](launch-runbook.md) and [QA](../QA.md) items for the chosen product scope; preserve unresolved items if scope changes. |
 | L08 | Preserved; reconciliation open | The old contract/application remain accessible. The runbook still records outstanding legacy claims and funds. | Reconcile actual claim/key and balance state before changing legacy access. Historical amounts are not current balance observations. |
-| L09 | Agreed direction; integration pending | USDC on Base is selected. Crossword still validates only NEAR x402 networks and uses a NEAR browser payer. | Implement the Base contract and EVM wallet/payment path in R3-R5; changing the URL alone cannot supply this. |
-| L10 | Agreed direction; implementation pending | Sponsor-funded learning campaigns with many small rewards are agreed. The live contract still has one winner. | Implement the many-recipient budget/claim contract, eligibility checks, and first small pilot in the action plan. |
+| L09 | Contract design recorded; integration pending | USDC on Base is selected. The new escrow specification is written, not deployed. Crossword still validates only NEAR x402 networks and uses a NEAR browser payer. | Engineering implements the Base contract and EVM wallet/payment path in R3-R5; changing the URL alone cannot supply this. |
+| L10 | Reward rules specified; implementation pending | Sponsor-funded learning campaigns now have a fixed-slot, recipient-bound claim/refund design. The live contract still has one winner. | Engineering implements/tests the [Base design](base-reward-contract.md), eligibility checks, and the first small pilot in the action plan. |
 | L11 | Product default proposed | Verify email at reward claim; keep contacts off-chain and share only with a separate sponsor opt-in. Email control and payout receipts do not establish unique humans or learning. | Define private contact export, consent records, repeat-claim defenses, and the distinction between public spending evidence and application-reported completions. |
 | L12 | NEAR AI account setup pending | Staking-funded inference is publicly documented. Exact live farm configuration requires a signed-in session; public config read returned 401. No stake amount or destination selected. | Mike completes NEAR sign-in, checks default-organization binding and current pool/rate, and supplies a dedicated inference key through secret storage. See R1. |
-| L13 | Model evaluation pending | Gemma is absent from the current public catalog. `z-ai/glm-5.3-flash` is the first candidate; catalog readiness is not a successful app inference test. | Run source-grounded clue/lesson evaluation and cost measurement after R1; implement exhaustion handling and preserve x402 delivery/payment guarantees. |
+| L13 | Local failure handling tested; live evaluation pending | Gemma is absent from the checked catalog. `z-ai/glm-5.3-flash` is the adapter's candidate. Mocked exhaustion, timeout, malformed output, and no-settlement tests pass; no authenticated inference has run. | Engineering runs source-grounded clue/lesson evaluation and cost/latency measurement after R1, including live schema compatibility. Preserve x402 delivery/payment guarantees. |
 
 ## Facilitator inventory
 
@@ -97,3 +99,10 @@ wallet state before promising first-use compatibility.
 - 2026-09-04: Mike agreed to USDC on Base and NEAR AI for generation. Added the
   implementation plan and account/model tasks. Anthropic credential setup is
   superseded, while the deployed code and its disabled paid flow are unchanged.
+- 2026-09-04: Began authorized R2/R3 implementation in the separate discovery
+  worktree. Added the NEAR AI adapter and regression tests, wrote the Base
+  fixed-slot escrow specification, and saved the multi-session checkpoint.
+  Unit tests 178/178, browser tests 8/8, lint, typecheck, production build, and
+  high-severity production dependency audit pass. Unit suite and production
+  build also pass on deployment-target Node 20. No live inference, stake,
+  settlement, contract deployment, production configuration, or flag change.
