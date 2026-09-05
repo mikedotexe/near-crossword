@@ -35,7 +35,9 @@ not unique humans or learning. Manual authoring remains valid.
   locally with a read-only chain check and prepares the escrow deployment
   preflight. Session 12 deploys the escrow, records the deployment anchor and
   saves a claim-only CDP allowlist. Session 13 configures a separate local
-  eligibility signer and prepares the 1-test-USDC approval preflight.
+  eligibility signer, prepares the 1-test-USDC approval preflight, and sends the
+  approved allowance transaction. The one-slot `createCampaign` transaction is
+  now preflighted but not approved or sent.
   See [local setup](base-sepolia-local-setup.md). The encrypted deployer is not a
   paymaster or fresh participant wallet, and no mainnet funding or
   transaction-specific approval is implied by creating/funding it.
@@ -64,7 +66,7 @@ not unique humans or learning. Manual authoring remains valid.
 | R2b lesson/source drafts | Two live synthetic drafts validate; private review API and manual editor implemented | Representative quality evaluation and versioned paid generation orchestration |
 | R3a contract design | Implemented locally with shared typed-data fixture | Independent security review and integration review |
 | R3b contract/accounting | Base Sepolia escrow deployed and latest-block reads match native USDC/empty state | Finalized deployment verification, reviewed RPC/finality policy, supervised scanner, scale validation, independent security review and live acceptance |
-| R4 workflows | Sponsor/player screens, approved publication, claim recovery and strict Sepolia gas proxy implemented locally; disabled local env, funded test deployer, validated CDP endpoint, deployed escrow, claim-only CDP allowlist and local eligibility signer | One-slot approval/createCampaign, live wire compatibility and fresh passkey/gas acceptance, operator gas recovery, sponsor wallet funding/control/dashboard, live email acceptance, fraud policy, retention/export |
+| R4 workflows | Sponsor/player screens, approved publication, claim recovery and strict Sepolia gas proxy implemented locally; disabled local env, funded test deployer, validated CDP endpoint, deployed escrow, claim-only CDP allowlist, local eligibility signer and 1-test-USDC allowance | One-slot `createCampaign`, live wire compatibility and fresh passkey/gas acceptance, operator gas recovery, sponsor wallet funding/control/dashboard, live email acceptance, fraud policy, retention/export |
 | R5 Base x402 | Not started | EVM scheme/payer, facilitator configuration, first-wallet and settlement/recovery proof |
 | R6 pilot | Gated | Earlier milestones, reviewed release, explicit small budget and identities |
 
@@ -88,8 +90,10 @@ not unique humans or learning. Manual authoring remains valid.
   has occurred.
 - Session 13: generated a separate local eligibility signer, stored it in
   ignored `.env.local` and macOS Keychain without printing it, and recorded only
-  its public address. Prepared the exact 1-test-USDC approval transaction
-  preflight. No approval, campaign creation or claim transaction was sent.
+  its public address. Prepared and, after explicit approval, sent the exact
+  1-test-USDC approval transaction. Verified deployment finality. Prepared the
+  one-slot `createCampaign` preflight. No campaign creation or claim transaction
+  was sent.
 - Session 8: private sponsorship permits bind a real session to a signed reward;
   the wallet passes a short-lived token in ERC-7677 context. The proxy checks
   exact canonical account/claim calls, pinned code/factory/EntryPoint/paymaster,
@@ -216,10 +220,16 @@ Session 13 checks, Node 20.18.3:
 
 - Eligibility signer address is
   `0xD7F85d32390329cce4e7375d121c912fd3119bF5`; it has no spending role.
-  Approval preflight for native Base Sepolia USDC from the deployer to the
-  deployed escrow shows current allowance 0, nonce 1, amount `1000000` atomic
-  units, 56,240 estimated gas, 77,488 suggested gas limit and
-  0.000000542416 test ETH suggested max cost. No transaction was sent.
+  Approval transaction
+  `0xf472670687b4657841cf4cf7d10c2d5049b26c3e11d0e591f346392f291065f2`
+  succeeded at block `46441008`, setting escrow allowance to `1000000` atomic
+  units. It used 55,437 gas and 0.000000332622 test ETH. `createCampaign`
+  preflight for one 1-USDC slot shows nonce 2, 293,050 estimated gas, 371,660
+  suggested gas limit, 0.00000260162 test ETH suggested max cost, starts
+  2026-09-05 16:49:54 PDT, and terms hash
+  `0xcb93af85bf4d58a2377067d03efc3ead972cdc4f344e0b21e9467dd00a535163`.
+  Deployment finality was verified at finalized block `46440531`; approval
+  finality remained pending. No campaign creation or claim transaction was sent.
 
 Session 12 checks, Node 20.18.3:
 

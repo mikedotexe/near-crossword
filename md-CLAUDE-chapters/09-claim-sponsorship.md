@@ -109,6 +109,16 @@ global and per-user visible cap, 10 operations per user, and sponsor name
 `Crossword`. The deployment block was not finalized at the latest observation,
 and no provider sponsorship request or campaign funding has occurred.
 
+Session 13 verifies deployment finality and sends the approved 1-test-USDC
+allowance transaction:
+`0xf472670687b4657841cf4cf7d10c2d5049b26c3e11d0e591f346392f291065f2`.
+The approval sets escrow allowance to `1000000` atomic units and uses
+0.000000332622 test ETH. The approval block is mined but not finalized at the
+latest observation. A one-slot `createCampaign` preflight is recorded with terms
+hash `0xcb93af85bf4d58a2377067d03efc3ead972cdc4f344e0b21e9467dd00a535163`,
+starting 2026-09-05 16:49:54 PDT. It still needs explicit approval before any
+campaign funding.
+
 Mainnet custody stays out of the early launch path. For Base Sepolia, use CDP or
 Base faucets first. If a real Coinbase send is later required, it must be a tiny
 reviewed Base-network transfer to a fresh production custody address with an

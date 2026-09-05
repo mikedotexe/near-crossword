@@ -35,6 +35,24 @@ yarn test:acceptance:base-build
 
 ## Current local implementation evidence
 
+### Reshape session 13, 2026-09-05: approval and campaign preflight
+
+- A separate local eligibility signer was generated and stored only in ignored
+  local env and macOS Keychain. Its public address is
+  `0xD7F85d32390329cce4e7375d121c912fd3119bF5`; it has no ETH/USDC spending role.
+- After Mike's explicit approval, USDC approval transaction
+  `0xf472670687b4657841cf4cf7d10c2d5049b26c3e11d0e591f346392f291065f2`
+  succeeded at block `46441008`, setting escrow allowance to `1000000` atomic
+  units. It used 55,437 gas and 0.000000332622 test ETH.
+- `createCampaign` preflight for one 1-USDC slot estimates 293,050 gas with a
+  371,660 suggested gas limit and 0.00000260162 test ETH suggested max cost.
+  Terms hash is
+  `0xcb93af85bf4d58a2377067d03efc3ead972cdc4f344e0b21e9467dd00a535163`, with
+  starts at 2026-09-05 16:49:54 PDT, ends at 2026-09-05 22:49:54 PDT, and claim
+  deadline at 2026-09-06 22:49:54 PDT.
+- Approval finality, `createCampaign`, provider sponsorship, fresh hosted wallet
+  claim, production setting and mainnet transfer remain open.
+
 ### Reshape session 12, 2026-09-05: Base Sepolia escrow deployment
 
 - Mike explicitly approved the Base Sepolia escrow deployment. The successful
@@ -53,9 +71,9 @@ yarn test:acceptance:base-build
   entry for selector `0x8bd53692`, with visible $1 global/$1 per-user caps,
   10 operations per user and sponsor name `Crossword`.
 - `yarn test:contract:base` passed **29/29** before deployment. The deployment
-  block was not finalized at latest observation, and no campaign funding,
-  provider sponsorship request, fresh hosted wallet claim, production setting or
-  mainnet transfer occurred.
+  block was later finalized and the finalized deployment code hash matched the
+  latest-code hash. No campaign funding, provider sponsorship request, fresh
+  hosted wallet claim, production setting or mainnet transfer occurred.
 
 ### Reshape session 9, 2026-09-05: local setup only
 

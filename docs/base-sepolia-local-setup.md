@@ -56,6 +56,8 @@ fresh participant Base Account. Keep all those roles separate.
 | Faucet funding | CDP Base Sepolia faucet funded 0.0001 test ETH and 1 native test USDC; latest balance check returned `0.000100000000000000` ETH and `1000000` USDC atomic units |
 | Deployment spend | Escrow deployment used 1,808,772 gas and 0.000010852632 test ETH |
 | Post-deploy balance | 0.000088826683397187 test ETH and 1 native test USDC; nonce 1 |
+| Approval spend | USDC approval used 55,437 gas and 0.000000332622 test ETH |
+| Post-approval balance | 0.000088488025569621 test ETH and 1 native test USDC; nonce 2 |
 
 ## Deployed escrow
 
@@ -69,7 +71,7 @@ fresh participant Base Account. Keep all those roles separate.
 | Actual runtime code hash | `0xebc5371a9a09231045c01981600b619436374e6226048855a6116d1d0c2dce00` |
 | Immutable token | `0x036CbD53842c5426634e7929541eC2318f3dCF7e` |
 | Initial state | `totalReserved() = 0`, `campaignCount() = 0` |
-| Finality | Not finalized at latest observation; latest `46440324`, finalized `46439633` |
+| Finality | Deployment finalized and code hash verified at later observation; latest `46441104`, finalized `46440531` |
 
 CDP Paymaster on Base Testnet (Sepolia) was saved with one `Crossword Claim`
 allowlist entry for this contract and selector `0x8bd53692`, the selector for
@@ -138,12 +140,13 @@ explicit spending limits and a runbook.
 
 ## Continue setup
 
-1. Wait for finalization of block `46440190`, then verify the deployment anchor
-   and actual code hash at a finalized block.
-2. Get explicit approval for the one-slot approval transaction recorded in
-   [base-sepolia-campaign-preflight-2026-09-05.md](base-sepolia-campaign-preflight-2026-09-05.md).
-3. After approval is mined, recompute the `createCampaign` estimate and record
-   exact schedule/terms hash before asking for the second transaction approval.
+1. Wait for finalization of approval block `46441008`, then verify allowance at
+   a finalized block before campaign creation.
+2. The one-slot approval transaction recorded in
+   [base-sepolia-campaign-preflight-2026-09-05.md](base-sepolia-campaign-preflight-2026-09-05.md)
+   is now mined, with allowance `1000000`.
+3. Get explicit approval for the recorded `createCampaign` transaction. Recompute
+   if chain time passes the proposed `startsAt`.
 4. Complete the [live acceptance checklist](base-sepolia-sponsorship-acceptance.md):
    reviewed deployment/account pins, real session, healthy scanner, hosted
    wallet compatibility, bounded CDP responses and fresh zero-ETH participant.

@@ -10,8 +10,10 @@ see [local setup and recovery](base-sepolia-local-setup.md). Session 10 confirms
 local endpoint slot is now present and read-only checked as Base Sepolia. Actual
 provider wire acceptance remains pending. Session 12 deployed the escrow and
 saved a claim-only CDP allowlist. Session 13 configured a separate eligibility
-signer and prepared the one-slot approval preflight. Managed CDP sponsorship is
-account-billed, not an ETH deposit into this separate deployment wallet.
+signer, prepared the one-slot approval preflight and sent the exact 1-test-USDC
+approval after explicit approval. Deployment finality is verified; approval
+finality is pending. Managed CDP sponsorship is account-billed, not an ETH
+deposit into this separate deployment wallet.
 
 ## Existing infrastructure investigation
 
@@ -62,12 +64,13 @@ exists. A dedicated Crossword paymaster configuration remains required.
    funds; no bridge or mainnet purchase is required for this test. Current
    observed balances are 0.0001 test ETH and 1 native test USDC.
 4. Confirm the exact funded preview once addresses and estimates are known.
-   Current next transaction preflight is a USDC approval from the deployer to the
-   deployed escrow for exactly 1 test USDC, with suggested max gas cost
-   0.000000542416 test ETH. See
-   [campaign preflight](base-sepolia-campaign-preflight-2026-09-05.md).
-   The later `createCampaign` transaction still needs a fresh estimate, schedule,
-   terms hash and separate approval. No mainnet funds.
+   The USDC approval is complete:
+   `0xf472670687b4657841cf4cf7d10c2d5049b26c3e11d0e591f346392f291065f2`.
+   Current next transaction preflight is `createCampaign` for one 1-test-USDC
+   slot, with suggested gas limit 371,660 and suggested max gas cost
+   0.00000260162 test ETH. See
+   [campaign preflight](base-sepolia-campaign-preflight-2026-09-05.md). No
+   mainnet funds.
 
 ## Engineering: staging and no-spend checks
 
