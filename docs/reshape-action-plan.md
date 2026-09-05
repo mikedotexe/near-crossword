@@ -161,6 +161,9 @@ Remaining R2/R4 integration work:
 
 - Private source authoring/review and persisted hash-bound human approval now
   have a gated API and real Postgres tests; see [workflow details](base-learning-workflow.md).
+  Participant completion, wallet verification, optional contact consent and
+  authenticated claim/recovery now have a gated backend path (session 6;
+  [chapter 06](../md-CLAUDE-chapters/06-participants-and-recovery.md)).
   Connect the generator through a separately versioned paid workflow and build
   the review UI. Evaluate clue correctness, layout viability, latency,
   token cost, and retry behavior on representative sponsor material.
@@ -198,7 +201,9 @@ from confirmed chain events and reconcile with the application ledger.
 
 Implement [Base Account](https://docs.base.org/sdks/base-account/overview) or
 another compatible onboarding adapter with recipient ownership checks and
-sponsored claim gas. Prove the freshly created wallet path, not just a previously
+sponsored claim gas. Session 6 verifies EOA and deployed ERC-1271 control and
+completes the local backend issuance/recovery flow; counterfactual wallets remain
+unsupported. Prove the freshly created wallet path, not just a previously
 funded wallet. The participant flow needs completion, email verification, payout
 pending/confirmed/failed, exhausted-budget, and expired-campaign states. Sponsors
 need lesson review, funding, progress, refunds, receipts, and private opt-in export.

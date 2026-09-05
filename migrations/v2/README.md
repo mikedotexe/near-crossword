@@ -10,6 +10,11 @@ authorization tables, referencing existing users but not changing NEAR liabiliti
 See [the private workflow](../../docs/base-learning-workflow.md). This migration
 is locally tested, not yet applied to production. No migration modifies the
 legacy `puzzles` table.
+Migration 010 adds the reconciled canonical/orphan event ledger. Migration 011
+adds private completion, expiring wallet challenges, durable eligibility receipts
+and optional contact-consent history. These are append-only additions tested on
+disposable local databases, not production migrations. Existing allocation receipt
+IDs are preserved rather than backfilled with fabricated participant evidence.
 
 The migration runner holds a Postgres advisory lock, applies every migration in
 one transaction, records an immutable checksum, and refuses to continue if an

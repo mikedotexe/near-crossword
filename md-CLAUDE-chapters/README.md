@@ -11,6 +11,7 @@ same change as its implementation; do not leave future plans described as live.
 | [03 Base accounting](03-base-accounting.md) | Deployment pins, canonical history, reconciliation and recovery |
 | [04 Review and issuance](04-review-and-issuance.md) | Private revisions, approval, durable claims and remaining participant work |
 | [05 Operations](05-operations.md) | Worktrees, verification, launch gates and session handoff |
+| [06 Participants and recovery](06-participants-and-recovery.md) | Completion, wallet evidence, email/consent, authenticated claims and finalized receipts |
 
 These chapters explain the system. The [work order](../docs/reshape-action-plan.md),
 [session checkpoint](../docs/reshape-progress.md), [QA evidence](../QA.md), and

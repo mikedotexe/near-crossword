@@ -1,5 +1,6 @@
 import type { Pool } from "pg";
-import type { Hex } from "viem";
+import { decodeEventLog, toEventSelector, toHex, type Hex } from "viem";
+import { learningRewardsAbi } from "../../lib/base/escrow-abi";
 import type { BaseClaim } from "../../lib/base/claim";
 import type { BaseChainReader, ChainBinding } from "./issuer";
 import { transaction } from "./database";
@@ -50,5 +51,33 @@ export class ReconciledBaseChainReader implements BaseChainReader {
     if (before.version !== after.version) chainFailure("BASE_ACCOUNTING_NOT_READY");
     signal.throwIfAborted();
     return result;
+  }
+
+  async readRewardReceipt(binding: ChainBinding, claim: BaseClaim, blockHash: Hex, signal: AbortSignal) {
+    const before = await this.checkpoint(binding);
+    if (before.finalized_hash !== blockHash) chainFailure("BASE_ACCOUNTING_NOT_READY");
+    const used = await this.readClaimUse(binding, claim, blockHash, signal);
+    const rows = await transaction(this.pool, (client) => client.query(
+      `SELECT e.*, b.block_number FROM base_chain_events e JOIN base_chain_blocks b
+       ON b.deployment_id = e.deployment_id AND b.block_hash = e.block_hash
+       WHERE e.deployment_id = $1 AND b.canonical AND b.block_number <= $2
+         AND e.topics->>0 = $3 AND e.topics->>1 = $4 AND (e.topics->>2 = $5 OR e.topics->>3 = $6)
+       LIMIT 3`,
+      [before.id, before.finalized_number, toEventSelector("RewardPaid(uint256,uint32,bytes32,address,uint256)"),
+        toHex(binding.onChainId, { size: 32 }), toHex(claim.slot, { size: 32 }), claim.participantId]));
+    const after = await this.checkpoint(binding);
+    if (before.version !== after.version) chainFailure("BASE_ACCOUNTING_NOT_READY");
+    signal.throwIfAborted();
+    if (!used.slotUsed && !used.participantUsed && rows.rowCount === 0) return null;
+    if (!used.slotUsed || !used.participantUsed || rows.rowCount !== 1) chainFailure("BASE_ACCOUNTING_NOT_READY");
+    const row = rows.rows[0];
+    let decoded;
+    try { decoded = decodeEventLog({ abi: learningRewardsAbi, data: row.data, topics: row.topics, strict: true }); }
+    catch { chainFailure("BASE_ACCOUNTING_NOT_READY"); }
+    if (decoded.eventName !== "RewardPaid" || decoded.args.campaignId !== binding.onChainId || decoded.args.slot !== claim.slot ||
+        decoded.args.participantId !== claim.participantId || decoded.args.recipient.toLowerCase() !== claim.recipient.toLowerCase() ||
+        decoded.args.amount !== claim.amount) chainFailure("BASE_ACCOUNTING_NOT_READY");
+    return { transactionHash: row.transaction_hash as Hex, blockHash: row.block_hash as Hex, blockNumber: row.block_number as string,
+      logIndex: row.log_index as number, recipient: claim.recipient, amountAtomic: claim.amount.toString() };
   }
 }

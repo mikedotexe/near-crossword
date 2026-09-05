@@ -59,9 +59,10 @@ Benchmark/paginate incremental projections before large-scale deployment.
 
 `HEALTHY` means caught up to the sampled finalized head, not to every latest
 block and not perpetually fresh. `CATCHING_UP` and stale `checked_at` cannot
-authorize new rewards through the reconciled reader. Future payment/receipt
-views must also require canonical blocks at or below `finalized_number` and
-the healthy/freshness gate; raw log presence is not a confirmed-payment status.
+authorize new rewards through the reconciled reader. Session 6's private payment
+recovery also requires canonical blocks at or below `finalized_number`, exact
+allocation/event matches, contract uniqueness flags and the healthy/freshness gate.
+Raw log presence is not a confirmed-payment status. See [participants](06-participants-and-recovery.md).
 
 ## Reorg and recovery
 

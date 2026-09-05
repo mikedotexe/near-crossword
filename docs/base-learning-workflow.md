@@ -6,8 +6,9 @@ See the [work order](reshape-action-plan.md) and [launch register](early-launch-
 
 Session 5 adds a read-only RPC/accounting adapter, canonical event ledger and
 reconciled-reader guard. See the [Base accounting chapter](../md-CLAUDE-chapters/03-base-accounting.md).
-The private review/issuer behavior below is unchanged; production eligibility,
-signer configuration, public claim routes and participant UI are still pending.
+Session 6 adds the real participant eligibility verifier, gated signing composition
+and authenticated claim/recovery routes. See the [participant chapter](../md-CLAUDE-chapters/06-participants-and-recovery.md).
+Neither the new routes nor their signer are enabled/configured in production.
 
 ## Implemented boundary
 
@@ -82,14 +83,14 @@ the revision and requires fresh private approval. Public changes always change
 the terms commitment. Future layout or policy changes that affect the published
 experience need reviewed versioning before funding, not silent hash changes.
 
-## Internal issuer, not a public endpoint
+## Issuer and authenticated participant API
 
 `BaseRewardIssuer` requires explicitly injected chain, eligibility, and signer
-adapters. Session 5 implements the explicit RPC/accounting reader, but there is
-no default production composition or funded-signer key environment variable,
-funding-binding HTTP endpoint, claim endpoint, or relayer in this checkpoint.
-The test adapters deliberately use synthetic eligibility and chain state. They
-are not evidence of real wallet ownership, completion, finality, or settlement.
+adapters. Session 6's participant API composes the reconciled RPC reader, durable
+completion/wallet verifier and explicitly gated EOA eligibility key. The private
+routes require real database sessions and remain off by default. A funding-binding
+HTTP endpoint, public player/review UI and relayer still need implementation.
+Tests use public synthetic keys and isolated databases/local EVMs, never live funds.
 
 The trusted chain adapter must independently verify the pinned deployment and
 native token and read canonical finalized campaign/slot/participant state. It
@@ -97,15 +98,16 @@ must supply a deployment-reviewed maximum finalized-block age; the 300-second
 test fixture is not a Base mainnet confirmation policy. State observations must
 be no older than 60 seconds. Unexpected backwards epochs/blocks or a changed
 block hash at the same height stop issuance for reconciliation. This is not
-event ingestion or a reorg-recovery implementation.
+itself event ingestion; the required reconciled reader integrates those guards.
 
 The trusted eligibility adapter must validate completion for the frozen revision,
 the selected abuse policy, and a fresh wallet-control challenge bound to the
 authenticated account, campaign, and recipient. It returns an opaque private
-audit-receipt UUID; the eventual verifier must durably store its evidence. The
+audit-receipt UUID; the participant verifier now durably stores its evidence. The
 issuer itself also requires a non-future `users.email_verified` timestamp inside
 the allocation transaction. A Google login without that persisted timestamp is
-not implicitly treated as verified; resolve that auth path before launch.
+not implicitly treated as verified. The Google server sign-in event now persists
+the provider-verified linked email; live auth acceptance remains open.
 
 After independent funding verification matches every fixed term and the full
 principal, binding freezes the approved revision. Initial binding requires an
@@ -126,7 +128,8 @@ New allocations require `[startsAt, endsAt)`. Recovery of an existing allocation
 is allowed through `claimDeadline`, including a replacement epoch, after renewed
 eligibility/wallet checks and on-chain non-consumption checks. An issuer timeout
 is ambiguous; recovery does not imply the original signature was never created.
-No response is labeled paid. A final state/use check happens after signing;
+The issuer's authorization response is never labeled paid. A separate authenticated
+recovery read derives paid status from reconciled finalized receipts. A final state/use check happens after signing;
 sponsor pause/rotation or payment can still occur after that check, and the
 contract remains the final authority at redemption.
 
@@ -140,12 +143,11 @@ are sanitized before HTTP logging; do not log private proofs or authorizations.
 Run `yarn test:integration:base` with `TEST_DATABASE_URL` explicitly pointing to a
 disposable local Postgres database. The harness refuses remote hosts and never
 falls back to `DATABASE_URL`. It creates/drops only its own random schema, runs
-all ten migrations twice, and exercises actual constraints, concurrent
+all eleven migrations twice, and exercises actual constraints, concurrent
 connections, durable replay, and session-authenticated route handlers. CI uses
 its existing Postgres 16 service for this additional test step.
 
-Next: implement canonical funding/payment event ingestion and reconciliation,
-durable participant completion and wallet challenges, sponsor/participant UI,
-consent/retention handling, reviewed finality policy, and a separately versioned
-paid source-draft flow. Do not expose claim issuance or enable a funded pilot
-until these adapters and the complete user journeys have acceptance evidence.
+Next: sponsor/participant UI and safe publication/layout, fresh-wallet onboarding
+and sponsored gas, sponsor export/retention and eligibility policy, reviewed
+deployment/finality/supervision, and a separately versioned paid source-draft flow.
+Do not enable funded issuance until these complete journeys have acceptance evidence.

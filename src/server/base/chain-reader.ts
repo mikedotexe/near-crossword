@@ -1,4 +1,4 @@
-import { createPublicClient, erc20Abi, getAddress, http, keccak256, type Address, type Hex } from "viem";
+import { createPublicClient, decodeFunctionResult, encodeFunctionData, erc20Abi, getAddress, hashMessage, http, keccak256, parseAbi, verifyMessage, type Address, type Hex } from "viem";
 import { z } from "zod";
 import { baseNativeUsdc, learningRewardsAbi } from "../../lib/base/escrow-abi";
 import type { BaseClaim } from "../../lib/base/claim";
@@ -6,6 +6,7 @@ import type { BaseChainReader, ChainBinding, FinalizedCampaignState } from "./is
 import { AppError } from "../v2/errors";
 
 export const chainHash = z.string().regex(/^0x[0-9a-fA-F]{64}$/).transform((v) => v.toLowerCase() as Hex);
+const erc1271Abi = parseAbi(["function isValidSignature(bytes32 hash, bytes signature) view returns (bytes4)"]);
 const address = z.string().transform((v) => getAddress(v).toLowerCase() as Address).refine((v) => BigInt(v) !== 0n);
 const configSchema = z.object({
   chainId: z.union([z.literal(8453), z.literal(84532), z.literal(31337)]),
@@ -195,6 +196,33 @@ export class RpcBaseChainReader implements BaseAccountingReader {
       const participantUsed = await client.readContract({ ...selector, functionName: "claimedParticipants", args: [binding.onChainId, claim.participantId] });
       if ((await this.block(block.number, signal)).hash !== blockHash) chainFailure();
       return { slotUsed, participantUsed };
+    });
+  }
+
+  async verifyWalletMessage(input: { recipient: Address; message: string; signature: Hex }, signal: AbortSignal) {
+    return this.safe(async () => {
+      // Do not execute counterfactual factories or delegation preparation during verification.
+      if (input.signature.endsWith("6492".repeat(16)) || input.signature.endsWith("8010".repeat(16))) return false;
+      const block = await this.block("finalized", signal);
+      const now = Math.floor(Date.now() / 1000);
+      if (block.timestamp > now + 30 || block.timestamp < now - this.maxFinalizedLagSeconds) chainFailure();
+      await this.verifyDeployment(block, signal);
+      const client = this.client(signal);
+      const selector = { blockHash: block.hash, requireCanonical: true } as const;
+      const code = await client.getCode({ address: input.recipient, ...selector });
+      let valid: boolean;
+      if (code && code !== "0x") {
+        // Contract authority wins, including delegated EOAs. Never fall back to an old EOA key.
+        const result = await client.call({ to: input.recipient, gas: 200000n, ...selector,
+          data: encodeFunctionData({ abi: erc1271Abi, functionName: "isValidSignature", args: [hashMessage(input.message), input.signature] }) });
+        const magic = decodeFunctionResult({ abi: erc1271Abi, functionName: "isValidSignature", data: result.data || "0x" });
+        valid = magic === "0x1626ba7e";
+      } else {
+        valid = await verifyMessage({ address: input.recipient, message: input.message, signature: input.signature });
+      }
+      if ((await this.block(block.number, signal)).hash !== block.hash) chainFailure();
+      signal.throwIfAborted();
+      return valid;
     });
   }
 }

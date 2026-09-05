@@ -14,8 +14,12 @@ import { baseClaimTypedData } from "../../lib/base/claim";
 import { BaseChainIndexer } from "./chain-indexer";
 import { RpcBaseChainReader, parseBaseDeployment } from "./chain-reader";
 import { ReconciledBaseChainReader } from "./reconciled-chain-reader";
-import { recipient, testSigner } from "./workflow.fixture";
+import { recipient, reviewFixture, rotatedTestSigner, testSigner } from "./workflow.fixture";
 import { participant, testHash } from "./chain.fixture";
+import { PostgresReviewRepository } from "./review-repository";
+import { PostgresParticipantRepository } from "./participant-repository";
+import { ParticipantRecovery } from "./participant-recovery";
+import { BaseRewardIssuer } from "./issuer";
 
 const connectionString = process.env.TEST_DATABASE_URL;
 if (!connectionString) throw new Error("TEST_DATABASE_URL must name disposable local PostgreSQL");
@@ -24,7 +28,7 @@ if (!["localhost", "127.0.0.1", "[::1]"].includes(databaseUrl.hostname)) throw n
 const require = createRequire(import.meta.url);
 function artifact(path: string): { abi: Abi; bytecode: { object: Hex } } { return JSON.parse(readFileSync(path, "utf8")); }
 
-test("compiled escrow, RPC adapter and Postgres ledger reconcile funding, reward, rotation and refund", { timeout: 120000 }, async () => {
+test("compiled escrow reconciles funding/refund and real participant EOA/ERC-1271 completion, issuance and paid recovery", { timeout: 120000 }, async () => {
   const portReservation = createServer();
   portReservation.listen(0, "127.0.0.1"); await once(portReservation, "listening");
   const bound = portReservation.address();
@@ -106,6 +110,55 @@ test("compiled escrow, RPC adapter and Postgres ledger reconcile funding, reward
     const ledger = (await pool.query("SELECT totals FROM base_chain_deployments")).rows[0].totals;
     assert.equal(ledger.totalReserved, "0"); assert.equal(ledger.surplusAtomic, "17");
     assert.equal((await indexer.sync()).events, 0);
+
+    const users = await pool.query("INSERT INTO users (email, email_verified) SELECT 'evm-participant-' || n || '@example.test', NOW() FROM generate_series(1, 3) n RETURNING id::TEXT");
+    const [owner, eoaUser, contractUser] = users.rows.map((row) => row.id as string);
+    const smartArtifact = artifact("contract-base/out/Fixtures.sol/TestIssuer.json");
+    const smartReceipt = await wait(await wallet.deployContract({ abi: smartArtifact.abi, bytecode: smartArtifact.bytecode.object, args: [rotatedTestSigner.address] }));
+    const smartWallet = smartReceipt.contractAddress!;
+    const submission = reviewFixture();
+    const now = Math.floor(Date.now() / 1000);
+    Object.assign(submission.terms, { escrow, token, sponsor: testSigner.address, startsAt: now - 5, endsAt: now + 3600, claimDeadline: now + 7200 });
+    const reviews = new PostgresReviewRepository(pool);
+    const draft = await reviews.create(owner, randomUUID(), submission);
+    const reviewed = await reviews.approve(owner, draft.id, 1, draft.reviewHash, draft.termsHash);
+    await write(token, tokenArtifact.abi, "mint", [testSigner.address, 300000n]);
+    await write(token, tokenArtifact.abi, "approve", [escrow, 300000n]);
+    await write(escrow, escrowArtifact.abi, "createCampaign", [{ rewardAtomic: 100000n, maxClaims: 3,
+      startsAt: BigInt(submission.terms.startsAt), endsAt: BigInt(submission.terms.endsAt), claimDeadline: BigInt(submission.terms.claimDeadline),
+      termsHash: reviewed.termsHash, eligibilitySigner: testSigner.address }]);
+    await local.setNextBlockTimestamp({ timestamp: BigInt(now - 4) });
+    await reconcile();
+    const participants = new PostgresParticipantRepository(pool, guarded, reader, "https://crossword.example.test");
+    const recovery = new ParticipantRecovery(pool, guarded);
+    const issuer = new BaseRewardIssuer(pool, guarded, participants, { address: testSigner.address, sign: (data) => testSigner.signTypedData(data) });
+    await issuer.bindApprovedCampaign(owner, reviewed.id, 2n);
+    let smartProof: { message: string; signature: Hex } | undefined;
+    for (const [userId, to] of [[eoaUser, rotatedTestSigner.address], [contractUser, smartWallet]] as const) {
+      await participants.complete(userId, reviewed.id, { revision: 1, answers: ["WALLET", "LEDGER", "TRANSFER"] });
+      const challenge = await participants.challenge(userId, reviewed.id, { revision: 1, recipient: to });
+      const signed = await rotatedTestSigner.signMessage({ message: challenge.message });
+      if (to === smartWallet) smartProof = { message: challenge.message, signature: signed };
+      const input = { campaignId: reviewed.id, userId, recipient: to, proof: { challengeId: challenge.challengeId, signature: signed } };
+      const authorization = await issuer.issue(input);
+      assert.deepEqual(await issuer.issue(input), authorization);
+      assert.equal((await recovery.get(userId, reviewed.id)).status, "RECOVERABLE");
+      const message = authorization.typedData.message;
+      const reward = { ...message, campaignId: BigInt(message.campaignId), amount: BigInt(message.amount), deadline: BigInt(message.deadline), signerEpoch: BigInt(message.signerEpoch) };
+      const payment = await write(escrow, escrowArtifact.abi, "claim", [reward, authorization.signature]);
+      await reconcile();
+      const recovered = await recovery.get(userId, reviewed.id);
+      assert.equal(recovered.status, "PAID"); assert.ok("receipt" in recovered);
+      assert.equal(recovered.receipt?.transactionHash, payment.transactionHash);
+      assert.equal(recovered.receipt?.recipient, to.toLowerCase());
+      assert.equal((await pool.query("SELECT count(*)::INT AS n FROM base_reward_allocations WHERE campaign_id = $1 AND user_id = $2", [reviewed.id, userId])).rows[0].n, 1);
+    }
+    assert.ok(smartProof);
+    await write(smartWallet, smartArtifact.abi, "setRevoked", [true]); await reconcile();
+    assert.equal(await reader.verifyWalletMessage({ recipient: smartWallet, ...smartProof }, AbortSignal.timeout(10000)), false);
+    assert.equal((await recovery.get(contractUser, reviewed.id)).status, "PAID");
+    const finalLedger = (await pool.query("SELECT totals FROM base_chain_deployments")).rows[0].totals;
+    assert.equal(finalLedger.totalReserved, "100000"); assert.equal(finalLedger.surplusAtomic, "17");
   } finally {
     child.kill("SIGTERM");
     const forced = setTimeout(() => child.kill("SIGKILL"), 3000);

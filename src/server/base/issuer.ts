@@ -63,7 +63,7 @@ function freshState(state: FinalizedCampaignState, maxFinalizedLagSeconds: numbe
   }
 }
 
-function matchingState(review: PrivateReview, binding: ChainBinding, state: FinalizedCampaignState, maxFinalizedLagSeconds: number) {
+export function matchingState(review: PrivateReview, binding: ChainBinding, state: FinalizedCampaignState, maxFinalizedLagSeconds: number) {
   freshState(state, maxFinalizedLagSeconds);
   const terms = review.submission.terms;
   if (state.chainId !== binding.chainId || !sameAddress(state.escrow, binding.escrow) || state.onChainId !== binding.onChainId ||

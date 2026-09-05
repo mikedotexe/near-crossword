@@ -33,6 +33,40 @@ yarn build
 
 ## Current local implementation evidence
 
+### Reshape session 6, 2026-09-04
+
+- Full unit suite **238/238**, Postgres integration **40/40**, expanded compiled
+  EVM/Postgres acceptance **1/1**, lint, typecheck and Next production build pass
+  on Node 20.18.3. All eleven migrations apply/replay on isolated local Postgres
+  16 schemas; no production database or secrets were used.
+- Participant tests cover whole-puzzle completion without retained answers,
+  revision binding, unverified email, account/campaign/recipient/origin/expiry
+  substitutions, wrong signatures, idempotent eligibility receipts, saved-slot
+  signing recovery, session isolation, real HTTP completion/challenge/claim flow,
+  body limits, cross-site rejection and durable completion rate limits.
+- Receipt tests distinguish authorization, unfinalized payment, reorg catch-up,
+  finalized matching payment, wrong recipient, orphaned evidence and stale/halted
+  accounting. Paid POST recovery needs no new signature. One initial assertion
+  expected recovery during CATCHING_UP; the corrected test verifies denial, then
+  explicitly rescans replacement history before expecting a healthy result.
+- The compiled-contract acceptance now verifies actual EOA and deployed ERC-1271
+  wallet signatures, persisted completion/eligibility, issuer replay, two on-chain
+  local payouts and exact transaction receipt recovery. Contract-wallet revocation
+  invalidates new control proofs without hiding its prior paid receipt. Earlier
+  funding, rotation, pause, refund and surplus coverage remains. Anvil and random
+  schemas are cleaned up by the harness; the disposable Postgres server is stopped.
+- Optional consent defaults off, supports optimistic/idempotent opt-in and
+  withdrawal, is isolated by account/campaign, and is suppressed after an email
+  change. Google verification tests require the linked subject and matching
+  verified email; actual NextAuth adapter tests prove email changes clear inherited
+  verification and unrelated updates preserve it.
+- No dependency, Solidity, Rust or UI changes. Solidity/browser/audit checks were
+  not rerun; their historical evidence below remains separate. No live OAuth or
+  inbox acceptance, fresh Base Account onboarding, sponsored gas, funded public
+  transaction, provider inference, Render change, staking, push or deployment.
+  New participant/signing flags remain default off. See [chapter 06](md-CLAUDE-chapters/06-participants-and-recovery.md)
+  for current limits, API shapes and remaining launch gates.
+
 ### Reshape session 5, 2026-09-04
 
 - Full unit suite **232/232**, Postgres integration **30/30**, compiled-contract

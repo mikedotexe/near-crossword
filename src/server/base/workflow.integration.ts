@@ -38,7 +38,7 @@ before(async () => {
       env: { ...process.env, DATABASE_URL: url.toString() }, encoding: "utf8", timeout: 30000,
     });
     assert.equal(migrated.status, 0, "Isolated migration run must succeed");
-    assert.equal(migrated.stdout.split(pass === 0 ? "Applied " : "Already applied ").length - 1, 10);
+    assert.equal(migrated.stdout.split(pass === 0 ? "Applied " : "Already applied ").length - 1, 11);
   }
   const result = await pool.query(
     `INSERT INTO users (email, email_verified)

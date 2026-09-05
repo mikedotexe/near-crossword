@@ -8,6 +8,9 @@ copy. Inspect both before work; never reset, overwrite or implicitly merge them.
 Follow [QA](../QA.md) with coverage scaled to the change. Database integrations
 must use an explicit disposable local `TEST_DATABASE_URL`, never fall back to
 production `DATABASE_URL`. Apply new additive migrations and verify replay.
+Session 6 adds migration 011 and a real completion/wallet/claim/recovery acceptance
+path on disposable Anvil/Postgres. The local EVM covers an EOA and a deployed
+ERC-1271 wallet; it does not prove freshly onboarded Base Account or sponsored gas.
 Keep dependencies pinned; contract and browser regression evidence is separate
 from unit tests. Production targets Node 20.
 Run standalone typecheck and the Next build sequentially: the build regenerates
@@ -25,3 +28,7 @@ development is not authorization to stake, broadcast a funded transaction,
 change Render or activate paid services. Exact network, token, amount, payer,
 receiver and recovery address must be approved for a funded pilot. Preserve NEAR
 legacy access until actual outstanding balances and claims are reconciled.
+Keep `BASE_PARTICIPANT_ENABLED` and `BASE_CLAIM_ISSUANCE_ENABLED` false until the
+remaining participant/policy/deployment gates are reviewed. A read recovery API
+does not need a signing key; never disable necessary recovery merely to disable
+new authorizations. Healthy, fresh supervised indexing remains necessary for both.

@@ -153,6 +153,13 @@ read-only RPC reader and durable event reconciliation, not a deployed earning
 workflow. `yarn base:reconcile` runs one explicitly configured/gated scan batch;
 see [Base accounting](md-CLAUDE-chapters/03-base-accounting.md) for deployment
 pins, finality, recovery and local-EVM/Postgres test commands.
+The [participant chapter](md-CLAUDE-chapters/06-participants-and-recovery.md) covers
+the new authenticated completion, wallet challenge, claim/recovery and optional
+contact-consent API. `BASE_PARTICIPANT_ENABLED` and `BASE_CLAIM_ISSUANCE_ENABLED`
+default false; signing needs a dedicated `BASE_ELIGIBILITY_PRIVATE_KEY` and the
+reviewed deployment pins. Recovery does not require signing enabled. These routes
+do not broadcast transactions. Player/review UI and fresh-wallet onboarding remain
+open; local EOA/deployed-smart-wallet tests are not a production activation.
 
 The chain worker refuses to lease work unless
 `V2_CHAIN_BROADCAST_ENABLED=true`. Keep it false for normal development. A

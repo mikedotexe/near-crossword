@@ -77,7 +77,7 @@ export function chainFixture() {
       } else {
         const call = decodeFunctionData({ abi: learningRewardsAbi, data: first.data });
         if (call.functionName === "getCampaign") result = encodeFunctionResult({ abi: learningRewardsAbi, functionName: "getCampaign", result: {
-          sponsor: state.sponsor, terms: { ...terms, eligibilitySigner: state.signer }, fundedAtomic: state.fundedAtomic,
+          sponsor: state.sponsor, terms: { ...terms, termsHash: state.termsHash, eligibilitySigner: state.signer }, fundedAtomic: state.fundedAtomic,
           refundedAtomic: state.refundedAtomic, signerEpoch: state.signerEpoch, paidCount: state.paidCount, paused: state.paused, closed: state.closed,
         } });
         else if (call.functionName === "token") result = encodeFunctionResult({ abi: learningRewardsAbi, functionName: "token", result: control.token });

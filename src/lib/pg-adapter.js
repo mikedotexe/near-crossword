@@ -75,7 +75,8 @@ export default function PgAdapter() {
         `UPDATE users SET
            name = COALESCE($1, name),
            email = COALESCE($2, email),
-           email_verified = COALESCE($3, email_verified),
+           email_verified = CASE WHEN $2::TEXT IS NOT NULL AND $2 IS DISTINCT FROM email
+             THEN $3::TIMESTAMPTZ ELSE COALESCE($3, email_verified) END,
            image = COALESCE($4, image)
          WHERE id = $5
          RETURNING id, name, email, email_verified, image`,

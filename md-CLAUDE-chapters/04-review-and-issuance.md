@@ -16,9 +16,12 @@ The chain reader, eligibility verifier and signer are explicit server ports.
 The implemented RPC/accounting path must use `ReconciledBaseChainReader` so a
 stale, unreconciled or halted ledger cannot be bypassed by a fresh RPC response.
 Never implement them from browser flags, supplied receipts or answer claims.
-Production participant completion, fresh wallet-control proofs, authenticated
-claim/recovery routes, verified-email persistence and the review/player UI remain
-implementation work. A read-only accounting adapter does not enable signing.
+Session 6 implements persisted participant completion, expiring wallet proofs,
+private claim/recovery APIs, Google verified-email persistence and separate optional
+contact consent. Read [chapter 06](06-participants-and-recovery.md) for request
+shapes, supported wallets and remaining policy/UX work. The production composition
+uses separate default-off participant/signing gates; no funded key is configured.
+The review/player UI and fresh-wallet onboarding remain implementation work.
 
 Schema, API shapes, commitments and existing database test evidence are in the
 [backend workflow](../docs/base-learning-workflow.md). Keep private contact export,

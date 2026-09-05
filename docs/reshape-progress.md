@@ -1,7 +1,7 @@
 # Reshape session checkpoint
 
-Last implementation session: 2026-09-04, America/Los_Angeles, session 5 after
-`6f38ece` (verified NEAR AI inference and working draft configuration).
+Last implementation session: 2026-09-04, America/Los_Angeles, session 6 after
+`8d7404e` (reconciled Base accounting and contributor chapters).
 
 Read this after the [work order](reshape-action-plan.md). It is a continuation
 record, not evidence of deployment. Live gates remain in
@@ -21,17 +21,20 @@ not unique humans or learning. Manual authoring remains valid.
 - Worktree: `/Users/mikepurvis/other/near-crossword-launch-candidate`
 - Branch: `codex/early-launch-discovery`
 - Planning baseline: `83d1cb8`; prior implementation commits: `8f475e3` and
-  `a373f7e`, followed by `cf560e6` and `6f38ece`. Session 5 follows Mike's request
-  to continue implementation and maintain subject documentation in
+  `a373f7e`, followed by `cf560e6`, `6f38ece` and `8d7404e`. Session 6 follows Mike's
+  request for participant completion, wallet verification and claim/recovery APIs.
+  Subject documentation is maintained in
   [md-CLAUDE-chapters](../md-CLAUDE-chapters/README.md).
 - The original `/Users/mikepurvis/other/near-crossword` worktree remains on
   `codex/crossword-campaigns` with pre-existing changes. Do not overwrite it or
   assume it is the launch-candidate branch. Recheck both worktrees next session.
 - No merge, push, Render configuration change, production migration, chain
-  transaction, or deployment was performed. The original ignored `.env` was not
+  public-chain transaction, or deployment was performed. The original ignored `.env` was not
   edited or copied. Session 3 applied all nine migrations twice to isolated local
   schemas. Session 5 applied all ten migrations twice to fresh isolated local
   Postgres schemas and tested compiled contracts on disposable loopback Anvil.
+  Session 6 applies/replays all eleven migrations and extends the local EVM check
+  through real completion/wallet/issuance/receipt recovery. No live key was read.
 
 ## Milestone state
 
@@ -41,8 +44,8 @@ not unique humans or learning. Manual authoring remains valid.
 | R2a provider adapter | GLM 5.1 non-thinking default passes live bounded SDK/source requests | Representative quality, reliability, layout and cost evaluation; real credit-exhaustion acceptance |
 | R2b lesson/source drafts | Two live synthetic drafts validate; private persisted review API implemented | Human quality/layout review, review UI and versioned paid generation orchestration |
 | R3a contract design | Implemented locally with shared typed-data fixture | Independent security review and integration review |
-| R3b contract/accounting | Pinned RPC reader, canonical ledger, reorg/finality handling and guarded issuer reads pass Postgres/compiled-EVM checks | Reviewed deployment/RPC/finality policy, supervised scanner, scale validation, production eligibility/signer composition and live acceptance |
-| R4 workflows | Private review API and immutable approval/funding boundary locally tested | Sponsor/participant UI, real completion/wallet verification, email path acceptance, consent/retention and export |
+| R3b contract/accounting | Pinned RPC, canonical ledger and real participant/issuer composition pass Postgres/compiled-EVM checks | Reviewed deployment/RPC/finality policy, supervised scanner, scale validation, independent security review and live acceptance |
+| R4 workflows | Review/approval, persisted completion, EOA/deployed-wallet control, gated claim/recovery, Google email persistence and optional consent locally tested | Publication/layout and sponsor/player UI, funding-binding API, fresh Base Account/sponsored gas, live email acceptance, fraud policy, retention/export |
 | R5 Base x402 | Not started | EVM scheme/payer, facilitator configuration, first-wallet and settlement/recovery proof |
 | R6 pilot | Gated | Earlier milestones, reviewed release, explicit small budget and identities |
 
@@ -103,18 +106,58 @@ not unique humans or learning. Manual authoring remains valid.
 - Subject chapters cover product boundaries, NEAR AI, Base accounting, private
   review/issuance and operations, with links to authoritative evidence records.
   Contributor instructions require maintaining these chapters alongside code.
+- Session 6: migration 011 stores completion against immutable approved terms,
+  five-minute SIWE wallet challenges and private eligibility receipts. Ordered
+  answers and raw wallet signatures are not stored. Expired/foreign proofs fail;
+  identical retries preserve receipt, recipient and allocation. EOA and deployed
+  ERC-1271 control use canonical finalized RPC; no counterfactual preparation.
+- `/api/base/participants/:id` adds completion, wallet-challenge, claim/recovery
+  and separately versioned optional contact consent. Real sessions, same-origin
+  mutations, 16-KiB stream limits, strict input and durable rate limits apply.
+  `BASE_PARTICIPANT_ENABLED` and `BASE_CLAIM_ISSUANCE_ENABLED` default false.
+  The optional dedicated EOA key composes only with the reconciled reader and
+  real eligibility verifier; no endpoint sends a chain transaction.
+- Paid recovery requires canonical finalized RewardPaid evidence matching the
+  entire allocation and contract uniqueness flags. Stale/catching-up/halted
+  ledgers fail closed. GET never returns signatures; already-paid POST retries
+  return receipts without signing. Unfinalized observations are not paid status.
+- The Google server sign-in event now persists verified email only for the
+  linked subject and matching email. Email changes clear inherited verification.
+  Contact-sharing defaults false, is independently withdrawable, and is tied to
+  the consenting email. Actual auth callback, export/retention and fraud-policy
+  acceptance remain open. See [chapter 06](../md-CLAUDE-chapters/06-participants-and-recovery.md).
 
 The public AI API still returns the existing topic/tone-based clue pairs. The
 source-grounded generator is separate from the paid route; persisted review is
-available only through the gated private API. There is no public Base claim
-endpoint, deployed issuer key, production eligibility adapter or relayer. The
-RPC/accounting adapter is implemented but not configured or connected to the
-public runtime; local eligibility ports still use synthetic evidence. The payment scheme/browser payer is still
+available only through the gated private API. Authenticated Base claim routes and
+the real eligibility composition are implemented locally, but remain disabled
+and unconfigured in production. There is no deployed issuer key or relayer.
+Tests use synthetic source material and keys on local databases/EVM, not live Base.
+The payment scheme/browser payer is still
 NEAR. The live product has not switched networks or gained multi-recipient claims.
 
 ## Verification
 
-Session 5 checks, Node 20.18.3:
+Session 6 checks, Node 20.18.3:
+
+- Unit suite **238/238**; Postgres suite **40/40**, adding participant
+  proof/HTTP/consent/auth coverage. Details are recorded in [QA](../QA.md). All eleven migrations
+  apply/replay on isolated Postgres 16 schemas.
+- Expanded compiled-contract acceptance **1/1**: actual completion, EOA and
+  deployed ERC-1271 wallet verification, durable issuance/replay, two payments,
+  exact finalized receipt recovery and wallet revocation. Original funding,
+  rotation/pause/refund/surplus checks remain. The test owns/stops its loopback EVM.
+- Lint, standalone typecheck and Next production build pass. No dependencies,
+  Solidity/Rust or UI changes; prior Solidity, browser and audit results below
+  remain historical, not rerun this session. Real inbox/OAuth callback and fresh
+  Base Account/paymaster compatibility are not covered by local API/contract tests.
+- One initial test expected immediate recovery during a reorg rewind. It now
+  explicitly tests CATCHING_UP denial, then rescans before expecting healthy
+  recovery. Production accounting guards were not weakened to satisfy the test.
+- No provider calls, funded keys, production migration/configuration, public-chain
+  transaction, staking, push or deployment. Default-off launch gates remain off.
+
+Session 5 checks (historical), Node 20.18.3:
 
 - Full unit suite **232/232**; Postgres integration **30/30**, including 11 new
   canonical-ledger/reorg/health-gate cases. All ten migrations apply and replay.
@@ -179,17 +222,16 @@ replace the key or add stake simply to obtain an inference response.
 
 1. Read this checkpoint, action plan, launch register, and Base design; inspect
    branch/worktree state before editing. Preserve unrelated original-worktree work.
-2. Read chapters 03/04 and `base-learning-workflow.md`. Build persisted participant
-   completion and wallet challenges bound to the
-   frozen revision, authenticated account and recipient. Implement the real
-   eligibility verifier and its private audit receipts. Address verified-email
-   persistence for Google accounts, consent/retention and abuse policy. Then
-   expose an authenticated claim/recovery API and sponsor/participant UI.
-   Review layout viability and policy text before treating approval as publishable.
-   Keep chain broadcast and public claim issuance disabled until these checks pass.
-3. Compose new claim/funding endpoints with `ReconciledBaseChainReader`, not the
-   bare RPC adapter. Require canonical finalized payment receipts for paid status;
-   never derive it from an authorization or unfinalized log. Production activation
+2. Read chapters 03/04/06 and `base-learning-workflow.md`. Build the sponsor review
+   and participant UI over the existing private APIs, with a reviewed deterministic
+   layout/publication boundary and owner-only funding-binding workflow. Preserve
+   funded commitments; layout/policy changes may require a new terms version.
+   Keep participant issuance and chain broadcast disabled during implementation.
+3. Prove fresh Base Account onboarding, wallet-specific signatures and sponsored
+   redemption gas; current support is EOA/deployed ERC-1271 only. Resolve live
+   email acceptance, explicit sponsor export/retention and pilot fraud policy.
+   Account uniqueness is not human uniqueness. Keep consent optional and private.
+   Compose funding and redemption with the existing reconciled reader. Production activation
    still needs reviewed deployment/code/RPC pins, finalized-lag policy and a
    supervised scan cadence. Benchmark the bounded rebuild before large campaigns.
 4. Keep the verified GLM 5.1 recipe for representative source/lesson evaluation.
