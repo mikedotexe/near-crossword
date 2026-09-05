@@ -90,9 +90,13 @@ and every spending gate disabled. An encrypted test-deployer keystore outside
 the repo has a separate macOS Keychain password and verified offline recovery;
 its public identity and recovery locations are in
 [local setup](../docs/base-sepolia-local-setup.md). No seed or deployer key belongs
-in the web environment. CDP's managed paymaster uses account billing, not this
-wallet's ETH. Portal sign-in, endpoint and actual policy configuration remain
-pending; do not describe the prepared env slot as a configured provider.
+in the web environment. Session 10 funded that deployer with CDP Base Sepolia
+faucets: 0.0001 test ETH and 1 native test USDC. CDP's managed paymaster uses
+account billing, not this wallet's ETH. CDP sign-in is complete and the Base
+Sepolia Paymaster page exposes a private endpoint, but the local
+`BASE_PAYMASTER_UPSTREAM_URL` slot remains blank until it is pasted without
+logging. The visible default portal policy has no contract allowlist and must not
+be treated as live-ready.
 
 Mainnet custody stays out of the early launch path. For Base Sepolia, use CDP or
 Base faucets first. If a real Coinbase send is later required, it must be a tiny

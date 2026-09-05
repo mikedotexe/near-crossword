@@ -1,18 +1,26 @@
 # Local Base Sepolia setup
 
-Recorded 2026-09-05, session 9. Preparation only: no deployment, payment,
+Recorded 2026-09-05, sessions 9-10. Preparation only: no deployment, payment,
 campaign funding, provider sponsorship request, or production change.
 
 ## Configuration state
 
 - Active worktree: `/Users/mikepurvis/other/near-crossword-launch-candidate`,
-  branch `codex/early-launch-discovery`, following `3362ad5`.
+  branch `codex/early-launch-discovery`, after `184379a`.
 - Its new ignored `.env.local` is owner-readable/writable only (0600). It sets
   chain 84532 and the public `https://sepolia.base.org` RPC. All claim, signing,
   indexer, sponsorship, publication, x402 and broadcast gates remain false.
-- `BASE_PAYMASTER_UPSTREAM_URL` is an empty slot, **not a working credential**.
-  The CDP Portal opened at sign-in; no project, endpoint, allowlist, billing
-  policy, credit balance or payment method has been created/verified there.
+- `BASE_PAYMASTER_UPSTREAM_URL` is still an empty slot, **not a working
+  credential**. CDP sign-in is complete and the Base Sepolia Paymaster
+  configuration page displays a private endpoint for the current project, but
+  the portal copy action did not reach the system clipboard from Codex. Paste it
+  manually into this local file or the intended staging secret store; never chat
+  it or publish it as `NEXT_PUBLIC_*`.
+- The Base Sepolia Paymaster portal page currently shows Paymaster enabled with
+  a visible default $1 global limit, $1 per-user limit, 1000 per-user operations
+  and no contract allowlist. Treat that as **not live-ready** until the escrow is
+  deployed, the claim contract/function allowlist is set, and provider/billing
+  evidence is reviewed.
 - Code/deployment pins, provider limits and the public HTTPS proxy URL remain
   blank. No addresses or review flags were guessed to bypass the gates.
 - The original repo's `.env`, facilitator credentials, AWS and Render remain
@@ -42,6 +50,7 @@ fresh participant Base Account. Keep all those roles separate.
 | Keychain label | `Crossword-Base-Sepolia-Deployer` |
 | Recovery check | Keystore decryption/address derivation and independently recovered offline message signature passed |
 | Initial chain observation | Block `46429850`: 0 test ETH, 0 native test USDC, nonce 0, no account code |
+| Faucet funding | CDP Base Sepolia faucet funded 0.0001 test ETH and 1 native test USDC; latest balance check returned `0.000100000000000000` ETH and `1000000` USDC atomic units |
 
 Created with the already installed Foundry Cast random-wallet/encrypted-keystore
 command. It is a Web3 V3 encrypted key, not a mnemonic wallet. The keystore and
@@ -73,10 +82,10 @@ No purchase or mainnet bridge is required.
 
 ## Faucet and mainnet custody posture
 
-The next funding attempt should use Coinbase Developer Platform or Base Sepolia
-faucets against the public test-deployer address above. If a faucet asks for a
-mainnet balance proof, prefer the CDP faucet while signed in, or another
-reputable faucet, before moving real ETH.
+The first funding attempt used the Coinbase Developer Platform faucet while
+signed in and succeeded for both Base Sepolia ETH and native test USDC. If more
+test fuel is needed, repeat CDP/Base Sepolia faucets against the public
+test-deployer address above before considering any real-ETH movement.
 
 If mainnet ETH is eventually needed, send only a tiny, reviewed amount from
 Coinbase on the **Base** network to a fresh production custody address whose
@@ -88,12 +97,13 @@ explicit spending limits and a runbook.
 
 ## Continue setup
 
-1. Mike completes Coinbase Developer Platform sign-in in the open browser tab.
-   Select/create a dedicated Crossword project and inspect Paymaster on Base
-   Sepolia. Review any account terms or charge-bearing action before accepting.
-2. Put the dedicated endpoint into `BASE_PAYMASTER_UPSTREAM_URL` in this
-   worktree's `.env.local`, never chat or a `NEXT_PUBLIC_` variable. Keep the
-   public proxy URL separate. No endpoint has been saved yet.
+1. Put the dedicated Base Sepolia Paymaster endpoint into
+   `BASE_PAYMASTER_UPSTREAM_URL` in this worktree's `.env.local`, never chat or
+   a `NEXT_PUBLIC_` variable. Keep the public proxy URL separate. No endpoint has
+   been saved yet.
+2. Add the deployed escrow and exact `claim` function to the CDP contract
+   allowlist before any proxy activation. The current default project settings
+   are visible but not accepted as the final launch policy.
 3. Establish the actual provider policy and explicit billing cap, review the
    escrow deployment and gas estimate, and choose exact transaction identities.
    The wallet above is available as the test deployer and proposed refund

@@ -1,7 +1,7 @@
 # Reshape session checkpoint
 
-Last setup session: 2026-09-05, America/Los_Angeles, session 9 after
-`3362ad5` (claim-only proxy and durable gas allowances).
+Last setup session: 2026-09-05, America/Los_Angeles, session 10 after
+`184379a` (faucet-first custody note).
 
 Read this after the [work order](reshape-action-plan.md). It is a continuation
 record, not evidence of deployment. Live gates remain in
@@ -29,11 +29,13 @@ not unique humans or learning. Manual authoring remains valid.
   [md-CLAUDE-chapters](../md-CLAUDE-chapters/README.md).
 - Session 9 prepares a disabled `.env.local` in this worktree and a dedicated
   encrypted Base Sepolia deployer outside the repo, with its password in macOS
-  Keychain. Offline recovery passed; the wallet has zero observed test balances.
-  The CDP dashboard is waiting at sign-in: no endpoint, policy or billing was
-  configured. See [local setup](base-sepolia-local-setup.md). The encrypted
-  deployer is not a paymaster or fresh participant wallet, and no mainnet funding
-  or transaction-specific approval is implied by creating it.
+  Keychain. Offline recovery passed. Session 10 uses the CDP Base Sepolia faucet
+  to fund it with 0.0001 test ETH and 1 native test USDC, then opens the Base
+  Sepolia Paymaster configuration page. The private endpoint is visible there
+  but not saved locally; the visible default policy has no contract allowlist.
+  See [local setup](base-sepolia-local-setup.md). The encrypted deployer is not a
+  paymaster or fresh participant wallet, and no mainnet funding or
+  transaction-specific approval is implied by creating/funding it.
 - The original `/Users/mikepurvis/other/near-crossword` worktree remains on
   `codex/crossword-campaigns` with pre-existing changes. Do not overwrite it or
   assume it is the launch-candidate branch. Recheck both worktrees next session.
@@ -59,16 +61,17 @@ not unique humans or learning. Manual authoring remains valid.
 | R2b lesson/source drafts | Two live synthetic drafts validate; private review API and manual editor implemented | Representative quality evaluation and versioned paid generation orchestration |
 | R3a contract design | Implemented locally with shared typed-data fixture | Independent security review and integration review |
 | R3b contract/accounting | Pinned RPC, canonical ledger and real participant/issuer composition pass Postgres/compiled-EVM checks | Reviewed deployment/RPC/finality policy, supervised scanner, scale validation, independent security review and live acceptance |
-| R4 workflows | Sponsor/player screens, approved publication, claim recovery and strict Sepolia gas proxy implemented locally; disabled local env and encrypted test deployer prepared | CDP sign-in/endpoint/policy, live wire compatibility and fresh passkey/gas acceptance, operator gas recovery, sponsor wallet funding/control/dashboard, live email acceptance, fraud policy, retention/export |
+| R4 workflows | Sponsor/player screens, approved publication, claim recovery and strict Sepolia gas proxy implemented locally; disabled local env and encrypted test deployer funded by CDP faucet | Endpoint persistence, CDP allowlist/policy, live wire compatibility and fresh passkey/gas acceptance, operator gas recovery, sponsor wallet funding/control/dashboard, live email acceptance, fraud policy, retention/export |
 | R5 Base x402 | Not started | EVM scheme/payer, facilitator configuration, first-wallet and settlement/recovery proof |
 | R6 pilot | Gated | Earlier milestones, reviewed release, explicit small budget and identities |
 
 ## What landed locally
 
-- Session 9: local configuration and encrypted test-deployer preparation only.
-  No runtime code, dependency, database or contract change. CDP managed
-  sponsorship uses account billing, not an ETH-funded seed wallet. Provider
-  configuration and all live spending/acceptance remain open.
+- Session 10: CDP faucet funded the test deployer with Base Sepolia ETH/USDC and
+  the Paymaster configuration page was inspected. No runtime code, dependency,
+  database or contract change. CDP managed sponsorship uses account billing, not
+  an ETH-funded seed wallet. Provider endpoint persistence, contract allowlist and
+  all live spending/acceptance remain open.
 - Session 8: private sponsorship permits bind a real session to a signed reward;
   the wallet passes a short-lived token in ERC-7677 context. The proxy checks
   exact canonical account/claim calls, pinned code/factory/EntryPoint/paymaster,
@@ -190,6 +193,15 @@ The payment scheme/browser payer is still
 NEAR. The live product has not switched networks or gained multi-recipient claims.
 
 ## Verification
+
+Session 10 checks, Node 20.18.3:
+
+- CDP Portal accepted Base Sepolia faucet requests for the test deployer. Public
+  RPC returned `0.000100000000000000` ETH and `1000000` native test USDC atomic
+  units. Paymaster configuration is visible for Base Testnet (Sepolia), with
+  Paymaster enabled, $1 global/per-user visible defaults, 1000 per-user
+  operations and no contract allowlist. `.env.local` still has all gates false
+  and no saved paymaster endpoint.
 
 Session 9 checks, Node 20.18.3:
 

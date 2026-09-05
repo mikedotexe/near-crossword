@@ -1,12 +1,15 @@
 # Base Sepolia sponsorship acceptance
 
-Status: preparation only, updated 2026-09-05. No public-chain transaction or fresh hosted
-wallet test has been performed for Crossword. Local synthetic proofs are in
+Status: preparation only, updated 2026-09-05. No Crossword contract deployment,
+provider sponsorship request or fresh hosted-wallet claim has been performed.
+CDP faucet transfers funded the test deployer on Base Sepolia. Local synthetic proofs are in
 [QA](../QA.md); architecture is in [chapter 09](../md-CLAUDE-chapters/09-claim-sponsorship.md).
 Session 9 adds an encrypted test-deployer wallet and disabled local env profile;
-see [local setup and recovery](base-sepolia-local-setup.md). CDP sign-in and
-actual endpoint/policy configuration remain pending. Managed CDP sponsorship is
-account-billed, not an ETH deposit into this separate deployment wallet.
+see [local setup and recovery](base-sepolia-local-setup.md). Session 10 confirms
+0.0001 test ETH and 1 native test USDC balances. CDP sign-in is complete, but the
+local endpoint slot is still blank and actual allowlist/policy acceptance remain
+pending. Managed CDP sponsorship is account-billed, not an ETH deposit into this
+separate deployment wallet.
 
 ## Existing infrastructure investigation
 
@@ -19,6 +22,9 @@ Read-only inspection found:
   not be reused as Crossword sponsor, deployer, eligibility signer or paymaster.
 - No CDP/paymaster configuration was found in the inspected repository. Its
   Sepolia config is a software profile, not evidence of a live Sepolia service.
+- CDP now shows the current project's Base Sepolia Paymaster page with a private
+  endpoint and default testnet policy, but no Crossword escrow/function
+  allowlist. The endpoint has not been persisted locally yet.
 - The existing AWS CLI identity is the `for-easy-dns` IAM user. EC2 confirms the
   recorded facilitator instance is running at its recorded address.
   `secretsmanager:ListSecrets` is denied, and SSH to the configured facilitator
@@ -33,12 +39,13 @@ exists. A dedicated Crossword paymaster configuration remains required.
 
 ## Mike: provider and test identities
 
-1. Open [CDP Portal](https://portal.cdp.coinbase.com), use a dedicated Crossword
-   project and choose Paymaster under Onchain Tools, **Base Sepolia**. Keep its
-   private endpoint only in `BASE_PAYMASTER_UPSTREAM_URL` in the launch-candidate
-   worktree's ignored `.env.local` or the intended staging secret store. The
-   original repo is a different branch. Never paste the endpoint in chat
-   or put it in the public `BASE_SPONSORED_CLAIM_PROXY_URL` variable.
+1. In [CDP Portal](https://portal.cdp.coinbase.com), use the current project or a
+   dedicated Crossword project and choose Paymaster under Onchain Tools,
+   **Base Sepolia**. Keep its private endpoint only in
+   `BASE_PAYMASTER_UPSTREAM_URL` in the launch-candidate worktree's ignored
+   `.env.local` or the intended staging secret store. The original repo is a
+   different branch. Never paste the endpoint in chat or put it in the public
+   `BASE_SPONSORED_CLAIM_PROXY_URL` variable.
 2. Configure a deny-by-default contract/function allowlist for the separately
    deployed Crossword escrow's `claim` function. Review factory/account creation
    support and per-operation, per-address and total billing caps. Do not allow
@@ -47,7 +54,8 @@ exists. A dedicated Crossword paymaster configuration remains required.
    [local setup](base-sepolia-local-setup.md). Confirm its sponsor/refund role
    for the exact campaign, separately from the fresh participant and server eligibility signer.
    Never put a sponsor/deployer key into the web service. Use test-only faucet
-   funds; no bridge or mainnet purchase is required for this test.
+   funds; no bridge or mainnet purchase is required for this test. Current
+   observed balances are 0.0001 test ETH and 1 native test USDC.
 4. Confirm the exact funded preview once addresses and estimates are known.
    Proposed scope, **not yet transaction-specific approval**: 1 test USDC campaign
    principal, total deployment/funding gas at most 0.001 test ETH, no mainnet
