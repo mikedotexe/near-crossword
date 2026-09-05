@@ -1,6 +1,6 @@
 # Base Sepolia sponsorship acceptance
 
-Status: preparation only, updated 2026-09-05. No Crossword contract deployment,
+Status: Base Sepolia escrow deployed, updated 2026-09-05. No campaign funding,
 provider sponsorship request or fresh hosted-wallet claim has been performed.
 CDP faucet transfers funded the test deployer on Base Sepolia. Local synthetic proofs are in
 [QA](../QA.md); architecture is in [chapter 09](../md-CLAUDE-chapters/09-claim-sponsorship.md).
@@ -8,8 +8,9 @@ Session 9 adds an encrypted test-deployer wallet and disabled local env profile;
 see [local setup and recovery](base-sepolia-local-setup.md). Session 10 confirms
 0.0001 test ETH and 1 native test USDC balances. CDP sign-in is complete, but the
 local endpoint slot is now present and read-only checked as Base Sepolia. Actual
-allowlist/policy acceptance remain pending. Managed CDP sponsorship is
-account-billed, not an ETH deposit into this separate deployment wallet.
+provider wire acceptance remains pending. Session 12 deployed the escrow and
+saved a claim-only CDP allowlist. Managed CDP sponsorship is account-billed, not
+an ETH deposit into this separate deployment wallet.
 
 ## Existing infrastructure investigation
 
@@ -23,8 +24,10 @@ Read-only inspection found:
 - No CDP/paymaster configuration was found in the inspected repository. Its
   Sepolia config is a software profile, not evidence of a live Sepolia service.
 - CDP now shows the current project's Base Sepolia Paymaster page with a private
-  endpoint and default testnet policy, but no Crossword escrow/function
-  allowlist. The endpoint is persisted only in ignored local/staging env.
+  endpoint. The endpoint is persisted only in ignored local/staging env. After
+  escrow deployment, CDP accepted a `Crossword Claim` allowlist entry for
+  contract `0x77fdCEF7d08c54eD2a87FD54fBf24a660fa2A304` and selector
+  `0x8bd53692`.
 - The existing AWS CLI identity is the `for-easy-dns` IAM user. EC2 confirms the
   recorded facilitator instance is running at its recorded address.
   `secretsmanager:ListSecrets` is denied, and SSH to the configured facilitator
@@ -46,10 +49,11 @@ exists. A dedicated Crossword paymaster configuration remains required.
    `.env.local` or the intended staging secret store. The original repo is a
    different branch. Never paste the endpoint in chat or put it in the public
    `BASE_SPONSORED_CLAIM_PROXY_URL` variable.
-2. Configure a deny-by-default contract/function allowlist for the separately
-   deployed Crossword escrow's `claim` function. Review factory/account creation
-   support and per-operation, per-address and total billing caps. Do not allow
-   arbitrary calls to the factory or all methods just to pass a wallet prompt.
+2. CDP now has a deny-by-default contract/function allowlist for the deployed
+   Crossword escrow's `claim` selector. Review factory/account creation support
+   and per-operation, per-address and total billing caps again before any
+   sponsored request. Do not allow arbitrary calls to the factory or all methods
+   just to pass a wallet prompt.
 3. A dedicated encrypted Base Sepolia deployer wallet is now recorded in
    [local setup](base-sepolia-local-setup.md). Confirm its sponsor/refund role
    for the exact campaign, separately from the fresh participant and server eligibility signer.
@@ -66,12 +70,12 @@ exists. A dedicated Crossword paymaster configuration remains required.
 
 ## Engineering: staging and no-spend checks
 
-1. Review/deploy the compiled escrow on chain 84532 with native test USDC
-   `0x036CbD53842c5426634e7929541eC2318f3dCF7e`. Before broadcast, show the exact
-   deployer, constructor, gas envelope and expected contract address, obtain
-   confirmation, and persist the signed transaction/hash for ambiguous recovery.
-   Current preflight is recorded in
-   [the 2026-09-05 deployment preflight](base-sepolia-deployment-preflight-2026-09-05.md).
+1. Escrow deployment is complete on chain 84532 with native test USDC
+   `0x036CbD53842c5426634e7929541eC2318f3dCF7e`: contract
+   `0x77fdCEF7d08c54eD2a87FD54fBf24a660fa2A304`, transaction
+   `0x0419e4a8a2334233cec9272a846f95b77cb35915931e5115599d1c454e6a7a03`,
+   block `46440190`. Verify finalization before indexer activation. See
+   [the 2026-09-05 deployment record](base-sepolia-deployment-preflight-2026-09-05.md).
 2. Record deployment anchor/code hash and independently verify RPC chain, token,
    canonical history and finality policy. Configure an isolated staging Postgres
    target, migrations through 013 and a supervised healthy scanner. Do not point

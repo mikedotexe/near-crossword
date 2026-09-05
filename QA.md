@@ -35,6 +35,28 @@ yarn test:acceptance:base-build
 
 ## Current local implementation evidence
 
+### Reshape session 12, 2026-09-05: Base Sepolia escrow deployment
+
+- Mike explicitly approved the Base Sepolia escrow deployment. The successful
+  transaction is
+  `0x0419e4a8a2334233cec9272a846f95b77cb35915931e5115599d1c454e6a7a03`,
+  deploying `LearningRewards` to
+  `0x77fdCEF7d08c54eD2a87FD54fBf24a660fa2A304` at block `46440190`.
+- The deployed contract returns native Base Sepolia USDC
+  `0x036CbD53842c5426634e7929541eC2318f3dCF7e`, `totalReserved() = 0`, and
+  `campaignCount() = 0`. Actual runtime code hash is
+  `0xebc5371a9a09231045c01981600b619436374e6226048855a6116d1d0c2dce00`.
+- Deployment used 1,808,772 gas at 6,000,000 wei effective gas price, costing
+  0.000010852632 test ETH. The deployer remains funded with
+  0.000088826683397187 test ETH and 1 native test USDC.
+- CDP Paymaster on Base Testnet (Sepolia) saved a `Crossword Claim` allowlist
+  entry for selector `0x8bd53692`, with visible $1 global/$1 per-user caps,
+  10 operations per user and sponsor name `Crossword`.
+- `yarn test:contract:base` passed **29/29** before deployment. The deployment
+  block was not finalized at latest observation, and no campaign funding,
+  provider sponsorship request, fresh hosted wallet claim, production setting or
+  mainnet transfer occurred.
+
 ### Reshape session 9, 2026-09-05: local setup only
 
 - Focused sponsorship tests **8/8** pass on Node 20.18.3. No runtime code,

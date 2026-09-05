@@ -1,7 +1,8 @@
 # Local Base Sepolia setup
 
-Recorded 2026-09-05, sessions 9-11. Preparation only: no deployment, payment,
-campaign funding, provider sponsorship request, or production change.
+Recorded 2026-09-05, sessions 9-12. Testnet deployment only: no campaign funding,
+provider sponsorship request, fresh hosted-wallet claim, mainnet transfer or
+production change.
 
 ## Configuration state
 
@@ -21,7 +22,8 @@ campaign funding, provider sponsorship request, or production change.
   evidence is reviewed.
 - Deployment preflight is recorded in
   [base-sepolia-deployment-preflight-2026-09-05.md](base-sepolia-deployment-preflight-2026-09-05.md).
-  It estimates the escrow deployment but does not approve or broadcast it.
+  It now records the successful Base Sepolia escrow deployment and CDP allowlist.
+  The deployment block was observed but not finalized yet.
 - Code/deployment pins, provider limits and the public HTTPS proxy URL remain
   blank. No addresses or review flags were guessed to bypass the gates.
 - The original repo's `.env`, facilitator credentials, AWS and Render remain
@@ -52,6 +54,29 @@ fresh participant Base Account. Keep all those roles separate.
 | Recovery check | Keystore decryption/address derivation and independently recovered offline message signature passed |
 | Initial chain observation | Block `46429850`: 0 test ETH, 0 native test USDC, nonce 0, no account code |
 | Faucet funding | CDP Base Sepolia faucet funded 0.0001 test ETH and 1 native test USDC; latest balance check returned `0.000100000000000000` ETH and `1000000` USDC atomic units |
+| Deployment spend | Escrow deployment used 1,808,772 gas and 0.000010852632 test ETH |
+| Post-deploy balance | 0.000088826683397187 test ETH and 1 native test USDC; nonce 1 |
+
+## Deployed escrow
+
+| Field | Value |
+| --- | --- |
+| Contract | `LearningRewards` |
+| Address | `0x77fdCEF7d08c54eD2a87FD54fBf24a660fa2A304` |
+| Transaction | `0x0419e4a8a2334233cec9272a846f95b77cb35915931e5115599d1c454e6a7a03` |
+| Deployment block | `46440190` |
+| Deployment block hash | `0x9f4c61b1eb34fb10040abfc52d6066f3dcf53801d5614b0683e670d8b2a4d7b3` |
+| Actual runtime code hash | `0xebc5371a9a09231045c01981600b619436374e6226048855a6116d1d0c2dce00` |
+| Immutable token | `0x036CbD53842c5426634e7929541eC2318f3dCF7e` |
+| Initial state | `totalReserved() = 0`, `campaignCount() = 0` |
+| Finality | Not finalized at latest observation; latest `46440324`, finalized `46439633` |
+
+CDP Paymaster on Base Testnet (Sepolia) was saved with one `Crossword Claim`
+allowlist entry for this contract and selector `0x8bd53692`, the selector for
+`claim((uint256,uint32,bytes32,address,uint256,uint64,uint64),bytes)`. The
+visible gas policy is `$1` global, `$1` per user, 10 operations per user, no
+cycle, with sponsor name `Crossword`. This does not prove wallet/provider wire
+compatibility yet.
 
 Created with the already installed Foundry Cast random-wallet/encrypted-keystore
 command. It is a Web3 V3 encrypted key, not a mnemonic wallet. The keystore and
@@ -98,15 +123,13 @@ explicit spending limits and a runbook.
 
 ## Continue setup
 
-1. Get explicit approval for the exact deployment preflight, then broadcast the
-   Base Sepolia escrow deployment and record the transaction/deployment anchor.
-2. Add the deployed escrow and exact `claim` function to the CDP contract
-   allowlist before any proxy activation. The current default project settings
-   are visible but not accepted as the final launch policy.
+1. Wait for finalization of block `46440190`, then verify the deployment anchor
+   and actual code hash at a finalized block.
+2. Configure the independent eligibility signer before creating any campaign.
 3. Establish the actual provider policy and explicit billing cap, review the
-   escrow deployment and gas estimate, and choose exact transaction identities.
-   The wallet above is available as the test deployer and proposed refund
-   destination; no funded campaign or transfer-specific approval is implied.
+   campaign funding estimate, and choose exact transaction identities. The wallet
+   above is the test deployer and proposed sponsor/refund address; no funded
+   campaign or participant claim approval is implied by deploying the escrow.
 4. Complete the [live acceptance checklist](base-sepolia-sponsorship-acceptance.md):
    reviewed deployment/account pins, real session, healthy scanner, hosted
    wallet compatibility, bounded CDP responses and fresh zero-ETH participant.

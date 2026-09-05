@@ -95,10 +95,19 @@ faucets: 0.0001 test ETH and 1 native test USDC. CDP's managed paymaster uses
 account billing, not this wallet's ETH. CDP sign-in is complete and the Base
 Sepolia Paymaster page exposes a private endpoint. Session 11 validates that the
 endpoint is present locally and returns Base Sepolia from a read-only chain check
-without printing it. The visible default portal policy has no contract allowlist
-and must not be treated as live-ready. The deployment preflight is recorded in
-[the 2026-09-05 preflight](../docs/base-sepolia-deployment-preflight-2026-09-05.md);
-it still needs explicit approval before any broadcast.
+without printing it. The pre-deployment estimates are preserved in
+[the 2026-09-05 deployment record](../docs/base-sepolia-deployment-preflight-2026-09-05.md).
+
+Session 12 deploys `LearningRewards` on Base Sepolia after explicit approval:
+`0x77fdCEF7d08c54eD2a87FD54fBf24a660fa2A304`, transaction
+`0x0419e4a8a2334233cec9272a846f95b77cb35915931e5115599d1c454e6a7a03`.
+The actual deployed runtime hash is
+`0xebc5371a9a09231045c01981600b619436374e6226048855a6116d1d0c2dce00`, with
+native Base Sepolia USDC returned by `token()`. CDP Paymaster was saved with a
+single allowlist entry for this contract's `claim` selector `0x8bd53692`, a $1
+global and per-user visible cap, 10 operations per user, and sponsor name
+`Crossword`. The deployment block was not finalized at the latest observation,
+and no provider sponsorship request or campaign funding has occurred.
 
 Mainnet custody stays out of the early launch path. For Base Sepolia, use CDP or
 Base faucets first. If a real Coinbase send is later required, it must be a tiny

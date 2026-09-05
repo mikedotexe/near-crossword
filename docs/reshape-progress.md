@@ -1,7 +1,7 @@
 # Reshape session checkpoint
 
-Last setup session: 2026-09-05, America/Los_Angeles, session 11 after
-`4c6fd0e` (CDP faucet funding state).
+Last setup session: 2026-09-05, America/Los_Angeles, session 12 after
+`b04562c` (Base Sepolia deployment preflight).
 
 Read this after the [work order](reshape-action-plan.md). It is a continuation
 record, not evidence of deployment. Live gates remain in
@@ -33,7 +33,8 @@ not unique humans or learning. Manual authoring remains valid.
   to fund it with 0.0001 test ETH and 1 native test USDC, then opens the Base
   Sepolia Paymaster configuration page. Session 11 validates the private endpoint
   locally with a read-only chain check and prepares the escrow deployment
-  preflight; the visible default policy still has no contract allowlist.
+  preflight. Session 12 deploys the escrow, records the deployment anchor and
+  saves a claim-only CDP allowlist.
   See [local setup](base-sepolia-local-setup.md). The encrypted deployer is not a
   paymaster or fresh participant wallet, and no mainnet funding or
   transaction-specific approval is implied by creating/funding it.
@@ -61,8 +62,8 @@ not unique humans or learning. Manual authoring remains valid.
 | R2a provider adapter | GLM 5.1 non-thinking default passes live bounded SDK/source requests | Representative quality, reliability, layout and cost evaluation; real credit-exhaustion acceptance |
 | R2b lesson/source drafts | Two live synthetic drafts validate; private review API and manual editor implemented | Representative quality evaluation and versioned paid generation orchestration |
 | R3a contract design | Implemented locally with shared typed-data fixture | Independent security review and integration review |
-| R3b contract/accounting | Pinned RPC, canonical ledger and real participant/issuer composition pass Postgres/compiled-EVM checks | Reviewed deployment/RPC/finality policy, supervised scanner, scale validation, independent security review and live acceptance |
-| R4 workflows | Sponsor/player screens, approved publication, claim recovery and strict Sepolia gas proxy implemented locally; disabled local env, funded test deployer, validated CDP endpoint and deployment preflight | Escrow broadcast/anchor, CDP allowlist/policy, live wire compatibility and fresh passkey/gas acceptance, operator gas recovery, sponsor wallet funding/control/dashboard, live email acceptance, fraud policy, retention/export |
+| R3b contract/accounting | Base Sepolia escrow deployed and latest-block reads match native USDC/empty state | Finalized deployment verification, reviewed RPC/finality policy, supervised scanner, scale validation, independent security review and live acceptance |
+| R4 workflows | Sponsor/player screens, approved publication, claim recovery and strict Sepolia gas proxy implemented locally; disabled local env, funded test deployer, validated CDP endpoint, deployed escrow and claim-only CDP allowlist | Independent eligibility signer, tiny campaign funding, live wire compatibility and fresh passkey/gas acceptance, operator gas recovery, sponsor wallet funding/control/dashboard, live email acceptance, fraud policy, retention/export |
 | R5 Base x402 | Not started | EVM scheme/payer, facilitator configuration, first-wallet and settlement/recovery proof |
 | R6 pilot | Gated | Earlier milestones, reviewed release, explicit small budget and identities |
 
@@ -78,6 +79,12 @@ not unique humans or learning. Manual authoring remains valid.
   deployment preflight computed the expected contract address, runtime code hash
   and gas envelope without signing or broadcasting. Explicit approval is still
   required before deployment. Contract allowlist and live acceptance remain open.
+- Session 12: after explicit approval, `LearningRewards` deployed to Base Sepolia
+  at the expected address. The ignored local env now records non-secret chain
+  pins. CDP Paymaster was saved with one claim-selector allowlist entry and
+  tighter 10-operation per-user cap. The deployment block was not finalized at
+  the latest observation. No campaign funding or provider sponsorship request
+  has occurred.
 - Session 8: private sponsorship permits bind a real session to a signed reward;
   the wallet passes a short-lived token in ERC-7677 context. The proxy checks
   exact canonical account/claim calls, pinned code/factory/EntryPoint/paymaster,
@@ -199,6 +206,23 @@ The payment scheme/browser payer is still
 NEAR. The live product has not switched networks or gained multi-recipient claims.
 
 ## Verification
+
+Session 12 checks, Node 20.18.3:
+
+- `yarn test:contract:base` passed 29/29 before deployment. Base Sepolia
+  deployment transaction
+  `0x0419e4a8a2334233cec9272a846f95b77cb35915931e5115599d1c454e6a7a03`
+  succeeded at block `46440190`, deploying
+  `0x77fdCEF7d08c54eD2a87FD54fBf24a660fa2A304`. On-chain checks confirm
+  `token() = 0x036CbD53842c5426634e7929541eC2318f3dCF7e`,
+  `totalReserved() = 0`, `campaignCount() = 0`, code size 7,940 bytes and
+  actual runtime hash
+  `0xebc5371a9a09231045c01981600b619436374e6226048855a6116d1d0c2dce00`.
+  Deployment spent 0.000010852632 test ETH and left the deployer with
+  0.000088826683397187 test ETH plus 1 native test USDC. CDP saved the
+  `Crossword Claim` allowlist for selector `0x8bd53692`, 10 operations per user
+  and sponsor name `Crossword`. Latest/finalized observation was
+  `46440324`/`46439633`, so the deployment block was not finalized yet.
 
 Session 11 checks, Node 20.18.3:
 
@@ -347,21 +371,21 @@ replace the key or add stake simply to obtain an inference response.
 1. Read this checkpoint, action plan, launch register, and Base design; inspect
    branch/worktree state before editing. Preserve unrelated original-worktree work.
 2. Read chapters 07/08/09 and the Sepolia sponsorship acceptance checklist.
-   Resume CDP Portal sign-in; read the new local setup record before touching
-   credentials. Reuse the encrypted test-deployer wallet, do not regenerate it.
-   Resolve the dedicated CDP endpoint/project, exact supported wallet/EntryPoint
-   profile, approved provider/code pins and capped test sponsor/recipient/recovery
-   identities. The facilitator's mainnet keys are not reusable. Do not change AWS
-   ingress/IAM to recover credentials without specific approval. Keep production
-   flags off, and do not relax unknown-outcome handling to make retries work.
+   Verify finalization for the deployed escrow, reuse the encrypted test-deployer
+   wallet, do not regenerate it, and keep the CDP endpoint private in ignored env
+   or a staging secret store. The next approvals are for independent eligibility
+   signer setup and a one-slot test campaign. The facilitator's mainnet keys are
+   not reusable. Do not change AWS ingress/IAM to recover credentials without
+   specific approval. Keep production flags off, and do not relax unknown-outcome
+   handling to make retries work.
 3. Prove real fresh Base Account/passkey onboarding and sponsored redemption gas
-   on an explicitly approved Base Sepolia deployment. Local ERC-6492 simulation
-   and a mocked browser provider are not that acceptance evidence. Build sponsor
-   wallet create/fund/control and its reporting views. Resolve live
-   email acceptance, explicit sponsor export/retention and pilot fraud policy.
-   Account uniqueness is not human uniqueness. Keep consent optional and private.
-   Compose funding and redemption with the existing reconciled reader. Production activation
-   still needs reviewed deployment/code/RPC pins, finalized-lag policy and a
+   against the deployed Base Sepolia escrow. Local ERC-6492 simulation and a
+   mocked browser provider are not that acceptance evidence. Build sponsor wallet
+   create/fund/control and reporting views. Resolve live email acceptance,
+   explicit sponsor export/retention and pilot fraud policy. Account uniqueness
+   is not human uniqueness. Keep consent optional and private. Compose funding
+   and redemption with the existing reconciled reader. Production activation still
+   needs finalized deployment/code/RPC pins, reviewed finality policy and a
    supervised scan cadence. Benchmark the bounded rebuild before large campaigns.
 4. Keep the verified GLM 5.1 recipe for representative source/lesson evaluation.
    Human-review clue correctness, factual support and layout viability; measure
