@@ -4,6 +4,11 @@ Local R3/R4 checkpoint, 2026-09-04, session 3. This is a backend slice, not a
 public earning workflow or deployment. Production remains the NEAR application.
 See the [work order](reshape-action-plan.md) and [launch register](early-launch-status.md).
 
+Session 5 adds a read-only RPC/accounting adapter, canonical event ledger and
+reconciled-reader guard. See the [Base accounting chapter](../md-CLAUDE-chapters/03-base-accounting.md).
+The private review/issuer behavior below is unchanged; production eligibility,
+signer configuration, public claim routes and participant UI are still pending.
+
 ## Implemented boundary
 
 Migration `009_base_learning_workflow.sql` adds separate Base review, approval,
@@ -80,7 +85,8 @@ experience need reviewed versioning before funding, not silent hash changes.
 ## Internal issuer, not a public endpoint
 
 `BaseRewardIssuer` requires explicitly injected chain, eligibility, and signer
-adapters. There is no default production adapter, key environment variable,
+adapters. Session 5 implements the explicit RPC/accounting reader, but there is
+no default production composition or funded-signer key environment variable,
 funding-binding HTTP endpoint, claim endpoint, or relayer in this checkpoint.
 The test adapters deliberately use synthetic eligibility and chain state. They
 are not evidence of real wallet ownership, completion, finality, or settlement.
@@ -134,7 +140,7 @@ are sanitized before HTTP logging; do not log private proofs or authorizations.
 Run `yarn test:integration:base` with `TEST_DATABASE_URL` explicitly pointing to a
 disposable local Postgres database. The harness refuses remote hosts and never
 falls back to `DATABASE_URL`. It creates/drops only its own random schema, runs
-all nine migrations twice, and exercises actual constraints, concurrent
+all ten migrations twice, and exercises actual constraints, concurrent
 connections, durable replay, and session-authenticated route handlers. CI uses
 its existing Postgres 16 service for this additional test step.
 

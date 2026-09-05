@@ -32,8 +32,8 @@ export interface FinalizedCampaignState extends ChainBinding {
   observedAt: number;
 }
 
-// Trusted server ports, deliberately not implemented from browser-supplied receipts or flags.
-// The production adapter must pin deployment/token and read canonical finalized state.
+// Trusted server ports, never implemented from browser-supplied receipts or flags.
+// RpcBaseChainReader pins deployment/token/code and reads canonical finalized state.
 export interface BaseChainReader {
   // Deployment-reviewed policy, not an assumed Base finality duration.
   maxFinalizedLagSeconds: number;

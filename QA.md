@@ -22,6 +22,7 @@ yarn audit:production
 yarn test:unit
 # Set TEST_DATABASE_URL to a disposable local Postgres target, never production.
 yarn test:integration:base
+yarn test:integration:base-chain
 yarn test:browser
 cargo fmt --manifest-path contract-v2/Cargo.toml --check
 cargo clippy --manifest-path contract-v2/Cargo.toml --locked --all-targets -- -D warnings
@@ -31,6 +32,34 @@ yarn build
 ```
 
 ## Current local implementation evidence
+
+### Reshape session 5, 2026-09-04
+
+- Full unit suite **232/232**, Postgres integration **30/30**, compiled-contract
+  RPC/Postgres acceptance **1/1**, Base Solidity **29/29**, lint, typecheck and
+  Next production build pass on Node 20.18.3. All ten migrations apply/replay in
+  isolated local schemas; no production schema was touched.
+- Accounting tests cover deployment/token/code/hash pins, exact finalized reads,
+  redacted failures, cancellation, duplicate events, contract/event disagreement,
+  canonical replay, concurrent scanners, bounded catch-up/reorgs, retained and
+  returning orphan blocks, finalized-history halts, insolvency and issuer health
+  gating. Anvil exercises the compiled contract through funding, payout, rotation,
+  pause and refund; token donations remain surplus. Synthetic RPC transcript
+  tests exercise reorg/finality failure cases not claimed as live Base evidence.
+- Pinned Anvil 1.7.1 added as a dev dependency. Immutable install and full
+  high-severity audit pass; CI now includes the local EVM integration. The existing
+  next-auth/nodemailer peer warning and documented Forge timestamp/test-transfer
+  lint warnings remain. No Solidity contract behavior changed.
+- A standalone typecheck overlapped Next's regeneration of `.next/types` and
+  initially reported missing generated files. The build and sequential typecheck
+  repeat pass; no application type workaround was needed.
+- Browser and Rust checks were not rerun for this backend-only change. No new
+  provider request, public-chain transaction, production migration, Render change,
+  funded key, signing configuration or deployment. The opt-in accounting CLI
+  rejects its disabled gate before database/RPC access. Production configuration,
+  supervised indexing, scale, independent review and live acceptance remain open.
+- Implementation subjects and operational recovery are maintained under
+  [md-CLAUDE-chapters](md-CLAUDE-chapters/README.md), linked from contributor guidance.
 
 ### Reshape session 4, 2026-09-04
 

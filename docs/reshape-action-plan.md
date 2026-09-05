@@ -182,8 +182,12 @@ participant IDs, no slot recycling, sponsor-controlled pause/signer epochs,
 and refunds after the redemption deadline. These rules now have local Solidity,
 EOA/ERC-1271 and viem conformance tests, event checks, and stateful solvency tests.
 Database allocation and EOA signature recovery are locally tested using injected
-chain/eligibility ports. Production adapters, event ingestion/reorg recovery, and independent review remain
-before R3 can be considered complete. The application still attests completion and participant
+chain/eligibility ports. Session 5 adds the pinned RPC reader, canonical event
+ledger, bounded reorg recovery, finalized-history halts and guarded issuer reads,
+tested against Postgres and the compiled contract on local Anvil. See the
+[accounting chapter](../md-CLAUDE-chapters/03-base-accounting.md). Production
+deployment/RPC policy acceptance, supervised operation, scaling and independent
+review remain before R3 can be considered complete. The application still attests completion and participant
 policy; contract receipts cannot prove learning or unique humans.
 
 Reuse the existing Postgres workflow/reconciliation patterns, with additive

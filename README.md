@@ -147,6 +147,13 @@ yarn db:migrate:v2
 yarn dev
 ```
 
+Internal implementation context is organized in
+[md-CLAUDE-chapters](md-CLAUDE-chapters/README.md). The new Base path has a
+read-only RPC reader and durable event reconciliation, not a deployed earning
+workflow. `yarn base:reconcile` runs one explicitly configured/gated scan batch;
+see [Base accounting](md-CLAUDE-chapters/03-base-accounting.md) for deployment
+pins, finality, recovery and local-EVM/Postgres test commands.
+
 The chain worker refuses to lease work unless
 `V2_CHAIN_BROADCAST_ENABLED=true`. Keep it false for normal development. A
 configured staging operator can start the worker with:

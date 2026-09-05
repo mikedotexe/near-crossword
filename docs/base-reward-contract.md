@@ -3,8 +3,8 @@
 Status: R3 local implementation checkpoint, 2026-09-04. The specification now has
 a [Solidity implementation and tests](../contract-base/README.md). It is not
 deployed or independently audited. The [database issuer](base-learning-workflow.md)
-is now locally tested with injected chain/eligibility adapters, not connected to
-production or a public claim route.
+is locally tested; the RPC/accounting reader is also tested against the compiled
+contract and Postgres. Neither is connected to production or a public claim route.
 See the [work order](reshape-action-plan.md) and [session checkpoint](reshape-progress.md).
 
 ## First-version decision
@@ -236,9 +236,15 @@ link a wallet to this campaign publicly; explain that before wallet binding.
 forge-std 1.16.2. The `viem` helper and Solidity tests share a digest/signature
 fixture. Local funding/claim/refund events and stateful solvency tests pass.
 Private review and database-backed allocation/signature recovery now have real
-Postgres integration tests. Production chain/eligibility adapters, the public
-claim workflow, and live event ingestion below remain next work;
+Postgres integration tests. Production chain configuration and eligibility
+adapters, the public claim workflow, and live event acceptance remain next work;
 these tests are not a production deployment or audit.
+
+Session 5 now implements the read-only RPC adapter and event ledger with exact
+hash reads, canonical/orphan history, finalized reconciliation and issuer health
+gating. Local Postgres and compiled-contract Anvil checks pass; production
+deployment, finality/RPC policy and supervised operation remain unverified. See
+[accounting architecture](../md-CLAUDE-chapters/03-base-accounting.md).
 
 - Unit tests for exact prefunding, bad timing/amounts, token failures, fee-on-
   transfer rejection, unauthorized controls, unknown campaigns, and cancellation.

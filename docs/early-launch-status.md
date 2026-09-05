@@ -41,7 +41,7 @@ credential is not, by itself, proof that a provider is unusable.
 | L06 | Historical proof only | The July 27 private mainnet canary proves direct 0.10 USDC funding, claim, and replay rejection. It used an earlier WASM hash. | Compare deployed contract code with the reviewed release and attach current public-runtime acceptance evidence. See [canary](mainnet-canary-2026-07-27.md). |
 | L07 | Unverified | End-to-end cross-chain routes, route-refund recovery, production x402 delivery/replay, audit closure, and operational ownership are not established by the website cutover. | Complete the relevant [runbook](launch-runbook.md) and [QA](../QA.md) items for the chosen product scope; preserve unresolved items if scope changes. |
 | L08 | Preserved; reconciliation open | The old contract/application remain accessible. The runbook still records outstanding legacy claims and funds. | Reconcile actual claim/key and balance state before changing legacy access. Historical amounts are not current balance observations. |
-| L09 | Base contract and DB issuer locally tested; live integration pending | Escrow, typed-data helper and durable allocation/signature recovery are implemented, not deployed. The issuer uses injected ports; the browser x402 payer is still NEAR. | Engineering implements production chain/eligibility adapters, canonical event ingestion/reorg handling, and EVM wallet/payment flows in R3-R5. |
+| L09 | Base contract, RPC/accounting and DB issuer locally tested; live acceptance pending | Pinned canonical RPC reads, event ingestion, reorg/finality handling and issuer ledger-health gating pass Postgres and compiled-contract Anvil tests. Nothing is deployed/configured; eligibility is still a test port and the browser x402 payer is NEAR. | Engineering builds participant/wallet/eligibility and EVM payment flows. Before activation, review deployment/RPC/code pins, finality freshness, supervised scanner cadence, scale and independent security evidence. |
 | L10 | Private review API and allocation ledger locally tested; public workflow pending | Revision/hash-bound sponsor approval, immutable funded review and concurrency/recovery tests pass against Postgres. `BASE_REVIEW_ENABLED` defaults false. The live contract still has one winner. | Engineering builds review/participant UI, real completion/wallet checks, consent/retention, reconciliation and authenticated claim/recovery routes before a reviewed pilot. |
 | L11 | Product default proposed | Verify email at reward claim; keep contacts off-chain and share only with a separate sponsor opt-in. Email control and payout receipts do not establish unique humans or learning. | Define private contact export, consent records, repeat-claim defenses, and the distinction between public spending evidence and application-reported completions. |
 | L12 | Key and inference accepted; staking linkage unverified | Protected auth control returned 401 for an invalid key and 200 for the supplied key. Successful inference and matching billing records are observed. Intended default organization, staking-credit source, farm/pool/rate, and stake amount/destination remain unverified. | Mike confirms the intended organization's credit source and exact staking setup in R1. A replacement key or extra stake is not required merely to repeat the working call. |
@@ -138,3 +138,12 @@ wallet state before promising first-use compatibility.
   Node 20 production build pass. Staking linkage, representative quality,
   Gemma transport, and paid integration remain open. No secret-file/Render edit,
   chain transaction, migration, production deployment or launch-flag change.
+- 2026-09-04, session 5: Added subject chapters in `md-CLAUDE-chapters/` and
+  contributor maintenance instructions. Implemented the Base RPC reader, additive
+  migration 010, canonical/orphan event history, finalized reconciliation and
+  issuer-facing health guard. Unit suite 232/232, local Postgres 30/30,
+  compiled-contract Anvil/Postgres acceptance 1/1, Base Solidity 29/29, lint,
+  typecheck, Node 20 build, immutable install and high-severity full audit pass.
+  `BASE_INDEXER_ENABLED` defaults false; the new CLI is one read-only-chain batch,
+  not an activated worker or public claim flow. No external provider inference,
+  public-chain transaction, production migration, Render configuration or deployment.

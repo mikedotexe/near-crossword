@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { getAddress, keccak256, stringToHex } from "viem";
 import { z } from "zod";
+import { baseNativeUsdc } from "../../lib/base/escrow-abi";
 import { AppError } from "../v2/errors";
 import { parseLearningDraftInput, validateLearningDraft } from "../v2/learning-draft";
 
@@ -25,8 +26,7 @@ const termsSchema = z.object({
   endsAt: seconds,
   claimDeadline: seconds,
 }).strict().superRefine((terms, context) => {
-  const nativeToken = terms.chainId === 8453 ? "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913" :
-    terms.chainId === 84532 ? "0x036cbd53842c5426634e7929541ec2318f3dcf7e" : terms.token;
+  const nativeToken = terms.chainId === 31337 ? terms.token : baseNativeUsdc[terms.chainId];
   if (terms.token !== nativeToken || terms.sponsor === terms.escrow ||
       terms.endsAt <= terms.startsAt || terms.claimDeadline <= terms.endsAt ||
       BigInt(terms.rewardAtomic) * BigInt(terms.maxClaims) >= 1n << 256n) {

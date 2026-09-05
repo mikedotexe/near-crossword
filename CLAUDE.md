@@ -1,5 +1,11 @@
 # Crossword Campaigns contributor guide
 
+## Subject chapters
+
+Read [md-CLAUDE-chapters/README.md](md-CLAUDE-chapters/README.md) for subject-specific
+implementation context. Maintain the affected chapters alongside code changes;
+the work order, checkpoint, QA matrix and launch register retain progress/evidence.
+
 ## Early launch tracking
 
 Read `docs/early-launch-status.md` before launch-related work. After deployments,

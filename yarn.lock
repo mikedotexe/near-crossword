@@ -419,6 +419,77 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@foundry-rs/anvil-darwin-amd64@npm:1.7.1":
+  version: 1.7.1
+  resolution: "@foundry-rs/anvil-darwin-amd64@npm:1.7.1"
+  bin:
+    anvil: bin/anvil
+  conditions: os=darwin & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@foundry-rs/anvil-darwin-arm64@npm:1.7.1":
+  version: 1.7.1
+  resolution: "@foundry-rs/anvil-darwin-arm64@npm:1.7.1"
+  bin:
+    anvil: bin/anvil
+  conditions: os=darwin & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@foundry-rs/anvil-linux-amd64@npm:1.7.1":
+  version: 1.7.1
+  resolution: "@foundry-rs/anvil-linux-amd64@npm:1.7.1"
+  bin:
+    anvil: bin/anvil
+  conditions: os=linux & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@foundry-rs/anvil-linux-arm64@npm:1.7.1":
+  version: 1.7.1
+  resolution: "@foundry-rs/anvil-linux-arm64@npm:1.7.1"
+  bin:
+    anvil: bin/anvil
+  conditions: os=linux & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@foundry-rs/anvil-win32-amd64@npm:1.7.1":
+  version: 1.7.1
+  resolution: "@foundry-rs/anvil-win32-amd64@npm:1.7.1"
+  bin:
+    anvil: bin/anvil.exe
+  conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@foundry-rs/anvil@npm:1.7.1":
+  version: 1.7.1
+  resolution: "@foundry-rs/anvil@npm:1.7.1"
+  dependencies:
+    "@foundry-rs/anvil-darwin-amd64": "npm:1.7.1"
+    "@foundry-rs/anvil-darwin-arm64": "npm:1.7.1"
+    "@foundry-rs/anvil-linux-amd64": "npm:1.7.1"
+    "@foundry-rs/anvil-linux-arm64": "npm:1.7.1"
+    "@foundry-rs/anvil-win32-amd64": "npm:1.7.1"
+  dependenciesMeta:
+    "@foundry-rs/anvil-darwin-amd64":
+      optional: true
+    "@foundry-rs/anvil-darwin-arm64":
+      optional: true
+    "@foundry-rs/anvil-linux-amd64":
+      optional: true
+    "@foundry-rs/anvil-linux-arm64":
+      optional: true
+    "@foundry-rs/anvil-win32-amd64":
+      optional: true
+  bin:
+    anvil: bin.mjs
+  checksum: 10c0/949d6788ed3aeaca08f7fe3d46987302e70b3eab6b723a1ab7912f1023e7982c81994046dc75809821b3c00ec3332782e96519aa4ff9c062cac5791b2bbd7b43
+  languageName: node
+  linkType: hard
+
 "@foundry-rs/forge-darwin-amd64@npm:1.7.1":
   version: 1.7.1
   resolution: "@foundry-rs/forge-darwin-amd64@npm:1.7.1"
@@ -4583,6 +4654,7 @@ __metadata:
     "@fastnear/near-connect": "npm:0.10.6"
     "@fastnear/utils": "npm:0.9.13"
     "@fastnear/wallet": "npm:2.3.0"
+    "@foundry-rs/anvil": "npm:1.7.1"
     "@foundry-rs/forge": "npm:1.7.1"
     "@openzeppelin/contracts": "npm:5.6.1"
     "@playwright/test": "npm:^1.62.0"

@@ -1,7 +1,7 @@
 # Reshape session checkpoint
 
-Last implementation session: 2026-09-04, America/Los_Angeles, session 4 after
-`cf560e6` (private learning review and durable Base claim issuance).
+Last implementation session: 2026-09-04, America/Los_Angeles, session 5 after
+`6f38ece` (verified NEAR AI inference and working draft configuration).
 
 Read this after the [work order](reshape-action-plan.md). It is a continuation
 record, not evidence of deployment. Live gates remain in
@@ -21,15 +21,17 @@ not unique humans or learning. Manual authoring remains valid.
 - Worktree: `/Users/mikepurvis/other/near-crossword-launch-candidate`
 - Branch: `codex/early-launch-discovery`
 - Planning baseline: `83d1cb8`; prior implementation commits: `8f475e3` and
-  `a373f7e`, followed by `cf560e6`. Session 4 follows Mike's request to investigate
-  NEAR AI API failures through GitHub, social research and controlled live calls.
+  `a373f7e`, followed by `cf560e6` and `6f38ece`. Session 5 follows Mike's request
+  to continue implementation and maintain subject documentation in
+  [md-CLAUDE-chapters](../md-CLAUDE-chapters/README.md).
 - The original `/Users/mikepurvis/other/near-crossword` worktree remains on
   `codex/crossword-campaigns` with pre-existing changes. Do not overwrite it or
   assume it is the launch-candidate branch. Recheck both worktrees next session.
 - No merge, push, Render configuration change, production migration, chain
   transaction, or deployment was performed. The original ignored `.env` was not
   edited or copied. Session 3 applied all nine migrations twice to isolated local
-  schemas; session 4 did not run migrations or change database/contract code.
+  schemas. Session 5 applied all ten migrations twice to fresh isolated local
+  Postgres schemas and tested compiled contracts on disposable loopback Anvil.
 
 ## Milestone state
 
@@ -39,7 +41,7 @@ not unique humans or learning. Manual authoring remains valid.
 | R2a provider adapter | GLM 5.1 non-thinking default passes live bounded SDK/source requests | Representative quality, reliability, layout and cost evaluation; real credit-exhaustion acceptance |
 | R2b lesson/source drafts | Two live synthetic drafts validate; private persisted review API implemented | Human quality/layout review, review UI and versioned paid generation orchestration |
 | R3a contract design | Implemented locally with shared typed-data fixture | Independent security review and integration review |
-| R3b contract/accounting | Solidity tests plus durable DB allocation/signature recovery pass | Production chain/eligibility/signer adapters, event ingestion/reorg recovery, live reconciliation, and deployment acceptance |
+| R3b contract/accounting | Pinned RPC reader, canonical ledger, reorg/finality handling and guarded issuer reads pass Postgres/compiled-EVM checks | Reviewed deployment/RPC/finality policy, supervised scanner, scale validation, production eligibility/signer composition and live acceptance |
 | R4 workflows | Private review API and immutable approval/funding boundary locally tested | Sponsor/participant UI, real completion/wallet verification, email path acceptance, consent/retention and export |
 | R5 Base x402 | Not started | EVM scheme/payer, facilitator configuration, first-wallet and settlement/recovery proof |
 | R6 pilot | Gated | Earlier milestones, reviewed release, explicit small budget and identities |
@@ -89,17 +91,50 @@ not unique humans or learning. Manual authoring remains valid.
   Approval binds revision plus both commitments. Funding binding freezes edits.
   Private review can use manually authored source-grounded material; no provider
   request or payment is triggered. See [backend workflow](base-learning-workflow.md).
+- Session 5: `RpcBaseChainReader` verifies native token, deployed code hash,
+  chain and deployment anchor; reads state at canonical finalized block hashes.
+  Migration 010 and `BaseChainIndexer` store canonical/orphan blocks, immutable
+  event logs and reconciled snapshots. Bounded rewind never recycles allocations;
+  finalized contradictions and accounting mismatches halt without advancing state.
+- `ReconciledBaseChainReader` is the required issuer-facing wrapper: healthy
+  ledger within 60 seconds, exact current finalized snapshot and matching pins.
+  A fresh RPC result cannot bypass a stale or halted ledger. `base:reconcile`
+  runs one explicitly configured read-only-chain batch and defaults disabled.
+- Subject chapters cover product boundaries, NEAR AI, Base accounting, private
+  review/issuance and operations, with links to authoritative evidence records.
+  Contributor instructions require maintaining these chapters alongside code.
 
 The public AI API still returns the existing topic/tone-based clue pairs. The
 source-grounded generator is separate from the paid route; persisted review is
 available only through the gated private API. There is no public Base claim
-endpoint, deployed issuer key, production chain/eligibility adapter, or relayer.
-The test ports use synthetic evidence. The payment scheme/browser payer is still
+endpoint, deployed issuer key, production eligibility adapter or relayer. The
+RPC/accounting adapter is implemented but not configured or connected to the
+public runtime; local eligibility ports still use synthetic evidence. The payment scheme/browser payer is still
 NEAR. The live product has not switched networks or gained multi-recipient claims.
 
 ## Verification
 
-Session 4 checks:
+Session 5 checks, Node 20.18.3:
+
+- Full unit suite **232/232**; Postgres integration **30/30**, including 11 new
+  canonical-ledger/reorg/health-gate cases. All ten migrations apply and replay.
+- Compiled-contract acceptance **1/1** using pinned Anvil 1.7.1 and actual
+  Postgres: funding, reward, rotation, pause, expiry refund, unallocated surplus
+  and duplicate scan reconcile through the same RPC/guard/indexer implementation.
+  The test owns and stops its loopback EVM and drops its random database schema.
+- Base Solidity suite **29/29**, including 256 fuzz cases and the 8,192-call
+  invariant, passes. Solidity sources are unchanged. Existing timestamp and
+  synthetic-transfer Forge lint warnings remain documented, not new failures.
+- Lint, typecheck, Next production build, immutable install and full high-severity
+  dependency audit pass. A standalone typecheck initially overlapped the build's
+  generated-file replacement; the sequential repeat passed. Anvil is a new pinned
+  dev dependency; the existing nodemailer peer warning remains.
+- Browser and Rust checks were not rerun for this backend-only change; previous
+  evidence remains historical. The accounting CLI's disabled gate was exercised
+  without opening a database/RPC connection. No external inference, public-chain
+  transaction, production migration/configuration or deployment occurred.
+
+Session 4 checks (historical):
 
 - Full unit suite **221/221** on Node 20.18.3, including model-specific thinking
   behavior and new diagnostic authentication, redaction, deadline, stream
@@ -144,18 +179,19 @@ replace the key or add stake simply to obtain an inference response.
 
 1. Read this checkpoint, action plan, launch register, and Base design; inspect
    branch/worktree state before editing. Preserve unrelated original-worktree work.
-2. Read `base-learning-workflow.md`. Implement the canonical Base funding/payment
-   reader and event ledger with deduplication, finality policy, reorg rewind and
-   reconciliation. `BaseChainReader` is only a trusted port now, not a production
-   implementation. Choose/verify confirmation and freshness policy for the
-   deployment; the fixture's block-age setting is not mainnet policy.
-3. Build persisted participant completion and wallet challenges bound to the
+2. Read chapters 03/04 and `base-learning-workflow.md`. Build persisted participant
+   completion and wallet challenges bound to the
    frozen revision, authenticated account and recipient. Implement the real
    eligibility verifier and its private audit receipts. Address verified-email
    persistence for Google accounts, consent/retention and abuse policy. Then
    expose an authenticated claim/recovery API and sponsor/participant UI.
    Review layout viability and policy text before treating approval as publishable.
    Keep chain broadcast and public claim issuance disabled until these checks pass.
+3. Compose new claim/funding endpoints with `ReconciledBaseChainReader`, not the
+   bare RPC adapter. Require canonical finalized payment receipts for paid status;
+   never derive it from an authorization or unfinalized log. Production activation
+   still needs reviewed deployment/code/RPC pins, finalized-lag policy and a
+   supervised scan cadence. Benchmark the bounded rebuild before large campaigns.
 4. Keep the verified GLM 5.1 recipe for representative source/lesson evaluation.
    Human-review clue correctness, factual support and layout viability; measure
    acceptable-draft cost/latency and actual exhaustion before paid activation.

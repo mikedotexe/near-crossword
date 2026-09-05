@@ -7,6 +7,7 @@ Not deployed, not audited, and not connected to the live campaign database or UI
 
 - Solidity 0.8.30, Cancun EVM, optimizer 200 runs.
 - Forge 1.7.1, pinned through the official `@foundry-rs/forge` npm package.
+- Anvil 1.7.1, pinned for compiled-contract/RPC/Postgres acceptance tests.
 - OpenZeppelin Contracts 5.6.1, pinned in the root Yarn lockfile.
 - forge-std 1.16.2, submodule commit `bf647bd6046f2f7da30d0c2bf435e5c76a780c1b`.
 
@@ -67,8 +68,15 @@ The on-chain budget proof does not remove those controls or USDC issuer risk.
 
 ## Still required
 
-Additive campaign/account schema, atomic slot issuance, wallet-control proof,
-private consent and source review, production signer management, Base event
-ingestion/reorg recovery, confirmation policy, sponsored gas, independent review,
-and a separately approved small pilot. Do not migrate NEAR liabilities or expose
+The additive campaign schema, private source review, durable slot issuance and
+Base event ingestion/reorg recovery are locally implemented. The command
+`yarn test:integration:base-chain` requires disposable local `TEST_DATABASE_URL`,
+builds the contracts and starts/stops its own loopback Anvil. It verifies funding,
+payout, rotation, pause, refund and surplus through the actual RPC/database path.
+See [Base accounting](../md-CLAUDE-chapters/03-base-accounting.md).
+
+Still required: wallet-control/completion proof, private consent, production
+signer management, reviewed deployment/finality/RPC policy, supervised indexing,
+sponsored gas, independent review, and a separately approved small pilot.
+Do not migrate NEAR liabilities or expose
 Base claims publicly solely because these local tests pass.
