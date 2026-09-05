@@ -7,8 +7,9 @@ staking, and paid pilot results must be recorded separately in
 Implementation has begun. Read the [session checkpoint](reshape-progress.md)
 for completed slices, test evidence, working branch, and next-session order.
 The NEAR AI clue/source-draft generators and [Base contract](../contract-base/README.md)
-are implemented and locally tested. Live inference attempts have not succeeded;
-application integration and deployment remain open. R2 and R3 remain open as
+are implemented and locally tested. Live GLM 5.1 source-draft and billing checks
+now pass; quality review, application integration and deployment remain open.
+R2 and R3 remain open as
 full milestones rather than being closed by isolated code/tests.
 
 ## Product and architecture decisions
@@ -110,18 +111,21 @@ Read-only catalog checks on September 4 found 51 entries at
 there or at [`/v1/models`](https://cloud-api.near.ai/v1/models). Do not configure
 `gemma4` as an assumed model ID.
 
-First evaluation candidate: `z-ai/glm-5.3-flash`. The catalog lists it as ready,
-TEE-hosted, and supporting structured outputs. `deepseek-ai/DeepSeek-V4-Flash`
-is a second candidate. The first GLM app request timed out; no candidate has
-completed a live app draft yet. The
+The initial `z-ai/glm-5.3-flash` candidate timed out from this host. Session 4
+verified `zai-org/GLM-5.1-FP8` with the documented
+`chat_template_kwargs: { enable_thinking: false }` setting: two bounded
+source-grounded drafts passed with usage and actual billing records. This is
+now the local default, not a production switch or paid-activation approval.
+The
 [model documentation](https://docs.near.ai/cloud/models) distinguishes TEE-hosted
 models from third-party proxies; privacy claims must match the chosen model
 and actual verification, and do not hide data from our own application.
 
 Session 2 found an advertised Gemma 4 route in the direct-endpoint registry,
 despite its absence from the gateway catalog. Direct connections reset from
-this host. Mike supplied the local key; key presence is no longer the missing
-step, but successful inference and credit linkage remain unverified. See the
+this host. The same local key now passes protected authentication and successful
+gateway inference checks. Default-organization staking-credit linkage remains
+unverified; more stake is not needed merely to demonstrate API access. See the
 [dated evaluation record](near-ai-evaluation-2026-09-04.md) before more live tests.
 
 Configuration implemented in the adapter branch, not yet deployed:
@@ -130,7 +134,7 @@ Configuration implemented in the adapter branch, not yet deployed:
 | --- | --- |
 | `NEAR_AI_API_KEY` | Dedicated secret for the credit-bearing Cloud organization |
 | `NEAR_AI_BASE_URL` | `https://cloud-api.near.ai/v1` |
-| `V2_AI_MODEL` | Initially `z-ai/glm-5.3-flash`; confirm by evaluation |
+| `V2_AI_MODEL` | `zai-org/GLM-5.1-FP8`; automatically disables thinking for this exact model only |
 
 Provider replacement completed locally in the first implementation session:
 

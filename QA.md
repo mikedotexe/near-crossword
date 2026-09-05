@@ -32,6 +32,26 @@ yarn build
 
 ## Current local implementation evidence
 
+### Reshape session 4, 2026-09-04
+
+- Unit suite **221/221**, lint, typecheck and Next production build pass on
+  Node 20.18.3. Added model-specific thinking controls and safe diagnostic tests
+  for authentication controls, error/usage redaction, bounded body consumption,
+  stream completion and unknown billing records. Existing x402 recovery tests pass.
+- The actual local key passes protected authentication. GLM 5.1 with documented
+  thinking disabled passes a tiny SDK call and two source-grounded drafts. The
+  updated application evaluator completes within its unchanged 30-second limit.
+  Numeric usage and matching provider billing records are observed; see the
+  [sanitized live record](docs/near-ai-evaluation-2026-09-04.md) for exact values.
+- Human clue/factual quality, layout, representative reliability, credit-source/
+  staking linkage, cryptographic attestation and paid delivery remain unverified.
+  Prior GLM 5.3/Qwen timeouts and Gemma TLS failures have no confirmed root cause;
+  failed-request billing remains unknown. No automatic model fallback was added.
+- No dependency/lockfile, database, contract or frontend changes. Database,
+  browser, Rust/Solidity and dependency audit checks were not rerun; session 3/2
+  results below remain historical. No secret-file edit, staking, x402 settlement,
+  chain broadcast, Render change or deployment.
+
 ### Reshape session 3, 2026-09-04
 
 - Unit suite **209/209** under Node 20.18.3. New tests cover public/private

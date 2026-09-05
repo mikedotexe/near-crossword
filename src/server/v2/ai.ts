@@ -34,7 +34,7 @@ export function parseAiGenerationInput(raw: unknown): AiGenerationInput {
 
 const allowedAnswer = /^[A-Z0-9_.-]{3,32}$/;
 const defaultBaseUrl = "https://cloud-api.near.ai/v1";
-const defaultModel = "z-ai/glm-5.3-flash";
+const defaultModel = "zai-org/GLM-5.1-FP8";
 const timeoutMs = 30_000;
 const maxOutputTokens = 4_096;
 
@@ -153,6 +153,10 @@ export class NearAiStructuredClient {
     try {
       response = await client.chat.completions.create({
         model: config.model,
+        // This model's documented non-thinking mode passed the bounded draft evaluation.
+        ...(config.model === "zai-org/GLM-5.1-FP8"
+          ? { chat_template_kwargs: { enable_thinking: false } }
+          : {}),
         max_tokens: maxOutputTokens,
         stream: false,
         response_format: {

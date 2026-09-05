@@ -85,10 +85,16 @@ of payment.
 not the OpenAI or Anthropic inference services. `NEAR_AI_BASE_URL` defaults to
 `https://cloud-api.near.ai/v1`; only that gateway and NEAR AI's direct
 `https://<slug>.completions.near.ai/v1` endpoints are accepted. Redirects are
-disabled. `V2_AI_MODEL` defaults to the evaluation candidate
-`z-ai/glm-5.3-flash`, with a 30-second total deadline, 4,096 output-token limit,
-and no automatic provider retries. Staking supplies credits but does not remove
-the API-key requirement. No wallet/staking key belongs in this adapter.
+disabled. `V2_AI_MODEL` defaults to `zai-org/GLM-5.1-FP8`, with a 30-second total
+deadline, 4,096 output-token limit, and no automatic provider retries. For this
+exact model, requests include the documented
+`chat_template_kwargs: { enable_thinking: false }`. Other model overrides receive
+no thinking override; do not apply one model's template flags to another.
+Two live synthetic source drafts passed in about 12-14 seconds, with provider
+billing records; see the [evaluation record](../../../docs/near-ai-evaluation-2026-09-04.md).
+This is not quality, availability, or paid-delivery acceptance. Staking can supply
+credits but does not remove the API-key requirement, and this key's staking-credit
+linkage is still unverified. No wallet/staking key belongs in this adapter.
 
 Structured JSON output must contain exactly the requested 3-12 distinct valid
 clue/answer pairs; truncated, malformed, duplicate, or extra-field output is

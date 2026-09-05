@@ -29,7 +29,7 @@ function completion(content: unknown = { entries }, finishReason = "stop", refus
   return Response.json({
     id: "local-test-completion",
     object: "chat.completion",
-    model: "z-ai/glm-5.3-flash",
+    model: "zai-org/GLM-5.1-FP8",
     choices: [{
       index: 0,
       finish_reason: finishReason,
@@ -52,7 +52,8 @@ describe("NEAR AI generation", () => {
         assert.equal(new Headers(init?.headers).get("authorization"), "Bearer near-ai-test-secret");
         assert.equal(init?.redirect, "error");
         const body = JSON.parse(String(init?.body));
-        assert.equal(body.model, "z-ai/glm-5.3-flash");
+        assert.equal(body.model, "zai-org/GLM-5.1-FP8");
+        assert.deepEqual(body.chat_template_kwargs, { enable_thinking: false });
         assert.equal(body.max_tokens, 4096);
         assert.equal(body.stream, false);
         assert.equal(body.response_format.type, "json_schema");
@@ -74,12 +75,27 @@ describe("NEAR AI generation", () => {
     const generator = new NearAiGenerator({
       fetch: async (url, init) => {
         assert.equal(String(url), "https://qwen35-122b.completions.near.ai/v1/chat/completions");
-        assert.equal(JSON.parse(String(init?.body)).model, "Qwen/Qwen3.5-122B-A10B");
+        const body = JSON.parse(String(init?.body));
+        assert.equal(body.model, "Qwen/Qwen3.5-122B-A10B");
+        assert.equal(body.chat_template_kwargs, undefined);
         return completion();
       },
     });
     assert.deepEqual(await generator.generate(input), entries);
   });
+
+  for (const model of ["zai-org/GLM-5.1-FP8", "z-ai/glm-5.3-flash", "google/gemma-4-31B-it"]) {
+    it(`keeps the thinking setting model-specific for override ${model}`, async () => {
+      process.env.V2_AI_MODEL = model;
+      const generator = new NearAiGenerator({ fetch: async (_url, init) => {
+        const body = JSON.parse(String(init?.body));
+        assert.equal(body.model, model);
+        assert.deepEqual(body.chat_template_kwargs, model === "zai-org/GLM-5.1-FP8" ? { enable_thinking: false } : undefined);
+        return completion();
+      } });
+      assert.deepEqual(await generator.generate(input), entries);
+    });
+  }
 
   it("fails before sending a request when the NEAR key is missing", async () => {
     delete process.env.NEAR_AI_API_KEY;

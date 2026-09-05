@@ -1,6 +1,7 @@
 # Early launch status
 
-Last live checks: 2026-09-04, America/Los_Angeles (2026-09-05 00:06 UTC).
+Last public-site/config checks: 2026-09-04, America/Los_Angeles (2026-09-05 00:06 UTC).
+Last provider checks: 2026-09-04, America/Los_Angeles (2026-09-05 02:44 UTC).
 Local implementation update: 2026-09-04; no subsequent production change.
 
 This is the working record for the public launch. Read it before changing launch
@@ -34,7 +35,7 @@ credential is not, by itself, proof that a provider is unusable.
 | --- | --- | --- | --- |
 | L01 | Gated | Render has `V2_CHAIN_BROADCAST_ENABLED=false`. Operator account/key variables are absent from the web service. | Decide which campaign workflow to launch; verify a separately configured worker, account, permissions, and recovery procedure before enabling broadcasts. |
 | L02 | Gated | `X402_ENABLED`, `X402_FACILITATOR_URL`, `X402_NETWORK`, `X402_PAY_TO`, `X402_ASSET`, and `X402_FACILITATOR_BEARER_TOKEN` are unset in Render. | Choose network, approved recipient, price, and instance-specific credential. Prove unpaid challenge, payment, delivered result, and replay behavior. The asset can fall back to `V2_USDC_CONTRACT_ID` in current code. |
-| L03 | Clue/source adapters locally tested; runtime still gated | Engineering replaced direct Anthropic with NEAR AI and added a separate source-grounded draft generator. The deployed route is unchanged and still requires `ANTHROPIC_API_KEY`. | Engineering completes live evaluation and private review/paid-workflow integration, then reviews deployment. Do not add a dummy Anthropic key or enable paid generation based only on unit tests. |
+| L03 | Local adapter passes bounded live drafts; production still gated | Engineering replaced direct Anthropic with NEAR AI. Two synthetic source drafts passed through GLM 5.1; the deployed route is unchanged and still requires `ANTHROPIC_API_KEY`. | Engineering completes representative quality/layout evaluation and private review/paid-workflow integration, then reviews deployment. Do not add a dummy Anthropic key or enable paid generation based only on these checks. |
 | L04 | Optional configuration; flow unverified | Both `ONE_CLICK_JWT` and `ONECLICK_JWT` are absent. Current code treats this as an optional partner token; the public token catalog already worked at launch. | Confirm provider requirements for the intended route and prove quote, funding, payout, and refund behavior. Do not call this broken solely because a JWT is missing. |
 | L05 | Partially verified | Resend key and sender are configured; provider discovery returns HTTP 200. | Complete an actual email sign-in, including inbox receipt, production callback, and authenticated session. |
 | L06 | Historical proof only | The July 27 private mainnet canary proves direct 0.10 USDC funding, claim, and replay rejection. It used an earlier WASM hash. | Compare deployed contract code with the reviewed release and attach current public-runtime acceptance evidence. See [canary](mainnet-canary-2026-07-27.md). |
@@ -43,8 +44,8 @@ credential is not, by itself, proof that a provider is unusable.
 | L09 | Base contract and DB issuer locally tested; live integration pending | Escrow, typed-data helper and durable allocation/signature recovery are implemented, not deployed. The issuer uses injected ports; the browser x402 payer is still NEAR. | Engineering implements production chain/eligibility adapters, canonical event ingestion/reorg handling, and EVM wallet/payment flows in R3-R5. |
 | L10 | Private review API and allocation ledger locally tested; public workflow pending | Revision/hash-bound sponsor approval, immutable funded review and concurrency/recovery tests pass against Postgres. `BASE_REVIEW_ENABLED` defaults false. The live contract still has one winner. | Engineering builds review/participant UI, real completion/wallet checks, consent/retention, reconciliation and authenticated claim/recovery routes before a reviewed pilot. |
 | L11 | Product default proposed | Verify email at reward claim; keep contacts off-chain and share only with a separate sponsor opt-in. Email control and payout receipts do not establish unique humans or learning. | Define private contact export, consent records, repeat-claim defenses, and the distinction between public spending evidence and application-reported completions. |
-| L12 | Local key supplied; account/credit linkage unverified | Mike supplied `NEAR_AI_API_KEY` in local secret storage. No completed inference, default-organization credit linkage, farm/pool/rate, or stake amount/destination is verified. | Mike checks a tiny prompt and credits in the same Cloud organization; engineering repeats a bounded evaluation once connectivity/account state is established. Exact staking setup remains R1. |
-| L13 | Live checks attempted, not passed | Gateway GLM and catalog-ready Qwen inference timed out. Gemma 4 appears in the direct registry but direct connections reset. No delivered draft, token usage, or actual billing amount is known. Local validation/failure/payment recovery tests pass. | Follow the [sanitized evaluation record](near-ai-evaluation-2026-09-04.md). Distinguish provider/network/account issues, then prove live schema, source support, quality, latency/cost, and paid delivery. Do not assume more stake fixes a timeout. |
+| L12 | Key and inference accepted; staking linkage unverified | Protected auth control returned 401 for an invalid key and 200 for the supplied key. Successful inference and matching billing records are observed. Intended default organization, staking-credit source, farm/pool/rate, and stake amount/destination remain unverified. | Mike confirms the intended organization's credit source and exact staking setup in R1. A replacement key or extra stake is not required merely to repeat the working call. |
+| L13 | Bounded live source drafts passed; broader acceptance open | Gateway GLM 5.1 with documented thinking disabled produced two validated three-entry drafts in 12.1/13.7 seconds; billed costs were $0.0022806/$0.002725. This is the local default only. Earlier GLM 5.3/Qwen timeouts and direct Gemma TLS resets remain unexplained, with failed-request billing unknown. | Engineering follows the [sanitized evaluation record](near-ai-evaluation-2026-09-04.md) for representative source/clue quality, layout, reliability and paid delivery/recovery. Do not equate two synthetic successes with publication readiness or production activation. |
 
 ## Facilitator inventory
 
@@ -128,3 +129,12 @@ wallet state before promising first-use compatibility.
   unimplemented; no public claim route, configured issuer key or relayer exists.
   No provider call, payment, chain transaction, production migration, deployment,
   Render setting or launch-flag change. See [workflow](base-learning-workflow.md).
+- 2026-09-04, session 4: Investigated public GitHub/docs and social search, then
+  separated key authentication from model/network behavior. The supplied key
+  works; GLM 5.1 with documented thinking disabled passed SDK and source-draft
+  checks with matching billing records. Updated the local default without
+  increasing app limits or adding fallback. Added safe reproducible diagnostics
+  and billing IDs in evaluator output. Unit suite 221/221, lint, typecheck and
+  Node 20 production build pass. Staking linkage, representative quality,
+  Gemma transport, and paid integration remain open. No secret-file/Render edit,
+  chain transaction, migration, production deployment or launch-flag change.

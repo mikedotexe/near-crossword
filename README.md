@@ -125,13 +125,19 @@ Mock mode moves no funds, accepts no payment as settled, and loses its state
 when the process restarts. It is designed for product and browser testing.
 
 Real clue generation uses `NEAR_AI_API_KEY`, optional `NEAR_AI_BASE_URL`
-(default `https://cloud-api.near.ai/v1`), and `V2_AI_MODEL` (initial evaluation
-candidate `z-ai/glm-5.3-flash`). It has no Anthropic dependency or fallback.
+(default `https://cloud-api.near.ai/v1`), and `V2_AI_MODEL` (default
+`zai-org/GLM-5.1-FP8`). This model uses its documented non-thinking mode and
+passed live source-draft checks. Other model overrides keep provider reasoning
+defaults; they are not automatically approved by a catalog listing.
+It has no Anthropic dependency or fallback.
 Leave `X402_ENABLED=false` until provider and payment acceptance checks pass.
 See the [backend guide](src/server/v2/README.md) for limits and recovery behavior.
 Source-grounded lessons are available through a separate draft generator and
 the opt-in `yarn ai:evaluate --env-file /path/to/ignored/.env` check, not yet the
 public creator route. See [live check results](docs/near-ai-evaluation-2026-09-04.md).
+The separate `yarn ai:diagnose --env-file /path/to/ignored/.env --mode auth`
+checks key acceptance without inference. Explicit chat/stream probes may consume
+credits; billing lookup uses the returned `Inference-Id`, not `X-Request-Id`.
 
 For Postgres-backed development:
 

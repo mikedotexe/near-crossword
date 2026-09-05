@@ -1,7 +1,7 @@
 # Reshape session checkpoint
 
-Last implementation session: 2026-09-04, America/Los_Angeles, session 3 after
-`a373f7e` (Base escrow and source-grounded drafts).
+Last implementation session: 2026-09-04, America/Los_Angeles, session 4 after
+`cf560e6` (private learning review and durable Base claim issuance).
 
 Read this after the [work order](reshape-action-plan.md). It is a continuation
 record, not evidence of deployment. Live gates remain in
@@ -21,23 +21,23 @@ not unique humans or learning. Manual authoring remains valid.
 - Worktree: `/Users/mikepurvis/other/near-crossword-launch-candidate`
 - Branch: `codex/early-launch-discovery`
 - Planning baseline: `83d1cb8`; prior implementation commits: `8f475e3` and
-  `a373f7e`. This session follows Mike's approval of durable claim issuance and
-  private sponsor review. An app restart interrupted verification; work resumed
-  in the same worktree without losing changes.
+  `a373f7e`, followed by `cf560e6`. Session 4 follows Mike's request to investigate
+  NEAR AI API failures through GitHub, social research and controlled live calls.
 - The original `/Users/mikepurvis/other/near-crossword` worktree remains on
   `codex/crossword-campaigns` with pre-existing changes. Do not overwrite it or
   assume it is the launch-candidate branch. Recheck both worktrees next session.
 - No merge, push, Render configuration change, production migration, chain
-  transaction, or deployment was performed. All nine migrations were applied
-  twice to isolated local test schemas only, including new migration 009.
+  transaction, or deployment was performed. The original ignored `.env` was not
+  edited or copied. Session 3 applied all nine migrations twice to isolated local
+  schemas; session 4 did not run migrations or change database/contract code.
 
 ## Milestone state
 
 | Work | Current state | Still required |
 | --- | --- | --- |
-| R1 account/credits | Key supplied locally; live inference not proven | Default organization/credits, exact farm/pool/rate, and a working bounded inference request; see live check record |
-| R2a provider adapter | Implemented and locally tested; live calls time out | Live model/schema compatibility, clue quality, latency and usage evaluation |
-| R2b lesson/source drafts | Generator/validation plus private persisted review API implemented | Live evaluation, review UI and versioned paid generation orchestration |
+| R1 account/credits | Key accepted; live inference and billing records observed | Intended default organization's credit source/staking linkage and exact farm/pool/rate |
+| R2a provider adapter | GLM 5.1 non-thinking default passes live bounded SDK/source requests | Representative quality, reliability, layout and cost evaluation; real credit-exhaustion acceptance |
+| R2b lesson/source drafts | Two live synthetic drafts validate; private persisted review API implemented | Human quality/layout review, review UI and versioned paid generation orchestration |
 | R3a contract design | Implemented locally with shared typed-data fixture | Independent security review and integration review |
 | R3b contract/accounting | Solidity tests plus durable DB allocation/signature recovery pass | Production chain/eligibility/signer adapters, event ingestion/reorg recovery, live reconciliation, and deployment acceptance |
 | R4 workflows | Private review API and immutable approval/funding boundary locally tested | Sponsor/participant UI, real completion/wallet verification, email path acceptance, consent/retention and export |
@@ -51,9 +51,11 @@ not unique humans or learning. Manual authoring remains valid.
   the pinned compatible SDK, NEAR-only HTTPS endpoints, disabled redirects,
   30-second total deadline, 4,096 output tokens, and no automatic retries.
 - Dedicated `NEAR_AI_API_KEY`, optional `NEAR_AI_BASE_URL`, configurable
-  `V2_AI_MODEL`; first model candidate is `z-ai/glm-5.3-flash`. No Anthropic
-  runtime dependency or fallback. Gemma is absent from the gateway catalog but
-  has an advertised direct endpoint; connectivity and model access are unproven.
+  `V2_AI_MODEL`; live-tested local default is `zai-org/GLM-5.1-FP8` with
+  `chat_template_kwargs.enable_thinking=false` for this exact model only.
+  Other models keep provider reasoning defaults; no automatic failover.
+  No Anthropic runtime dependency. Gemma has an advertised direct endpoint but
+  direct TLS connections fail from this host; it remains absent from the gateway.
 - Strict exact-count clue output, normalized distinct answers, and rejection
   of malformed, truncated, or unusable drafts. Safe errors for exhausted
   credits, authentication, rate limits, timeout, and upstream failure.
@@ -72,7 +74,10 @@ not unique humans or learning. Manual authoring remains valid.
 - Pinned Forge/OpenZeppelin tooling and forge-std submodule, a dedicated CI job,
   and an exit-code-preserving test launcher. The global Forge is not changed.
 - `scripts/evaluate-near-ai.ts`: one opt-in bounded source-draft request using
-  only synthetic material, sanitized outcome/count/usage reporting, no x402.
+  only synthetic material, sanitized outcome/count/usage and safe support/billing
+  identifiers, no x402. `scripts/diagnose-near-ai.ts` separates non-inference auth
+  and billing checks from one-call bounded chat/stream probes. No raw prompt,
+  output, reasoning, credential or provider-error-body logging.
 - Session 3: migration 009 and `src/server/base/` add private revisions/approval,
   source/review hashes and answer-free public terms, a canonical hash fixture,
   verified funding bindings, unique account/slot allocations, and complete
@@ -94,7 +99,21 @@ NEAR. The live product has not switched networks or gained multi-recipient claim
 
 ## Verification
 
-Session 3 checks use actual isolated Postgres 16 databases with synthetic chain/
+Session 4 checks:
+
+- Full unit suite **221/221** on Node 20.18.3, including model-specific thinking
+  behavior and new diagnostic authentication, redaction, deadline, stream
+  completion and missing-billing-record tests. Lint, typecheck and Next production
+  build pass on the same Node version.
+- Live GLM 5.1 SDK probe and two source drafts passed. The updated app evaluator
+  used its ordinary 30-second deadline on Node 20.18.3 and completed in 13.728 s.
+  Both drafts' source validation passed; required human review was preserved.
+  Observed provider billing was $0.0022806 and $0.002725 for the source drafts.
+- No dependency/lockfile, database, contract, frontend or deployed configuration
+  changes. Database, Rust/Solidity, browser and audit checks were not rerun in
+  session 4; their prior evidence below remains historical.
+
+Session 3 checks (historical) use actual isolated Postgres 16 databases with synthetic chain/
 eligibility ports and public test signer keys. No live inference or chain calls
 were performed. Session 2 live inference attempts remain documented below.
 
@@ -114,13 +133,12 @@ were performed. Session 2 live inference attempts remain documented below.
 - Production build passed under Node 20.18.3. No Rust files changed or Rust
   checks reran this session. Solidity remains pinned to 0.8.30.
 
-See [live NEAR AI observations](near-ai-evaluation-2026-09-04.md). GLM and a
-catalog-ready Qwen model timed out; direct endpoints reset connections; the
-older Qwen 3.5 ID returns model-not-found. No successful inference, usage/cost,
-or staking-credit linkage is established. No model default or paid flag changed.
-Mike has been asked to try a tiny Cloud prompt in the key's organization and
-confirm credits. Do not repeat a broad model sweep or assume a larger stake is
-the solution before checking that evidence.
+See [live NEAR AI observations](near-ai-evaluation-2026-09-04.md) for the working
+recipe and the preserved earlier failures. Protected auth and real completions
+now rule out a universally invalid key. They do not explain every model/route
+failure or establish staking-credit linkage. No paid flag changed. Mike's next
+account task is to confirm credit source and exact staking configuration, not to
+replace the key or add stake simply to obtain an inference response.
 
 ## Start here next session
 
@@ -138,10 +156,11 @@ the solution before checking that evidence.
    expose an authenticated claim/recovery API and sponsor/participant UI.
    Review layout viability and policy text before treating approval as publishable.
    Keep chain broadcast and public claim issuance disabled until these checks pass.
-4. After the Cloud connectivity/account check, repeat ONE bounded evaluation
-   with the dedicated local key. Confirm schema support, valid clues, source
-   support, layout, cost/latency, and real exhaustion behavior before paid
-   activation. No guessing a validator/pool or assuming advertised Gemma access.
+4. Keep the verified GLM 5.1 recipe for representative source/lesson evaluation.
+   Human-review clue correctness, factual support and layout viability; measure
+   acceptable-draft cost/latency and actual exhaustion before paid activation.
+   Mike separately verifies staking-credit linkage and exact farm configuration.
+   No broad model sweep, guessed validator/pool or assumed Gemma access is needed.
 5. Connect AI generation to private review through a new versioned paid workflow,
    not the old clue cache. Update this checkpoint and the launch register with actual new evidence.
    Do not close R2/R3 on the strength of this session alone.
