@@ -9,8 +9,9 @@ see [local setup and recovery](base-sepolia-local-setup.md). Session 10 confirms
 0.0001 test ETH and 1 native test USDC balances. CDP sign-in is complete, but the
 local endpoint slot is now present and read-only checked as Base Sepolia. Actual
 provider wire acceptance remains pending. Session 12 deployed the escrow and
-saved a claim-only CDP allowlist. Managed CDP sponsorship is account-billed, not
-an ETH deposit into this separate deployment wallet.
+saved a claim-only CDP allowlist. Session 13 configured a separate eligibility
+signer and prepared the one-slot approval preflight. Managed CDP sponsorship is
+account-billed, not an ETH deposit into this separate deployment wallet.
 
 ## Existing infrastructure investigation
 
@@ -61,12 +62,12 @@ exists. A dedicated Crossword paymaster configuration remains required.
    funds; no bridge or mainnet purchase is required for this test. Current
    observed balances are 0.0001 test ETH and 1 native test USDC.
 4. Confirm the exact funded preview once addresses and estimates are known.
-   Proposed scope, **not yet transaction-specific approval**: 1 test USDC campaign
-   principal, total deployment/funding gas at most 0.001 test ETH, no mainnet
-   funds. Separately approve the CDP sponsorship/billing cap. The user approved
-   transfers in general but directed identity discovery instead of selecting
-   a complete payer, recipient and refund configuration. Wallet creation alone
-   does not resolve the campaign/participant identities or approve a transaction.
+   Current next transaction preflight is a USDC approval from the deployer to the
+   deployed escrow for exactly 1 test USDC, with suggested max gas cost
+   0.000000542416 test ETH. See
+   [campaign preflight](base-sepolia-campaign-preflight-2026-09-05.md).
+   The later `createCampaign` transaction still needs a fresh estimate, schedule,
+   terms hash and separate approval. No mainnet funds.
 
 ## Engineering: staging and no-spend checks
 
@@ -80,10 +81,12 @@ exists. A dedicated Crossword paymaster configuration remains required.
    canonical history and finality policy. Configure an isolated staging Postgres
    target, migrations through 013 and a supervised healthy scanner. Do not point
    the staging process at the production NEAR database by accident.
-3. Use a credential-free HTTPS staging URL for the proxy, reachable by the hosted
+3. Eligibility signer is configured locally as
+   `0xD7F85d32390329cce4e7375d121c912fd3119bF5`; its secret is in ignored local
+   env and Keychain, not chat. Use a credential-free HTTPS staging URL for the proxy, reachable by the hosted
    wallet. Verify the real email callback/session. Configure the independent
-   eligibility signer and approved account/factory/proxy/EntryPoint/paymaster
-   pins. The current proxy explicitly supports EntryPoint 0.6 only.
+   account/factory/proxy/EntryPoint/paymaster pins. The current proxy explicitly
+   supports EntryPoint 0.6 only.
 4. Prove an unauthenticated/invalid-token request cannot reach CDP, no private
    URL/token is present in logs or client configuration, and the wallet forwards
    ERC-7677 context. Inspect only sanitized method/version/selector/size facts;

@@ -78,6 +78,21 @@ visible gas policy is `$1` global, `$1` per user, 10 operations per user, no
 cycle, with sponsor name `Crossword`. This does not prove wallet/provider wire
 compatibility yet.
 
+## Eligibility signer
+
+| Field | Value |
+| --- | --- |
+| Public address | `0xD7F85d32390329cce4e7375d121c912fd3119bF5` |
+| Keychain service | `xyz.crossword.base-sepolia.eligibility-signer` |
+| Keychain account | `base-sepolia-eligibility-signer` |
+| Local env | `BASE_ELIGIBILITY_PRIVATE_KEY` is present only in ignored `.env.local` |
+| Spending authority | none; do not fund this address |
+
+This signer is for test eligibility only. It can authorize reward claims, so it
+is operationally sensitive, but it cannot spend campaign funds without the
+escrow's separate sponsor-funded allocation. It remains distinct from deployer,
+paymaster, and participant identities.
+
 Created with the already installed Foundry Cast random-wallet/encrypted-keystore
 command. It is a Web3 V3 encrypted key, not a mnemonic wallet. The keystore and
 directory have permissions 0600/0700. A separately generated random password
@@ -125,11 +140,10 @@ explicit spending limits and a runbook.
 
 1. Wait for finalization of block `46440190`, then verify the deployment anchor
    and actual code hash at a finalized block.
-2. Configure the independent eligibility signer before creating any campaign.
-3. Establish the actual provider policy and explicit billing cap, review the
-   campaign funding estimate, and choose exact transaction identities. The wallet
-   above is the test deployer and proposed sponsor/refund address; no funded
-   campaign or participant claim approval is implied by deploying the escrow.
+2. Get explicit approval for the one-slot approval transaction recorded in
+   [base-sepolia-campaign-preflight-2026-09-05.md](base-sepolia-campaign-preflight-2026-09-05.md).
+3. After approval is mined, recompute the `createCampaign` estimate and record
+   exact schedule/terms hash before asking for the second transaction approval.
 4. Complete the [live acceptance checklist](base-sepolia-sponsorship-acceptance.md):
    reviewed deployment/account pins, real session, healthy scanner, hosted
    wallet compatibility, bounded CDP responses and fresh zero-ETH participant.

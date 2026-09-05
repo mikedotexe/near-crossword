@@ -1,7 +1,7 @@
 # Reshape session checkpoint
 
-Last setup session: 2026-09-05, America/Los_Angeles, session 12 after
-`b04562c` (Base Sepolia deployment preflight).
+Last setup session: 2026-09-05, America/Los_Angeles, session 13 after
+`2b3837a` (Base Sepolia escrow deployment record).
 
 Read this after the [work order](reshape-action-plan.md). It is a continuation
 record, not evidence of deployment. Live gates remain in
@@ -34,7 +34,8 @@ not unique humans or learning. Manual authoring remains valid.
   Sepolia Paymaster configuration page. Session 11 validates the private endpoint
   locally with a read-only chain check and prepares the escrow deployment
   preflight. Session 12 deploys the escrow, records the deployment anchor and
-  saves a claim-only CDP allowlist.
+  saves a claim-only CDP allowlist. Session 13 configures a separate local
+  eligibility signer and prepares the 1-test-USDC approval preflight.
   See [local setup](base-sepolia-local-setup.md). The encrypted deployer is not a
   paymaster or fresh participant wallet, and no mainnet funding or
   transaction-specific approval is implied by creating/funding it.
@@ -63,7 +64,7 @@ not unique humans or learning. Manual authoring remains valid.
 | R2b lesson/source drafts | Two live synthetic drafts validate; private review API and manual editor implemented | Representative quality evaluation and versioned paid generation orchestration |
 | R3a contract design | Implemented locally with shared typed-data fixture | Independent security review and integration review |
 | R3b contract/accounting | Base Sepolia escrow deployed and latest-block reads match native USDC/empty state | Finalized deployment verification, reviewed RPC/finality policy, supervised scanner, scale validation, independent security review and live acceptance |
-| R4 workflows | Sponsor/player screens, approved publication, claim recovery and strict Sepolia gas proxy implemented locally; disabled local env, funded test deployer, validated CDP endpoint, deployed escrow and claim-only CDP allowlist | Independent eligibility signer, tiny campaign funding, live wire compatibility and fresh passkey/gas acceptance, operator gas recovery, sponsor wallet funding/control/dashboard, live email acceptance, fraud policy, retention/export |
+| R4 workflows | Sponsor/player screens, approved publication, claim recovery and strict Sepolia gas proxy implemented locally; disabled local env, funded test deployer, validated CDP endpoint, deployed escrow, claim-only CDP allowlist and local eligibility signer | One-slot approval/createCampaign, live wire compatibility and fresh passkey/gas acceptance, operator gas recovery, sponsor wallet funding/control/dashboard, live email acceptance, fraud policy, retention/export |
 | R5 Base x402 | Not started | EVM scheme/payer, facilitator configuration, first-wallet and settlement/recovery proof |
 | R6 pilot | Gated | Earlier milestones, reviewed release, explicit small budget and identities |
 
@@ -85,6 +86,10 @@ not unique humans or learning. Manual authoring remains valid.
   tighter 10-operation per-user cap. The deployment block was not finalized at
   the latest observation. No campaign funding or provider sponsorship request
   has occurred.
+- Session 13: generated a separate local eligibility signer, stored it in
+  ignored `.env.local` and macOS Keychain without printing it, and recorded only
+  its public address. Prepared the exact 1-test-USDC approval transaction
+  preflight. No approval, campaign creation or claim transaction was sent.
 - Session 8: private sponsorship permits bind a real session to a signed reward;
   the wallet passes a short-lived token in ERC-7677 context. The proxy checks
   exact canonical account/claim calls, pinned code/factory/EntryPoint/paymaster,
@@ -206,6 +211,15 @@ The payment scheme/browser payer is still
 NEAR. The live product has not switched networks or gained multi-recipient claims.
 
 ## Verification
+
+Session 13 checks, Node 20.18.3:
+
+- Eligibility signer address is
+  `0xD7F85d32390329cce4e7375d121c912fd3119bF5`; it has no spending role.
+  Approval preflight for native Base Sepolia USDC from the deployer to the
+  deployed escrow shows current allowance 0, nonce 1, amount `1000000` atomic
+  units, 56,240 estimated gas, 77,488 suggested gas limit and
+  0.000000542416 test ETH suggested max cost. No transaction was sent.
 
 Session 12 checks, Node 20.18.3:
 
