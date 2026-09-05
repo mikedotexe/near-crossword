@@ -20,6 +20,8 @@ yarn lint
 yarn typecheck
 yarn audit:production
 yarn test:unit
+# Set TEST_DATABASE_URL to a disposable local Postgres target, never production.
+yarn test:integration:base
 yarn test:browser
 cargo fmt --manifest-path contract-v2/Cargo.toml --check
 cargo clippy --manifest-path contract-v2/Cargo.toml --locked --all-targets -- -D warnings
@@ -29,6 +31,28 @@ yarn build
 ```
 
 ## Current local implementation evidence
+
+### Reshape session 3, 2026-09-04
+
+- Unit suite **209/209** under Node 20.18.3. New tests cover public/private
+  commitment boundaries, deterministic JSONB round-trip hashing, mutation
+  origin checks, strict inputs and bounded cancellable adapters.
+- Postgres integration **19/19**, also repeated with Node 20.18.3 and UTF-8
+  Postgres 16. All nine migrations apply and rerun in isolated random schemas.
+  Tests cover actual database sessions and private route handlers, approval/
+  revision races, duplicate creation, nonowner denial, unique slot/account
+  constraints, concurrent exhaustion, signer failures, exact persisted replay,
+  rotation, cutoff/grace/expiry, stale/forked state and sanitized errors.
+- Base contract regression **29/29**, including 256 fuzz cases and the stateful
+  8,192-call solvency invariant. Lint, typecheck and Node 20 production build pass.
+- Desktop/mobile browser regression **8/8**. No new frontend was added; the
+  private Base route handlers are covered by the database integration suite.
+- Chain/eligibility ports are test doubles; signatures use public fixture keys.
+  Real wallet ownership, completion, canonical event ingestion and full user
+  journeys remain unverified. Review is a gated private API, not a new UI or
+  publication. See [workflow](docs/base-learning-workflow.md).
+- No dependency/lockfile changes, Rust changes/checks, live provider request,
+  chain transaction, production migration, payment, Render change or deployment.
 
 ### Reshape session 2, 2026-09-04
 

@@ -1,7 +1,7 @@
 # Reshape session checkpoint
 
-Last implementation session: 2026-09-04, America/Los_Angeles, session 2 after
-`8f475e3` (NEAR AI adapter and Base design).
+Last implementation session: 2026-09-04, America/Los_Angeles, session 3 after
+`a373f7e` (Base escrow and source-grounded drafts).
 
 Read this after the [work order](reshape-action-plan.md). It is a continuation
 record, not evidence of deployment. Live gates remain in
@@ -20,13 +20,16 @@ not unique humans or learning. Manual authoring remains valid.
 
 - Worktree: `/Users/mikepurvis/other/near-crossword-launch-candidate`
 - Branch: `codex/early-launch-discovery`
-- Planning baseline: `83d1cb8`; implementation baseline: `8f475e3`. This session
-  follows R2b/R3b and Mike's newly supplied NEAR AI key.
+- Planning baseline: `83d1cb8`; prior implementation commits: `8f475e3` and
+  `a373f7e`. This session follows Mike's approval of durable claim issuance and
+  private sponsor review. An app restart interrupted verification; work resumed
+  in the same worktree without losing changes.
 - The original `/Users/mikepurvis/other/near-crossword` worktree remains on
   `codex/crossword-campaigns` with pre-existing changes. Do not overwrite it or
   assume it is the launch-candidate branch. Recheck both worktrees next session.
-- No merge, push, Render configuration change, migration, chain transaction,
-  or production deployment was performed in this session.
+- No merge, push, Render configuration change, production migration, chain
+  transaction, or deployment was performed. All nine migrations were applied
+  twice to isolated local test schemas only, including new migration 009.
 
 ## Milestone state
 
@@ -34,10 +37,10 @@ not unique humans or learning. Manual authoring remains valid.
 | --- | --- | --- |
 | R1 account/credits | Key supplied locally; live inference not proven | Default organization/credits, exact farm/pool/rate, and a working bounded inference request; see live check record |
 | R2a provider adapter | Implemented and locally tested; live calls time out | Live model/schema compatibility, clue quality, latency and usage evaluation |
-| R2b lesson/source drafts | Generator, provenance, fixtures, and validation implemented | Live evaluation; persisted human review and versioned paid/API workflow in R4/R5 |
+| R2b lesson/source drafts | Generator/validation plus private persisted review API implemented | Live evaluation, review UI and versioned paid generation orchestration |
 | R3a contract design | Implemented locally with shared typed-data fixture | Independent security review and integration review |
-| R3b contract/accounting | Solidity, replay/race/token tests, stateful solvency, event tests pass | Database issuance, event ingestion/reorg recovery, live reconciliation, and deployment acceptance |
-| R4 workflows | Not started | Additive DB/API work, eligibility, wallet control, email/consent, sponsor/participant views |
+| R3b contract/accounting | Solidity tests plus durable DB allocation/signature recovery pass | Production chain/eligibility/signer adapters, event ingestion/reorg recovery, live reconciliation, and deployment acceptance |
+| R4 workflows | Private review API and immutable approval/funding boundary locally tested | Sponsor/participant UI, real completion/wallet verification, email path acceptance, consent/retention and export |
 | R5 Base x402 | Not started | EVM scheme/payer, facilitator configuration, first-wallet and settlement/recovery proof |
 | R6 pilot | Gated | Earlier milestones, reviewed release, explicit small budget and identities |
 
@@ -70,30 +73,46 @@ not unique humans or learning. Manual authoring remains valid.
   and an exit-code-preserving test launcher. The global Forge is not changed.
 - `scripts/evaluate-near-ai.ts`: one opt-in bounded source-draft request using
   only synthetic material, sanitized outcome/count/usage reporting, no x402.
+- Session 3: migration 009 and `src/server/base/` add private revisions/approval,
+  source/review hashes and answer-free public terms, a canonical hash fixture,
+  verified funding bindings, unique account/slot allocations, and complete
+  EIP-712 records persisted before EOA signing. Retries and rotations preserve
+  allocations; no recipient changes or recycling. Capacity races run against
+  actual Postgres, not a mock repository.
+- Private `/api/base/reviews` routes require real sessions, enforce ownership
+  and same-origin mutations, and default off via `BASE_REVIEW_ENABLED=false`.
+  Approval binds revision plus both commitments. Funding binding freezes edits.
+  Private review can use manually authored source-grounded material; no provider
+  request or payment is triggered. See [backend workflow](base-learning-workflow.md).
 
 The public AI API still returns the existing topic/tone-based clue pairs. The
-source-grounded generator is separate, with no public route or persisted approval
-yet. The payment scheme/browser payer is still NEAR. The live product has not
-switched networks or gained multi-recipient claims.
+source-grounded generator is separate from the paid route; persisted review is
+available only through the gated private API. There is no public Base claim
+endpoint, deployed issuer key, production chain/eligibility adapter, or relayer.
+The test ports use synthetic evidence. The payment scheme/browser payer is still
+NEAR. The live product has not switched networks or gained multi-recipient claims.
 
 ## Verification
 
-Automated checks used local/mocked clients and no chain transactions. Separate
-bounded live inference attempts are documented below; none delivered a draft.
+Session 3 checks use actual isolated Postgres 16 databases with synthetic chain/
+eligibility ports and public test signer keys. No live inference or chain calls
+were performed. Session 2 live inference attempts remain documented below.
 
-- Full unit suite: **203/203**, including shared typed data and source drafts,
-  passed on deployment-target Node 20.20.2.
+- Full unit suite: **209/209**, including bounded adapters, private/public
+  commitments and review request guards, passed on Node 20.18.3.
+- New Postgres integration suite: **19/19**, including migration replay,
+  private HTTP/session authorization, revision races, exact recovery after
+  restart/failure, concurrent exhaustion, signer rotation, deadline boundaries,
+  and database uniqueness. Also run on Node 20.18.3 with a UTF-8 Postgres target.
 - Base suite: **29/29**, including 256 fuzz cases and a stateful invariant with
   128 sequences / 8,192 calls / zero unexpected reverts. Format check passes.
 - Desktop/mobile browser regression suite: **8/8**.
 - Lint, typecheck, Next production build: passed.
-- Production and full dependency audits at the high-severity threshold: passed.
-  The broader audit found a pre-existing ESLint `js-yaml` issue; pinning the
-  compatible 4.3.1 patch resolved it. Lint and the Node 20 build were rerun.
-- Immutable dependency install passed; the existing next-auth/nodemailer peer
-  warning remains recorded in [QA](../QA.md) alongside the open live email check.
-- Production build passed under Node 20.20.2. No Rust files changed or Rust
-  checks reran in this session. Solidity compiles with pinned 0.8.30.
+- Dependencies and lockfile unchanged this session. Session 2 immutable install
+  and high-severity audits remain historical evidence in [QA](../QA.md), along
+  with the existing next-auth/nodemailer peer warning and open live email check.
+- Production build passed under Node 20.18.3. No Rust files changed or Rust
+  checks reran this session. Solidity remains pinned to 0.8.30.
 
 See [live NEAR AI observations](near-ai-evaluation-2026-09-04.md). GLM and a
 catalog-ready Qwen model timed out; direct endpoints reset connections; the
@@ -107,20 +126,24 @@ the solution before checking that evidence.
 
 1. Read this checkpoint, action plan, launch register, and Base design; inspect
    branch/worktree state before editing. Preserve unrelated original-worktree work.
-2. Initialize the pinned submodule and dependencies, then review the local
-   contract/typed-data boundaries. Begin additive, versioned database/API work
-   for Base campaigns, one durable allocation per participant/slot, recipient
-   ownership, exact-authorization recovery, and canonical event ingestion.
-   Do not reuse NEAR payloads or mutate old liabilities implicitly.
-3. Connect the source-draft generator to a private sponsor review workflow with
-   persisted source/content hashes, reviewer identity, and approval state.
-   Define canonical public terms before funding/publication. Use a new paid
-   workflow version/idempotency scope for lesson output, not the old clue cache.
+2. Read `base-learning-workflow.md`. Implement the canonical Base funding/payment
+   reader and event ledger with deduplication, finality policy, reorg rewind and
+   reconciliation. `BaseChainReader` is only a trusted port now, not a production
+   implementation. Choose/verify confirmation and freshness policy for the
+   deployment; the fixture's block-age setting is not mainnet policy.
+3. Build persisted participant completion and wallet challenges bound to the
+   frozen revision, authenticated account and recipient. Implement the real
+   eligibility verifier and its private audit receipts. Address verified-email
+   persistence for Google accounts, consent/retention and abuse policy. Then
+   expose an authenticated claim/recovery API and sponsor/participant UI.
+   Review layout viability and policy text before treating approval as publishable.
+   Keep chain broadcast and public claim issuance disabled until these checks pass.
 4. After the Cloud connectivity/account check, repeat ONE bounded evaluation
    with the dedicated local key. Confirm schema support, valid clues, source
    support, layout, cost/latency, and real exhaustion behavior before paid
    activation. No guessing a validator/pool or assuming advertised Gemma access.
-5. Update this checkpoint and the launch register with actual new evidence.
+5. Connect AI generation to private review through a new versioned paid workflow,
+   not the old clue cache. Update this checkpoint and the launch register with actual new evidence.
    Do not close R2/R3 on the strength of this session alone.
 
 Account setup does not block local contract or source-draft work. Defer service

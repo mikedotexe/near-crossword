@@ -7,8 +7,8 @@ Next session: [implementation checkpoint](docs/reshape-progress.md).
 
 The product description below covers the current NEAR v2 application. The
 agreed Base, many-recipient learning experience is under development; the
-[Base escrow](contract-base/README.md) is implemented and tested locally but
-not integrated or deployed. This branch uses NEAR AI for generation, while production remains
+[Base escrow](contract-base/README.md) and [private review/issuance backend](docs/base-learning-workflow.md)
+are locally tested, but not connected to production claims or deployed. This branch uses NEAR AI for generation, while production remains
 on the release recorded in the launch register.
 
 **Fund with anything. Win anywhere.**
@@ -164,6 +164,8 @@ yarn lint
 yarn typecheck
 yarn audit:production
 yarn test:unit
+# Requires TEST_DATABASE_URL pointing to a disposable local Postgres target.
+yarn test:integration:base
 yarn test:browser
 yarn test:contract:v2
 yarn contract:v2:build

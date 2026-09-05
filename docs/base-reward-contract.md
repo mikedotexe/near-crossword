@@ -2,7 +2,9 @@
 
 Status: R3 local implementation checkpoint, 2026-09-04. The specification now has
 a [Solidity implementation and tests](../contract-base/README.md). It is not
-deployed, independently audited, or connected to application claim issuance.
+deployed or independently audited. The [database issuer](base-learning-workflow.md)
+is now locally tested with injected chain/eligibility adapters, not connected to
+production or a public claim route.
 See the [work order](reshape-action-plan.md) and [session checkpoint](reshape-progress.md).
 
 ## First-version decision
@@ -71,9 +73,10 @@ Track used slots and claimed participant IDs per campaign. Expose read-only
 campaign state, slot/participant use, campaign outstanding principal, and
 `totalReserved`. Paid amount can be derived from `paidCount * rewardAtomic`.
 
-The public terms commitment covers the content revision, reward/count, timing,
+The public terms commitment covers the campaign UUID, content revision, reward/count, timing,
 eligibility policy version, privacy/consent terms, and signer-control policy.
-Define canonical serialization and shared hash fixtures before API integration.
+The [private workflow specification](base-learning-workflow.md) now defines
+versioned ordered JSON serialization and a conformance fixture for these terms.
 Publication must verify that the committed public terms match the fixed on-chain
 reward, count, and timing fields; a hash alone cannot establish that consistency.
 Do not put raw answers, answer hashes, email addresses, or private consent
@@ -232,7 +235,9 @@ link a wallet to this campaign publicly; explain that before wallet binding.
 `contract-base/` now pins Solidity 0.8.30, Forge 1.7.1, OpenZeppelin 5.6.1, and
 forge-std 1.16.2. The `viem` helper and Solidity tests share a digest/signature
 fixture. Local funding/claim/refund events and stateful solvency tests pass.
-The database/API integration and live event ingestion below remain next work;
+Private review and database-backed allocation/signature recovery now have real
+Postgres integration tests. Production chain/eligibility adapters, the public
+claim workflow, and live event ingestion below remain next work;
 these tests are not a production deployment or audit.
 
 - Unit tests for exact prefunding, bad timing/amounts, token failures, fee-on-

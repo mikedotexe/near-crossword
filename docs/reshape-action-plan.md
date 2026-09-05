@@ -155,8 +155,10 @@ Source-draft implementation completed locally in session 2:
 
 Remaining R2/R4 integration work:
 
-- Wire source drafts into private authoring with persisted human approval and
-  a separately versioned paid workflow. Evaluate clue correctness, layout viability, latency,
+- Private source authoring/review and persisted hash-bound human approval now
+  have a gated API and real Postgres tests; see [workflow details](base-learning-workflow.md).
+  Connect the generator through a separately versioned paid workflow and build
+  the review UI. Evaluate clue correctness, layout viability, latency,
   token cost, and retry behavior on representative sponsor material.
 - Preserve the existing verification/generation/settlement ordering and durable
   payment identifiers. Provider rejection, exhausted credits, or failed output
@@ -175,7 +177,8 @@ fixed reward slots, recipient-bound EIP-712 authorizations, campaign-scoped
 participant IDs, no slot recycling, sponsor-controlled pause/signer epochs,
 and refunds after the redemption deadline. These rules now have local Solidity,
 EOA/ERC-1271 and viem conformance tests, event checks, and stateful solvency tests.
-Database issuance, event ingestion/reorg recovery, and independent review remain
+Database allocation and EOA signature recovery are locally tested using injected
+chain/eligibility ports. Production adapters, event ingestion/reorg recovery, and independent review remain
 before R3 can be considered complete. The application still attests completion and participant
 policy; contract receipts cannot prove learning or unique humans.
 

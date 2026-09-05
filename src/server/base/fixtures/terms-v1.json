@@ -1,0 +1,24 @@
+{
+  "campaignId": "10000000-0000-4000-8000-000000000001",
+  "fixtureNow": 1800000000,
+  "publicTerms": {
+    "version": "base-learning-terms:v1",
+    "campaignId": "10000000-0000-4000-8000-000000000001",
+    "revision": 1,
+    "contentHash": "0xe9bcd7414d0e1ec148a2b78789044997180c99149d58c6b27d8e92f77e7a35bb",
+    "chainId": 31337,
+    "escrow": "0x4444444444444444444444444444444444444444",
+    "token": "0x5555555555555555555555555555555555555555",
+    "sponsor": "0x6666666666666666666666666666666666666666",
+    "initialSigner": "0x19e7e376e7c213b7e7e7e46cc70a5dd086daff2a",
+    "rewardAtomic": "100000",
+    "maxClaims": 3,
+    "startsAt": 1799999940,
+    "endsAt": 1800003600,
+    "claimDeadline": 1800090000,
+    "eligibilityPolicy": "verified-email-wallet-completion:v1",
+    "privacyPolicy": "private-email-optional-sponsor-contact:v1",
+    "signerPolicy": "sponsor-pause-rotation-no-deadline-extension:v1"
+  },
+  "termsHash": "0x496e19324a42909f3eb3ce959302dfcf9abefae398fd6708973e1f0f738d76fa"
+}

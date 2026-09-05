@@ -43,6 +43,9 @@ jobs:
       - run: yarn lint
       - run: yarn typecheck
       - run: yarn test:unit
+      - run: yarn test:integration:base
+        env:
+          TEST_DATABASE_URL: postgresql://near_crossword:near_crossword_dev@127.0.0.1:5432/near_crossword
       - run: yarn build
       - run: yarn playwright install --with-deps chromium
       - run: yarn test:browser
