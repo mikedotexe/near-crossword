@@ -35,6 +35,24 @@ yarn test:acceptance:base-build
 
 ## Current local implementation evidence
 
+### Reshape session 14, 2026-09-05: one-slot campaign funding
+
+- Approval block `46441008` was finalized before campaign creation. The stale
+  schedule was refreshed immediately before signing; final terms start at
+  2026-09-05 18:31:50 PDT, end at 2026-09-06 00:31:50 PDT, and use claim
+  deadline 2026-09-07 00:31:50 PDT with terms hash
+  `0x6f544fbc2b3e1f76ab16fa36aea6b2cd6c76c306bd64a941d91d73968bb01e89`.
+- After Mike's explicit approval, `createCampaign` transaction
+  `0x1a1f49f3c06d37c1fe2295ad0188f0e27e78a8b1c0b4636a9e7f0f4175bf6182`
+  succeeded at block `46444150`, creating campaign `1`. It used 276,149 gas and
+  0.000001656894 test ETH.
+- On-chain state now shows `campaignCount() = 1`,
+  `totalReserved() = 1000000`, `outstanding(1) = 1000000`, escrow USDC
+  `1000000`, deployer USDC `0`, and allowance `0`. The campaign has paid 0,
+  refunded 0, signer epoch 1, not paused and not closed.
+- Campaign finality, provider sponsorship, fresh hosted wallet claim, production
+  setting and mainnet transfer remain open.
+
 ### Reshape session 13, 2026-09-05: approval and campaign preflight
 
 - A separate local eligibility signer was generated and stored only in ignored
@@ -49,7 +67,8 @@ yarn test:acceptance:base-build
   Terms hash is
   `0xcb93af85bf4d58a2377067d03efc3ead972cdc4f344e0b21e9467dd00a535163`, with
   starts at 2026-09-05 16:49:54 PDT, ends at 2026-09-05 22:49:54 PDT, and claim
-  deadline at 2026-09-06 22:49:54 PDT.
+  deadline at 2026-09-06 22:49:54 PDT. This preflight was later superseded by
+  the session 14 preflight before sending.
 - Approval finality, `createCampaign`, provider sponsorship, fresh hosted wallet
   claim, production setting and mainnet transfer remain open.
 

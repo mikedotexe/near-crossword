@@ -1,9 +1,10 @@
 # Base Sepolia deployment record, 2026-09-05
 
-Status: deployed on Base Sepolia after Mike's explicit approval. No campaign has
-been created, no USDC has been approved/transferred into the escrow, no provider
-sponsorship request has been made, and no fresh hosted-wallet claim has been
-tested.
+Status: deployed on Base Sepolia after Mike's explicit approval. A later session
+approved 1 test USDC and created campaign `1`; see
+[the campaign record](base-sepolia-campaign-preflight-2026-09-05.md). No
+provider sponsorship request has been made, and no fresh hosted-wallet claim has
+been tested.
 
 ## Environment checks
 
@@ -105,10 +106,9 @@ allowlist, not that our proxy has accepted real CDP `pm_getPaymaster*` responses
 
 ## Remaining launch gates
 
-1. Wait for approval transaction finality, then verify allowance at a finalized
-   block before campaign creation.
-2. Create one tiny test campaign after explicit transaction approval.
-3. Prove the hosted Base Account/paymaster wire path with a genuinely fresh
+1. Wait for campaign transaction finality, then verify campaign accounting at a
+   finalized block before issuing a claim.
+2. Prove the hosted Base Account/paymaster wire path with a genuinely fresh
    zero-ETH participant wallet and exact finalized `RewardPaid` receipt.
-4. Keep every production and local spending gate disabled until that acceptance
+3. Keep every production and local spending gate disabled until that acceptance
    evidence is complete.

@@ -1,13 +1,13 @@
 # Local Base Sepolia setup
 
-Recorded 2026-09-05, sessions 9-12. Testnet deployment only: no campaign funding,
-provider sponsorship request, fresh hosted-wallet claim, mainnet transfer or
-production change.
+Recorded 2026-09-05, sessions 9-14. Testnet deployment and one-slot campaign
+funding only: no provider sponsorship request, fresh hosted-wallet claim,
+mainnet transfer or production change.
 
 ## Configuration state
 
 - Active worktree: `/Users/mikepurvis/other/near-crossword-launch-candidate`,
-  branch `codex/early-launch-discovery`, after `184379a`.
+  branch `codex/early-launch-discovery`, after `8a4b951`.
 - Its new ignored `.env.local` is owner-readable/writable only (0600). It sets
   chain 84532 and the public `https://sepolia.base.org` RPC. All claim, signing,
   indexer, sponsorship, publication, x402 and broadcast gates remain false.
@@ -15,15 +15,15 @@ production change.
   validates as the CDP Base Sepolia RPC path, and a read-only `eth_chainId` call
   returned `0x14a34`. The endpoint was not printed or committed. It is still a
   private credential, not a public proxy URL and not a launch gate by itself.
-- The Base Sepolia Paymaster portal page currently shows Paymaster enabled with
-  a visible default $1 global limit, $1 per-user limit, 1000 per-user operations
-  and no contract allowlist. Treat that as **not live-ready** until the escrow is
-  deployed, the claim contract/function allowlist is set, and provider/billing
-  evidence is reviewed.
+- The Base Sepolia Paymaster portal page shows Paymaster enabled with a claim-only
+  allowlist entry for the deployed escrow's `claim` selector, visible $1 global
+  and per-user limits, 10 per-user operations and sponsor name `Crossword`. Treat
+  that as **not live-ready** until hosted-wallet/provider wire evidence and actual
+  provider billing/cost evidence are reviewed.
 - Deployment preflight is recorded in
   [base-sepolia-deployment-preflight-2026-09-05.md](base-sepolia-deployment-preflight-2026-09-05.md).
-  It now records the successful Base Sepolia escrow deployment and CDP allowlist.
-  The deployment block was observed but not finalized yet.
+  It records the successful Base Sepolia escrow deployment and CDP allowlist. The
+  deployment block has since been finalized and the finalized code hash matched.
 - Code/deployment pins, provider limits and the public HTTPS proxy URL remain
   blank. No addresses or review flags were guessed to bypass the gates.
 - The original repo's `.env`, facilitator credentials, AWS and Render remain
@@ -58,6 +58,8 @@ fresh participant Base Account. Keep all those roles separate.
 | Post-deploy balance | 0.000088826683397187 test ETH and 1 native test USDC; nonce 1 |
 | Approval spend | USDC approval used 55,437 gas and 0.000000332622 test ETH |
 | Post-approval balance | 0.000088488025569621 test ETH and 1 native test USDC; nonce 2 |
+| Campaign creation spend | `createCampaign` used 276,149 gas and 0.000001656894 test ETH |
+| Post-campaign balance | 0.000086822276296911 test ETH and 0 native test USDC; nonce 3 |
 
 ## Deployed escrow
 
@@ -71,6 +73,7 @@ fresh participant Base Account. Keep all those roles separate.
 | Actual runtime code hash | `0xebc5371a9a09231045c01981600b619436374e6226048855a6116d1d0c2dce00` |
 | Immutable token | `0x036CbD53842c5426634e7929541eC2318f3dCF7e` |
 | Initial state | `totalReserved() = 0`, `campaignCount() = 0` |
+| Funded campaign | Campaign `1` created by transaction `0x1a1f49f3c06d37c1fe2295ad0188f0e27e78a8b1c0b4636a9e7f0f4175bf6182`; `totalReserved() = 1000000`, `outstanding(1) = 1000000` |
 | Finality | Deployment finalized and code hash verified at later observation; latest `46441104`, finalized `46440531` |
 
 CDP Paymaster on Base Testnet (Sepolia) was saved with one `Crossword Claim`
@@ -140,14 +143,13 @@ explicit spending limits and a runbook.
 
 ## Continue setup
 
-1. Wait for finalization of approval block `46441008`, then verify allowance at
-   a finalized block before campaign creation.
-2. The one-slot approval transaction recorded in
+1. Wait for finalization of campaign block `46444150`, then verify campaign
+   state against finalized chain history before issuing a claim.
+2. The one-slot approval and campaign transactions recorded in
    [base-sepolia-campaign-preflight-2026-09-05.md](base-sepolia-campaign-preflight-2026-09-05.md)
-   is now mined, with allowance `1000000`.
-3. Get explicit approval for the recorded `createCampaign` transaction. Recompute
-   if chain time passes the proposed `startsAt`.
-4. Complete the [live acceptance checklist](base-sepolia-sponsorship-acceptance.md):
+   are mined. Campaign `1` holds exactly 1 native test USDC in escrow; allowance
+   is back to zero.
+3. Complete the [live acceptance checklist](base-sepolia-sponsorship-acceptance.md):
    reviewed deployment/account pins, real session, healthy scanner, hosted
    wallet compatibility, bounded CDP responses and fresh zero-ETH participant.
    An encrypted deployer wallet does not satisfy the fresh-passkey test.

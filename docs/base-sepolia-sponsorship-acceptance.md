@@ -1,7 +1,8 @@
 # Base Sepolia sponsorship acceptance
 
-Status: Base Sepolia escrow deployed, updated 2026-09-05. No campaign funding,
-provider sponsorship request or fresh hosted-wallet claim has been performed.
+Status: Base Sepolia escrow deployed and one-slot campaign funded, updated
+2026-09-05. No provider sponsorship request or fresh hosted-wallet claim has
+been performed.
 CDP faucet transfers funded the test deployer on Base Sepolia. Local synthetic proofs are in
 [QA](../QA.md); architecture is in [chapter 09](../md-CLAUDE-chapters/09-claim-sponsorship.md).
 Session 9 adds an encrypted test-deployer wallet and disabled local env profile;
@@ -10,8 +11,9 @@ see [local setup and recovery](base-sepolia-local-setup.md). Session 10 confirms
 local endpoint slot is now present and read-only checked as Base Sepolia. Actual
 provider wire acceptance remains pending. Session 12 deployed the escrow and
 saved a claim-only CDP allowlist. Session 13 configured a separate eligibility
-signer, prepared the one-slot approval preflight and sent the exact 1-test-USDC
-approval after explicit approval. Deployment finality is verified; approval
+signer and sent the exact 1-test-USDC approval after explicit approval. Session
+14 verified approval finality, recomputed the stale campaign schedule and created
+campaign `1` after explicit approval. Deployment finality is verified; campaign
 finality is pending. Managed CDP sponsorship is account-billed, not an ETH
 deposit into this separate deployment wallet.
 
@@ -62,15 +64,16 @@ exists. A dedicated Crossword paymaster configuration remains required.
    for the exact campaign, separately from the fresh participant and server eligibility signer.
    Never put a sponsor/deployer key into the web service. Use test-only faucet
    funds; no bridge or mainnet purchase is required for this test. Current
-   observed balances are 0.0001 test ETH and 1 native test USDC.
-4. Confirm the exact funded preview once addresses and estimates are known.
-   The USDC approval is complete:
+   observed balances after campaign creation are 0.000086822276296911 test ETH
+   and 0 native test USDC.
+4. The USDC approval is complete:
    `0xf472670687b4657841cf4cf7d10c2d5049b26c3e11d0e591f346392f291065f2`.
-   Current next transaction preflight is `createCampaign` for one 1-test-USDC
-   slot, with suggested gas limit 371,660 and suggested max gas cost
-   0.00000260162 test ETH. See
-   [campaign preflight](base-sepolia-campaign-preflight-2026-09-05.md). No
-   mainnet funds.
+   Campaign `1` is funded with exactly one 1-test-USDC slot by
+   `createCampaign` transaction
+   `0x1a1f49f3c06d37c1fe2295ad0188f0e27e78a8b1c0b4636a9e7f0f4175bf6182`.
+   Escrow allowance is back to zero and `outstanding(1) = 1000000`. See
+   [campaign preflight and result](base-sepolia-campaign-preflight-2026-09-05.md).
+   No mainnet funds.
 
 ## Engineering: staging and no-spend checks
 
@@ -78,7 +81,8 @@ exists. A dedicated Crossword paymaster configuration remains required.
    `0x036CbD53842c5426634e7929541eC2318f3dCF7e`: contract
    `0x77fdCEF7d08c54eD2a87FD54fBf24a660fa2A304`, transaction
    `0x0419e4a8a2334233cec9272a846f95b77cb35915931e5115599d1c454e6a7a03`,
-   block `46440190`. Verify finalization before indexer activation. See
+   block `46440190`, now finalized with matching code hash. Campaign `1` was
+   funded at block `46444150`; wait for campaign finality before issuing a claim. See
    [the 2026-09-05 deployment record](base-sepolia-deployment-preflight-2026-09-05.md).
 2. Record deployment anchor/code hash and independently verify RPC chain, token,
    canonical history and finality policy. Configure an isolated staging Postgres
@@ -103,9 +107,9 @@ exists. A dedicated Crossword paymaster configuration remains required.
 
 1. Sponsor creates/approves the lesson and layout. Confirm exact chain, USDC
    atomic amount, payer, escrow recipient, signer, gas bound and refund address
-   immediately before each funded step. Prefund one 1-USDC slot; never top up
-   from an operator reserve to mask a shortfall. Link and publish only after
-   finalized accounting matches reviewed terms.
+   immediately before each funded step. One 1-USDC slot is now prefunded; never
+   top up from an operator reserve to mask a shortfall. Link and publish only
+   after finalized accounting matches reviewed terms.
 2. Start a genuinely fresh Base Account/passkey session. Mike handles the wallet's
    passkey/biometric prompts. Record public recipient, zero ETH, code/nonce state
    and supported entrypoint before the flow. No EOA fixture may substitute.

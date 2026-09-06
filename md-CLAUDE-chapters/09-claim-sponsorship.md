@@ -113,11 +113,17 @@ Session 13 verifies deployment finality and sends the approved 1-test-USDC
 allowance transaction:
 `0xf472670687b4657841cf4cf7d10c2d5049b26c3e11d0e591f346392f291065f2`.
 The approval sets escrow allowance to `1000000` atomic units and uses
-0.000000332622 test ETH. The approval block is mined but not finalized at the
-latest observation. A one-slot `createCampaign` preflight is recorded with terms
-hash `0xcb93af85bf4d58a2377067d03efc3ead972cdc4f344e0b21e9467dd00a535163`,
-starting 2026-09-05 16:49:54 PDT. It still needs explicit approval before any
-campaign funding.
+0.000000332622 test ETH. Session 14 verifies approval finality, recomputes the
+campaign schedule because the older preflight had gone stale, and sends
+`createCampaign` after explicit approval:
+`0x1a1f49f3c06d37c1fe2295ad0188f0e27e78a8b1c0b4636a9e7f0f4175bf6182`.
+Campaign `1` is funded with exactly `1000000` atomic units of native Base
+Sepolia USDC, with terms hash
+`0x6f544fbc2b3e1f76ab16fa36aea6b2cd6c76c306bd64a941d91d73968bb01e89`,
+starting 2026-09-05 18:31:50 PDT and claim deadline 2026-09-07 00:31:50 PDT.
+Deployer USDC is 0, escrow USDC is `1000000`, allowance is 0, and
+`totalReserved()`/`outstanding(1)` both equal `1000000`. Campaign finality,
+provider sponsorship and the fresh hosted-wallet claim remain open.
 
 Mainnet custody stays out of the early launch path. For Base Sepolia, use CDP or
 Base faucets first. If a real Coinbase send is later required, it must be a tiny
