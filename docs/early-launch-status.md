@@ -46,7 +46,7 @@ credential is not, by itself, proof that a provider is unusable.
 | L11 | Private consent and verified-email persistence locally implemented; policy acceptance pending | Google server sign-in persists verification only for a matching linked subject/email. Optional campaign-scoped contact consent has versioned opt-in/withdrawal and email binding; no export exists. Rewards do not require opt-in. | Complete actual email/OAuth callback acceptance (L05), private sponsor export, retention/deletion and pilot fraud policy. Account/email/wallet control does not prove unique humans or learning; multiple-account and collusion risks remain. |
 | L12 | Key and inference accepted; staking linkage unverified | Protected auth control returned 401 for an invalid key and 200 for the supplied key. Successful inference and matching billing records are observed. Intended default organization, staking-credit source, farm/pool/rate, and stake amount/destination remain unverified. | Mike confirms the intended organization's credit source and exact staking setup in R1. A replacement key or extra stake is not required merely to repeat the working call. |
 | L13 | Bounded live source drafts passed; broader acceptance open | Gateway GLM 5.1 with documented thinking disabled produced two validated three-entry drafts in 12.1/13.7 seconds; billed costs were $0.0022806/$0.002725. This is the local default only. Earlier GLM 5.3/Qwen timeouts and direct Gemma TLS resets remain unexplained, with failed-request billing unknown. | Engineering follows the [sanitized evaluation record](near-ai-evaluation-2026-09-04.md) for representative source/clue quality, layout, reliability and paid delivery/recovery. Do not equate two synthetic successes with publication readiness or production activation. |
-| L14 | Strict proxy local; funded test campaign; fresh-wallet acceptance OPEN | Session 8 adds the strict Sepolia/EntryPoint 0.6 proxy and durable allowances. Session 9 prepares a disabled local env and encrypted test deployer with verified recovery. Session 10 funds it through CDP faucet with 0.0001 Base Sepolia ETH and 1 native test USDC, then inspects Base Sepolia Paymaster. Session 11 validates the private endpoint locally with a read-only Base Sepolia chain check and records an escrow deployment preflight. Session 12 deploys the escrow at `0x77fdCEF7d08c54eD2a87FD54fBf24a660fa2A304` and saves the claim-only CDP allowlist. Session 13 configures a separate eligibility signer, verifies deployment finality, sends the approved 1-test-USDC allowance, and prepares the `createCampaign` preflight. Session 14 verifies approval finality, recomputes the stale campaign schedule, and funds campaign `1` with exactly 1 native test USDC after explicit approval. Campaign finality, real provider wire acceptance and fresh hosted-wallet claim remain open. Managed sponsorship is account-billed, separate from deployer ETH. Facilitator mainnet keys remain untouched. | Wait for finalized campaign verification, then prove actual wallet/stub/expiry compatibility, fresh zero-ETH passkey, cancellation/recovery, finalized payout and provider bill. Keep production sponsorship disabled. |
+| L14 | Live Sepolia backend proof included; finality recheck and hosted onboarding open | Sessions 8-14 implement the strict EntryPoint 0.6 proxy, configure a dedicated CDP policy, deploy the escrow and fund one test-USDC campaign. Session 15 shows hosted Base Account connects and reports Sepolia paymaster support but rejects both calls and sub-account creation before our proxy, matching open SDK issue #363. Session 17 separates that product risk from the backend: a fresh local Coinbase Smart Account passed both CDP sponsorship phases and claimed campaign `1` in UserOperation `0x92e56f426be9c882cb8729e269cb1e6d07981b5194872626a80d7f2e65c470ee`, transaction `0x35860a8044d025b6086acbacc02a3f173520b88410fc9338c6267117dc6f1255`. The recipient started with no code, ETH or USDC, remained at zero ETH, received exactly 1 test USDC, consumed slot `0`, and left zero outstanding. After a bounded 20-minute watch, Base's finalized head was block `46450038`, 60 blocks behind the transaction at `46450098`; inclusion is proven but finality remains open. The live envelope also corrected an overly strict parser assumption about CDP's inert precheck flag. Managed sponsorship is account-billed; facilitator mainnet keys remain untouched. | First recheck transaction/event/state at the finalized tag. Keep production sponsorship disabled. Choose the participant onboarding path: retest hosted Base Account after Coinbase fixes Sepolia, adopt a separately reviewed local/embedded smart-account signer, or deliberately approve a tiny Base mainnet hosted-account proof. Then run database-backed issuance/recovery and duplicate/uncertain-outcome acceptance through that exact path. |
 
 ## Facilitator inventory
 
@@ -85,6 +85,28 @@ wallet state before promising first-use compatibility.
 
 ## Change log
 
+- 2026-09-05, session 17: Completed the split Base Sepolia backend proof with a
+  fresh local Coinbase Smart Account. A preparation-only run reached both CDP
+  sponsorship methods; an approved send deployed the account and claimed the
+  one-slot campaign with zero recipient ETH. The `RewardPaid` event, 1 test-USDC
+  recipient delta, consumed slot and zero outstanding balance were observed.
+  Base finality remained 60 blocks behind after a bounded 20-minute watch, so
+  finality is retained as an explicit recheck rather than inferred.
+  Updated the production response parser for CDP's live inert precheck flag.
+  Hosted Base Account onboarding remains separately blocked; all production
+  claim and sponsorship gates remain disabled.
+
+- 2026-09-05, session 15: Added a local live sponsored-claim acceptance harness
+  and verified campaign `1` is finalized, unclaimed and funded with exactly
+  `1000000` atomic native Base Sepolia USDC. The hosted Base Account flow
+  connected a fresh zero-ETH/zero-USDC/no-code account and reported Base Sepolia
+  paymaster capability, but `wallet_sendCalls` displayed the hosted
+  `keys.coinbase.com` unsupported-chain screen before any proxy request reached
+  CDP. A follow-up sub-account attempt reached `wallet_addSubAccount` and then
+  rejected with code `4001`, again before authorization or CDP. This matches
+  [Base Account SDK issue #363](https://github.com/base/account-sdk/issues/363).
+  No payout, provider sponsorship request, production setting, mainnet transfer
+  or credential print occurred.
 - 2026-09-05, session 14: After Mike's explicit approval, created Base Sepolia
   campaign `1` with one 1-test-USDC slot using transaction
   `0x1a1f49f3c06d37c1fe2295ad0188f0e27e78a8b1c0b4636a9e7f0f4175bf6182`

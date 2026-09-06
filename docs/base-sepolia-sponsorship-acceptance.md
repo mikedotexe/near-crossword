@@ -130,9 +130,103 @@ exists. A dedicated Crossword paymaster configuration remains required.
 7. Reconcile campaign funding/payout/refund and separate gas allowance/provider
    bill. Disable the pilot gates and review evidence before any mainnet proposal.
 
+## Session 15 live harness checkpoint
+
+`scripts/base-sepolia-sponsored-claim-acceptance.ts` is the current controlled
+acceptance tool. It runs a local page on `127.0.0.1:3125`, creates a randomized
+Cloudflare Tunnel paymaster route, keeps `/authorize` local-only, and writes a
+sanitized JSON evidence file in `/tmp`. It is designed to prove Base Account +
+CDP paymaster compatibility for the already funded one-slot campaign without
+turning on production participant or claim issuance gates.
+
+Observed before the current retry: campaign `1` was finalized, unclaimed and
+still had `outstanding(1) = 1000000`; recipient
+`0xec237B5F036850221e45c1bD634ed4835983933B` had 0 ETH, 0 USDC and no deployed
+code; Base Account was on `0x14a34` and reported `paymasterService` support for
+Base Sepolia. The claim click failed before any paymaster request hit the proxy:
+the hosted `keys.coinbase.com` popup displayed "This chain is not supported" for
+Base Sepolia and the page saw a wallet rejection. The harness now logs sanitized
+wallet errors, records capability chain keys, uses the Base docs-style
+`wallet_sendCalls` `version: "1.0"` shape, and passes only
+`paymasterService.url`; the one-use authorization permit is embedded in the
+randomized proxy path rather than relying on a wallet-forwarded `context` field.
+The next retry used the Base Account SDK sub-account mode with `creation:
+"on-connect"`, `defaultAccount: "sub"` and `funding: "manual"` so the actual
+claim would be built through the Base Sepolia sub-account signer rather than the
+universal account popup. It still failed before authorization: `eth_requestAccounts`
+returned the same hosted account, then `wallet_addSubAccount` rejected with code
+`4001` before any proxy request reached CDP. This matches the currently open
+`base/account-sdk` issue
+[#363](https://github.com/base/account-sdk/issues/363), which reports newly
+created Base Accounts connecting and reporting Base Sepolia capabilities while
+transaction requests are rejected by the hosted keys flow. Treat hosted Base
+Account Sepolia claim acceptance as blocked by upstream behavior until Coinbase
+ships a fix, provides an ERC-4337-preserving account path, or we use an older
+compatible hosted account. Do not generalize this to production until a real
+proxy request, CDP paymaster response, included transaction, finalized
+`RewardPaid`, recipient USDC delta and zero participant gas cost are all observed.
+
+## Session 16 reassessment
+
+The recommendation is to split the remaining proof:
+
+1. Keep the hosted Base Account finding as a product/onboarding risk, not a local
+   claim-security defect. Base mainnet may work, but proving that requires a
+   separate tiny mainnet deployment/funding decision.
+2. Prove the escrow, EntryPoint 0.6, Coinbase Smart Wallet factory and CDP
+   paymaster proxy on Base Sepolia with a local throwaway owner using viem's
+   `toCoinbaseSmartAccount`, if CDP accepts that path. This does not prove hosted
+   Base Account onboarding, but it does prove the backend sponsorship policy and
+   campaign accounting.
+3. Keep the production claim/sponsorship gates disabled until either the hosted
+   Base Account path works on the target network or the product explicitly uses a
+   different smart-account onboarding path.
+
+## Session 17 local smart-account proof
+
+The split backend proof succeeded on 2026-09-05. The acceptance harness now has
+an explicit preparation-only local mode and a separate send mode. Each creates a
+fresh Coinbase Smart Account v1.1 with an owner credential held only in process
+memory. It reuses the strict local claim/paymaster validation and talks to the
+private CDP endpoint as the combined bundler and paymaster. No credential or raw
+wallet/paymaster payload is written to evidence.
+
+The preparation-only pass validated the canonical v1.1 factory prediction,
+EntryPoint 0.6, exact single escrow claim, both ERC-7677 paymaster methods and
+the official CDP v0.6 paymaster/code hash. Live CDP envelopes set
+`precheckBalance` while the payment token remains zero. The deployed v1.0.0
+paymaster only enters token logic when that token is nonzero, so the production
+parser and fixture now enforce the token/receiver/exchange-rate region instead
+of rejecting the inert flag.
+
+The approved send then succeeded:
+
+- UserOperation:
+  `0x92e56f426be9c882cb8729e269cb1e6d07981b5194872626a80d7f2e65c470ee`
+- Transaction:
+  `0x35860a8044d025b6086acbacc02a3f173520b88410fc9338c6267117dc6f1255`
+- Fresh recipient: `0xb4afC958555F64A03944DFaC696c447179ea2348`
+- Recipient before: 0 ETH, 0 USDC, no code
+- Recipient after inclusion: 0 ETH, 1 test USDC, deployed code
+- Campaign after inclusion: slot `0` used, `outstanding(1) = 0`
+- CDP paymaster: `0x709A4bae3DB73a8E717AEfca13E88512f738b27f`
+- Paymaster code hash:
+  `0x4cf2309390afafca14fdedb734f3adee5abe21e0d27f27a36fa5b4f46712b97c`
+
+The in-memory owner was deliberately discarded, making the received test USDC
+unrecoverable. At the end of the bounded 20-minute confirmation window, Base's
+finalized head was block `46450038`, 60 blocks behind the claim at `46450098`.
+The transaction, event and resulting state were stable at latest, but finality
+remains an explicit recheck. This result proves inclusion through the
+escrow/EntryPoint/CDP sponsorship and accounting path; hosted Base Account/
+passkey onboarding remains a separate upstream blocker, and every production
+gate remains disabled.
+
 ## References
 
 [CDP setup](https://docs.cdp.coinbase.com/paymaster/introduction/quickstart),
 [proxy](https://docs.cdp.coinbase.com/paymaster/guides/paymaster-proxy),
 [security](https://docs.cdp.coinbase.com/paymaster/reference-troubleshooting/security),
+[paymaster FAQ](https://docs.cdp.coinbase.com/paymaster/faqs),
+[Coinbase v0.6 paymaster](https://github.com/coinbase/verifying-paymaster/tree/v1.0.0),
 [ERC-7677](https://eips.ethereum.org/EIPS/eip-7677).

@@ -77,11 +77,11 @@ conservative pilot boundary, not the final self-service gas recovery experience.
 The upstream URL is server-only, fixed to CDP Base Sepolia. Redirects, automatic
 retry and caller-selected destinations are forbidden; time/output are bounded.
 The permit/cookies are stripped, and the provider receives empty context. Its
-result must match the pinned Coinbase v1.0.0 paymaster layout, prohibit every
-token-payment field and expire within the permit. This check applies to stubs
-too: `isFinal:false` does not prove that returned bytes cannot spend gas.
-Provider names/icons or extra output fields are not reflected. Actual CDP stub
-format/expiry behavior is not yet observed; incompatible data must fail closed.
+result must match the pinned Coinbase v1.0.0 paymaster layout, use a zero payment
+token/receiver/exchange-rate region and expire within the permit. CDP currently
+sets `precheckBalance` even for developer-sponsored gas; that flag is inert when
+the payment token is zero, matching the deployed paymaster contract. Provider
+names/icons or extra output fields are not reflected.
 
 ## Verification and remaining work
 
@@ -125,6 +125,34 @@ Deployer USDC is 0, escrow USDC is `1000000`, allowance is 0, and
 `totalReserved()`/`outstanding(1)` both equal `1000000`. Campaign finality,
 provider sponsorship and the fresh hosted-wallet claim remain open.
 
+Session 17 completes the split between hosted onboarding and the backend proof.
+The hosted Base
+Account remains blocked on Base Sepolia before authorization, matching open SDK
+issue #363. A local in-memory owner created a fresh Coinbase Smart Account v1.1
+through the same EntryPoint 0.6/factory path. The preparation-only run reached
+both CDP paymaster methods and established that current sponsored envelopes set
+an inert `precheckBalance` flag while retaining a zero payment token. The proxy
+parser and synthetic fixture now match that deployed contract behavior without
+allowing ERC-20 gas payment.
+
+After explicit approval, a second fresh account submitted the one-slot claim as
+UserOperation
+`0x92e56f426be9c882cb8729e269cb1e6d07981b5194872626a80d7f2e65c470ee`.
+Transaction
+`0x35860a8044d025b6086acbacc02a3f173520b88410fc9338c6267117dc6f1255`
+deployed the account and paid exactly `1000000` atomic test USDC to
+`0xb4afC958555F64A03944DFaC696c447179ea2348`. The recipient remained at zero
+ETH, slot `0` became used and campaign outstanding became zero. CDP returned the
+official v0.6 paymaster `0x709A4bae3DB73a8E717AEfca13E88512f738b27f`
+with code hash
+`0x4cf2309390afafca14fdedb734f3adee5abe21e0d27f27a36fa5b4f46712b97c`.
+The throwaway owner credential was never persisted, so the test reward is
+intentionally not recoverable. A bounded 20-minute follow-up ended with Base's
+finalized head at `46450038`, 60 blocks behind the transaction at `46450098`.
+This proves included backend sponsorship and escrow accounting; finality remains
+an explicit recheck. It does not prove hosted passkey onboarding or production
+readiness.
+
 Mainnet custody stays out of the early launch path. For Base Sepolia, use CDP or
 Base faucets first. If a real Coinbase send is later required, it must be a tiny
 reviewed Base-network transfer to a fresh production custody address with an
@@ -141,6 +169,32 @@ and account code pins, supervised scanner, real email session, fresh hosted
 passkey with zero ETH, exact funded test approval, cancellation/lost-response
 recovery, one finalized payout and independently observed provider cost.
 
+Session 15 adds a live Base Sepolia acceptance harness at
+`scripts/base-sepolia-sponsored-claim-acceptance.ts`. It starts a local-only
+page, exposes only a randomized HTTPS paymaster path through Cloudflare Tunnel,
+signs exactly one campaign-1/slot-0 claim for the connected recipient, and writes
+sanitized evidence under `/tmp`. It never logs or stores raw signatures, permit
+tokens, CDP URLs or wallet payloads. Current live evidence: the connected Base
+Account `0xec237B5F036850221e45c1bD634ed4835983933B` had 0 ETH, 0 USDC and no
+deployed code before authorization; Base Account reported Base Sepolia chain
+`0x14a34` with `paymasterService` support; campaign `1` remained finalized,
+unclaimed and funded with `1000000` atomic USDC. An initial claim attempt failed
+before any proxy request reached CDP; the hosted `keys.coinbase.com` popup
+reported that Base Sepolia was unsupported. The harness then moved to the Base
+Account SDK sub-account route: create on connect, make the sub-account the
+default recipient and use manual funding so a sponsored Base Sepolia user
+operation should reach the local claim-only paymaster proxy before CDP. This also
+failed before authorization: `eth_requestAccounts` returned the hosted account,
+then explicit `wallet_addSubAccount` rejected with code `4001`; no paymaster
+request reached the proxy. This matches current `base/account-sdk` issue #363,
+where newly created Base Accounts can connect and report Base Sepolia
+capabilities but cannot transact through the hosted keys flow. Treat hosted Base
+Account Sepolia acceptance as upstream-blocked, not proven. Next proof should
+split the problem: test the same escrow/paymaster path with a local throwaway
+Coinbase Smart Account owner on Base Sepolia, while keeping hosted Base Account
+onboarding as a separate product risk. This is still a one-off acceptance path,
+not production DB-backed claim issuance.
+
 ## References
 
 - [ERC-7677 context and methods](https://eips.ethereum.org/EIPS/eip-7677)
@@ -149,3 +203,4 @@ recovery, one finalized payout and independently observed provider cost.
 - [CDP security and policies](https://docs.cdp.coinbase.com/paymaster/reference-troubleshooting/security)
 - [Coinbase Smart Wallet source](https://github.com/coinbase/smart-wallet/blob/main/src/CoinbaseSmartWallet.sol)
 - [Coinbase paymaster v1.0.0 format](https://github.com/coinbase/verifying-paymaster/blob/ca356bb0ff674c2000087f0a1cb06c41db6fb688/src/VerifyingPaymaster.sol)
+- [Base Account SDK issue #363](https://github.com/base/account-sdk/issues/363)

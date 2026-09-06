@@ -240,11 +240,13 @@ export function validatePaymasterResult(
     .safeParse(raw);
   if (!result.success) sponsorshipUnavailable();
   const data = result.data.paymasterAndData;
-  // Coinbase VerifyingPaymaster v1.0.0 / EntryPoint 0.6 packed layout. Reject token-charging modes.
+  // Coinbase VerifyingPaymaster v1.0.0 / EntryPoint 0.6 packed layout.
+  // Bytes 49-50 are inert flags when the token at bytes 51-70 is zero. Current
+  // CDP sponsorship sets precheckBalance even though no token payment is used.
   if (
     data.length !== 2 + 194 * 2 ||
     sliceHex(data, 0, 20) !== policy.paymaster.toLowerCase() ||
-    BigInt(sliceHex(data, 49, 129)) !== 0n
+    BigInt(sliceHex(data, 51, 123)) !== 0n
   )
     sponsorshipUnavailable();
   const validUntil = Number(BigInt(sliceHex(data, 20, 26))),
