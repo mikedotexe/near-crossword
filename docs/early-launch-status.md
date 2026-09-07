@@ -1,8 +1,9 @@
 # Early launch status
 
-Last public-site/config checks: 2026-09-04, America/Los_Angeles (2026-09-05 00:06 UTC).
+Last public-site/config checks: 2026-09-07, America/Los_Angeles (2026-09-07 19:05 UTC).
 Last provider checks: 2026-09-04, America/Los_Angeles (2026-09-05 02:44 UTC).
-Local Base Sepolia/CDP/product update: 2026-09-07; no subsequent production change.
+Local Base Sepolia/CDP/product update: 2026-09-07; public product surface deployed
+the same day with production payment gates unchanged.
 
 This is the working record for the public launch. Read it before changing launch
 configuration. Product possibilities belong in [product discovery](product-discovery.md);
@@ -12,16 +13,19 @@ Multi-session implementation state is in [the checkpoint](reshape-progress.md).
 
 ## Current baseline
 
-- `https://crossword.xyz` serves the v2 Render application. The September 4
-  release was PR #6, commit `2832260e340ce33cdf08c688a88fad4465a2fbc4`.
+- `https://crossword.xyz` serves the Base-first v2 Render application. The
+  September 7 release was PR #7, merge commit
+  `37e58fccd3a4f00ac6e6137f23fb5583359d0fca`.
 - Render service: `crossword-campaigns-v2`, `srv-d9jql9p7lnhs73duc41g`.
-- The domain cutover, database migrations, desktop/mobile route checks, and
-  automated application/contract checks passed during that release.
-- Today's follow-up reads returned HTTP 200 for campaigns (zero published
+- The September 4 domain cutover and database migrations passed. The September 7
+  release passed GitHub application/contract checks and live public-route checks.
+- September 4 follow-up reads returned HTTP 200 for campaigns (zero published
   campaigns) and email-provider discovery. Those checks do not prove email
   delivery or a completed campaign through the public website.
-- The public website is live. Paid AI generation and worker broadcasting are
-  not enabled. A complete public funded-campaign launch remains unverified.
+- The public home, no-reward practice lesson, and non-persisting sponsor demo
+  are live. Paid AI generation, participant wallets, publication, paymaster use,
+  and worker broadcasting are not enabled. A complete public funded-campaign
+  launch remains unverified.
 - Original app: `https://crossword-mainnet.onrender.com`; legacy access is
   retained through `/legacy`.
 
@@ -48,7 +52,7 @@ credential is not, by itself, proof that a provider is unusable.
 | L13 | Bounded live source drafts passed; broader acceptance open | Gateway GLM 5.1 with documented thinking disabled produced two validated three-entry drafts in 12.1/13.7 seconds; billed costs were $0.0022806/$0.002725. This is the local default only. Earlier GLM 5.3/Qwen timeouts and direct Gemma TLS resets remain unexplained, with failed-request billing unknown. | Engineering follows the [sanitized evaluation record](near-ai-evaluation-2026-09-04.md) for representative source/clue quality, layout, reliability and paid delivery/recovery. Do not equate two synthetic successes with publication readiness or production activation. |
 | L14 | Finalized backend proof; live CDP email account; combined claim pending | Sessions 8-18 implement the strict EntryPoint 0.6 proxy, deployed escrow, finalized sponsored claim, and selected CDP User Wallet participant path. On September 6 a fresh email OTP, CDP smart-account creation, verified server bridge, and database session all succeeded locally. The transient client race that briefly tried to sync before smart-account creation now remains in an initializing state. This participant has not yet completed wallet challenge, issuance, UserOperation, and finalized recovery. | Run the complete journey against a newly funded one-slot campaign. Record recipient, exact claim, operation/transaction, paymaster cost, finalized payout, duplicate behavior, and recovery. Keep production sponsorship disabled until that evidence is recorded. |
 | L15 | Exact second-pilot allowance finalized; campaign not created | After explicit approval, transaction `0x3ae0338128215613cff99b82c43b2c81b48519083d8a3b29a70a462077b8ed47` set the deployer-to-escrow native Base Sepolia USDC allowance to exactly `1000000`. Independent reads show deployer balance and allowance both `1000000`; finalized head `46518203` is beyond transaction block `46518041`. No second campaign transaction was sent. | Refresh the now-stale schedule and terms hash, present the exact one-slot `createCampaign` preflight, and obtain a fresh transaction-specific confirmation. If the campaign is abandoned, explicitly approve and verify allowance revocation. |
-| L16 | Base Batches 004 application in preparation | The application closes September 9, 2026 and does not save drafts. A Base-first public home, no-wallet practice lesson, non-persisting sponsor demo, product chapter, evidence map, application response draft, and founder-video script are implemented locally. Founder/team/contact/traction/financing facts remain intentionally blank. | Verify and deploy the public product surface, complete Mike's factual fields and video, reconcile every application claim to this register, and review before form submission. No application has been submitted. |
+| L16 | Public product surface live; Base Batches 004 application in preparation | The September 7 Render deployment `dep-dafgjup42hec73d9c3l0` serves the Base-first home, no-reward practice lesson, and non-persisting sponsor demo. Live checks returned 200 for those routes and `/legacy`; developer previews returned 404. The application closes September 9, 2026 and does not save drafts. Founder/team/contact/traction/financing facts remain intentionally blank. | Complete Mike's factual fields and video, reconcile every application claim to this register, and review before form submission. No application has been submitted. |
 
 ## Facilitator inventory
 
@@ -86,6 +90,14 @@ wallet state before promising first-use compatibility.
    This file is a manual work log; background monitoring is not configured.
 
 ## Change log
+
+- 2026-09-07, session 20: PR #7 passed both GitHub workflow runs and merged to
+  `main` as `37e58fccd3a4f00ac6e6137f23fb5583359d0fca`. Render deployment
+  `dep-dafgjup42hec73d9c3l0` reached `live`. The canonical domain serves the
+  Base-first home, practice lesson, sponsor demo, social image and legacy route.
+  Developer previews, lesson publication, participant session creation, and the
+  claim-only paymaster remain closed in production. No Render variable, database,
+  chain, allowance or campaign state changed during this release.
 
 - 2026-09-07, session 19: Live local CDP email OTP and smart-account creation
   succeeded and established the verified database session. Fixed the transient
