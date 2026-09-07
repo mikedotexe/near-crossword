@@ -42,8 +42,9 @@ product is understandable onboarding plus accountable micropayment distribution.
 
 `https://crossword.xyz`
 
-Before submission: deploy the Base-first public experience and verify the home,
-practice lesson, sponsor demo, metadata, and mobile layout on this domain.
+Verified September 7, 2026: the Base-first home, practice lesson, sponsor demo,
+metadata, and social image are live on this domain. Desktop and mobile layouts
+passed the launch-candidate browser suite before deployment.
 
 ### X URL
 
@@ -283,7 +284,7 @@ user, and whether the sponsor buys again."
 ## Final submission checklist
 
 - [ ] Every `MIKE:` field is resolved with a factual answer.
-- [ ] `crossword.xyz` shows the Base-first product and both demo URLs return 200.
+- [x] `crossword.xyz` shows the Base-first product and both demo URLs return 200.
 - [ ] CDP production domain is configured only when the participant pilot is
   intentionally enabled.
 - [ ] Contract and transaction links open without authentication.
