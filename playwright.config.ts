@@ -29,6 +29,8 @@ export default defineConfig({
       BASE_REVIEW_ENABLED: "true",
       BASE_PUBLICATION_ENABLED: "true",
       BASE_ACCOUNT_ENABLED: "false",
+      CDP_PARTICIPANT_AUTH_ENABLED: "false",
+      NEXT_PUBLIC_CDP_PROJECT_ID: "",
       BASE_SPONSORED_GAS_ENABLED: "false",
       NEXT_PUBLIC_APP_URL: baseURL,
       NEXT_PUBLIC_V2_DEMO_USER_ID: "creator@example.test",

@@ -17,7 +17,9 @@
     "sharp": "0.35.3"
   },
   "dependencies": {
-    "@base-org/account": "2.5.10",
+    "@coinbase/cdp-core": "0.0.123",
+    "@coinbase/cdp-hooks": "0.0.123",
+    "@coinbase/cdp-sdk": "1.52.0",
     "@defuse-protocol/nearintents-mpp-sdk": "0.1.1",
     "@defuse-protocol/one-click-sdk-typescript": "0.1.25",
     "@fastnear/api": "0.9.13",

@@ -6,30 +6,36 @@ import { useState } from "react";
 import { PixelMark } from "./PixelMark";
 
 const navigation = [
-  { href: "/explore", label: "Explore" },
-  { href: "/create", label: "Create" },
-  { href: "/dashboard", label: "Dashboard" },
+  { href: "/learn/practice", label: "Try a lesson" },
+  { href: "/#sponsors", label: "For sponsors" },
+  { href: "/#proof", label: "Proof" },
 ];
 
 export function SiteHeader() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const learning = pathname?.startsWith("/learn");
-  const links = learning ? [{ href: "/learn", label: "Lessons" }, { href: "/learn/studio", label: "Sponsor studio" }, { href: "/explore", label: "NEAR campaigns" }] : navigation;
+  const links = learning
+    ? [
+        { href: "/learn/practice", label: "Practice" },
+        { href: "/learn/sponsor-demo", label: "Sponsor demo" },
+        { href: "/#proof", label: "Onchain proof" },
+      ]
+    : navigation;
 
   return (
     <header className="site-header">
       <div className="shell site-header__inner">
         <Link
           className="wordmark"
-          href={learning ? "/learn" : "/"}
-          aria-label="Crossword Campaigns home"
+          href="/"
+          aria-label="Crossword home"
           onClick={() => setMenuOpen(false)}
         >
           <PixelMark compact />
           <span>
             Crossword
-            <small>{learning ? "Learn" : "Campaigns"}</small>
+            <small>{learning ? "Learn" : "Base rewards"}</small>
           </span>
         </Link>
 
@@ -68,10 +74,10 @@ export function SiteHeader() {
           })}
           <Link
             className="button button--ink button--small"
-            href={learning ? "/learn/studio/new" : "/create"}
+            href="/learn/sponsor-demo"
             onClick={() => setMenuOpen(false)}
           >
-            Start a campaign
+            Sponsor a campaign
           </Link>
         </nav>
       </div>

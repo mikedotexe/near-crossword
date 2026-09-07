@@ -1,6 +1,7 @@
 # Claim-only sponsorship
 
-Session 8 local implementation, 2026-09-04. Not deployed or funded. Read the
+Sessions 8-18 implementation and Base Sepolia acceptance, updated 2026-09-06.
+Production remains disabled. Read the
 [Base Account chapter](08-base-account-and-gas.md) and
 [live test checklist](../docs/base-sepolia-sponsorship-acceptance.md).
 
@@ -149,9 +150,11 @@ with code hash
 The throwaway owner credential was never persisted, so the test reward is
 intentionally not recoverable. A bounded 20-minute follow-up ended with Base's
 finalized head at `46450038`, 60 blocks behind the transaction at `46450098`.
-This proves included backend sponsorship and escrow accounting; finality remains
-an explicit recheck. It does not prove hosted passkey onboarding or production
-readiness.
+Session 18 rechecked at finalized head `46480230`: the receipt remains successful,
+recipient code is deployed, recipient USDC is `1000000`, slot `0` is used and
+campaign outstanding is zero. Backend sponsorship and escrow accounting are now
+finalized. This does not prove the selected CDP User Wallet onboarding path or
+production readiness.
 
 Mainnet custody stays out of the early launch path. For Base Sepolia, use CDP or
 Base faucets first. If a real Coinbase send is later required, it must be a tiny
@@ -165,9 +168,10 @@ refresh/restart replay, expiry, signer rotation, paid claims, provider errors an
 ambiguous outcomes. Synthetic provider replies are not real CDP acceptance.
 
 Live gates: dedicated paymaster project and policy/budget, reviewed deployment
-and account code pins, supervised scanner, real email session, fresh hosted
-passkey with zero ETH, exact funded test approval, cancellation/lost-response
-recovery, one finalized payout and independently observed provider cost.
+and account code pins, supervised scanner, a fresh CDP User Wallet email session
+and smart account with zero ETH, signed challenge compatibility, database-backed
+issuance/recovery, cancellation/lost-response recovery, and independently observed
+provider cost. The backend already has one finalized test payout.
 
 Session 15 adds a live Base Sepolia acceptance harness at
 `scripts/base-sepolia-sponsored-claim-acceptance.ts`. It starts a local-only

@@ -10,6 +10,7 @@ import {
 import type { WalletConfiguration } from "../../src/lib/base/account";
 import { learningApi, LearningApiError, loginLink } from "./api";
 import { CrosswordBoard } from "./CrosswordBoard";
+import { useParticipantAccount } from "./ParticipantAccount";
 import { RewardPanel } from "./RewardPanel";
 
 export function LessonPlayer({
@@ -17,12 +18,15 @@ export function LessonPlayer({
   wallet,
   initial,
   practice = false,
+  practiceAnswers,
 }: {
   id: string;
   wallet: WalletConfiguration;
   initial?: PublicLesson;
   practice?: boolean;
+  practiceAnswers?: string[];
 }) {
+  const account = useParticipantAccount();
   const [lesson, setLesson] = useState<PublicLesson | null>(initial || null);
   const [error, setError] = useState("");
   const [letters, setLetters] = useState<string[]>([]);
@@ -76,10 +80,27 @@ export function LessonPlayer({
     }
   }
   async function complete() {
-    if (!lesson || busy || practice) return;
+    if (!lesson || busy) return;
     setBusy(true);
     setMessage("");
     setSignIn(false);
+    if (practice) {
+      const answers = lesson.layout.entries.map((entry) =>
+        entryCells(entry, lesson.layout.columns)
+          .map((cell) => letters[cell] || "")
+          .join(""),
+      );
+      const passed =
+        practiceAnswers?.length === answers.length &&
+        answers.every((answer, index) => answer === practiceAnswers[index]);
+      setMessage(
+        passed
+          ? "Correct. You completed the practice lesson."
+          : "Not quite. Revisit the lesson and check each clue.",
+      );
+      setBusy(false);
+      return;
+    }
     try {
       await learningApi(`/api/base/participants/${id}/completion`, {
         revision: lesson.revision,
@@ -103,8 +124,8 @@ export function LessonPlayer({
   if (!lesson)
     return (
       <>
-        <Link className="learn-back" href="/learn">
-          <ArrowLeft size={16} /> All lessons
+        <Link className="learn-back" href={practice ? "/" : "/learn"}>
+          <ArrowLeft size={16} /> {practice ? "Crossword home" : "All lessons"}
         </Link>
         {error ? (
           <div className="learn-notice" role="alert">
@@ -132,8 +153,8 @@ export function LessonPlayer({
   const completeCount = [...filled].filter((cell) => letters[cell]).length;
   return (
     <>
-      <Link className="learn-back" href="/learn">
-        <ArrowLeft size={16} /> All lessons
+      <Link className="learn-back" href={practice ? "/" : "/learn"}>
+        <ArrowLeft size={16} /> {practice ? "Crossword home" : "All lessons"}
       </Link>
       <div className="learn-heading">
         <div>
@@ -205,31 +226,37 @@ export function LessonPlayer({
               onChange={update}
             />
           )}
+          <button
+            className="learn-button learn-submit"
+            disabled={
+              busy ||
+              completeCount !== filled.size ||
+              (!practice && lesson.availability !== "OPEN")
+            }
+            onClick={() => void complete()}
+          >
+            {busy ? "Checking..." : "Check crossword"}
+            <ArrowRight size={17} />
+          </button>
           {!practice && (
             <>
-              <button
-                className="learn-button learn-submit"
-                disabled={
-                  busy ||
-                  completeCount !== filled.size ||
-                  lesson.availability !== "OPEN"
-                }
-                onClick={() => void complete()}
-              >
-                {busy ? "Checking..." : "Check crossword"}
-                <ArrowRight size={17} />
-              </button>
               {signIn && (
                 <div className="learn-notice">
-                  <Link href={loginLink(`/learn/${id}`)}>
-                    Sign in to save your completion
-                  </Link>
+                  {account.enabled ? (
+                    <a href="#reward-title">
+                      Sign in below to save your completion
+                    </a>
+                  ) : (
+                    <Link href={loginLink(`/learn/${id}`)}>
+                      Sign in to save your completion
+                    </Link>
+                  )}
                   <p>Your letters stay in this browser.</p>
                 </div>
               )}
-              {message && <p role="status">{message}</p>}
             </>
           )}
+          {message && <p role="status">{message}</p>}
         </section>
         {!practice && (
           <div className="learn-reward-slot">

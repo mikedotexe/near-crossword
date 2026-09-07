@@ -15,6 +15,12 @@ const securityHeaders = [
 module.exports = {
   poweredByHeader: false,
   reactStrictMode: true,
+  webpack(config, { webpack }) {
+    config.plugins.push(
+      new webpack.IgnorePlugin({ resourceRegExp: /^x402-fetch$/ }),
+    );
+    return config;
+  },
   outputFileTracingIncludes: {
     "/*": ["./node_modules/crossword-layout-generator/package.json", "./node_modules/crossword-layout-generator/src/layout_generator.js"],
   },

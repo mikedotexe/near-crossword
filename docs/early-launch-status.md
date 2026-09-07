@@ -2,7 +2,7 @@
 
 Last public-site/config checks: 2026-09-04, America/Los_Angeles (2026-09-05 00:06 UTC).
 Last provider checks: 2026-09-04, America/Los_Angeles (2026-09-05 02:44 UTC).
-Local Base Sepolia setup update: 2026-09-05; no subsequent production change.
+Local Base Sepolia/CDP/product update: 2026-09-07; no subsequent production change.
 
 This is the working record for the public launch. Read it before changing launch
 configuration. Product possibilities belong in [product discovery](product-discovery.md);
@@ -46,7 +46,9 @@ credential is not, by itself, proof that a provider is unusable.
 | L11 | Private consent and verified-email persistence locally implemented; policy acceptance pending | Google server sign-in persists verification only for a matching linked subject/email. Optional campaign-scoped contact consent has versioned opt-in/withdrawal and email binding; no export exists. Rewards do not require opt-in. | Complete actual email/OAuth callback acceptance (L05), private sponsor export, retention/deletion and pilot fraud policy. Account/email/wallet control does not prove unique humans or learning; multiple-account and collusion risks remain. |
 | L12 | Key and inference accepted; staking linkage unverified | Protected auth control returned 401 for an invalid key and 200 for the supplied key. Successful inference and matching billing records are observed. Intended default organization, staking-credit source, farm/pool/rate, and stake amount/destination remain unverified. | Mike confirms the intended organization's credit source and exact staking setup in R1. A replacement key or extra stake is not required merely to repeat the working call. |
 | L13 | Bounded live source drafts passed; broader acceptance open | Gateway GLM 5.1 with documented thinking disabled produced two validated three-entry drafts in 12.1/13.7 seconds; billed costs were $0.0022806/$0.002725. This is the local default only. Earlier GLM 5.3/Qwen timeouts and direct Gemma TLS resets remain unexplained, with failed-request billing unknown. | Engineering follows the [sanitized evaluation record](near-ai-evaluation-2026-09-04.md) for representative source/clue quality, layout, reliability and paid delivery/recovery. Do not equate two synthetic successes with publication readiness or production activation. |
-| L14 | Live Sepolia backend proof included; finality recheck and hosted onboarding open | Sessions 8-14 implement the strict EntryPoint 0.6 proxy, configure a dedicated CDP policy, deploy the escrow and fund one test-USDC campaign. Session 15 shows hosted Base Account connects and reports Sepolia paymaster support but rejects both calls and sub-account creation before our proxy, matching open SDK issue #363. Session 17 separates that product risk from the backend: a fresh local Coinbase Smart Account passed both CDP sponsorship phases and claimed campaign `1` in UserOperation `0x92e56f426be9c882cb8729e269cb1e6d07981b5194872626a80d7f2e65c470ee`, transaction `0x35860a8044d025b6086acbacc02a3f173520b88410fc9338c6267117dc6f1255`. The recipient started with no code, ETH or USDC, remained at zero ETH, received exactly 1 test USDC, consumed slot `0`, and left zero outstanding. After a bounded 20-minute watch, Base's finalized head was block `46450038`, 60 blocks behind the transaction at `46450098`; inclusion is proven but finality remains open. The live envelope also corrected an overly strict parser assumption about CDP's inert precheck flag. Managed sponsorship is account-billed; facilitator mainnet keys remain untouched. | First recheck transaction/event/state at the finalized tag. Keep production sponsorship disabled. Choose the participant onboarding path: retest hosted Base Account after Coinbase fixes Sepolia, adopt a separately reviewed local/embedded smart-account signer, or deliberately approve a tiny Base mainnet hosted-account proof. Then run database-backed issuance/recovery and duplicate/uncertain-outcome acceptance through that exact path. |
+| L14 | Finalized backend proof; live CDP email account; combined claim pending | Sessions 8-18 implement the strict EntryPoint 0.6 proxy, deployed escrow, finalized sponsored claim, and selected CDP User Wallet participant path. On September 6 a fresh email OTP, CDP smart-account creation, verified server bridge, and database session all succeeded locally. The transient client race that briefly tried to sync before smart-account creation now remains in an initializing state. This participant has not yet completed wallet challenge, issuance, UserOperation, and finalized recovery. | Run the complete journey against a newly funded one-slot campaign. Record recipient, exact claim, operation/transaction, paymaster cost, finalized payout, duplicate behavior, and recovery. Keep production sponsorship disabled until that evidence is recorded. |
+| L15 | Exact second-pilot allowance finalized; campaign not created | After explicit approval, transaction `0x3ae0338128215613cff99b82c43b2c81b48519083d8a3b29a70a462077b8ed47` set the deployer-to-escrow native Base Sepolia USDC allowance to exactly `1000000`. Independent reads show deployer balance and allowance both `1000000`; finalized head `46518203` is beyond transaction block `46518041`. No second campaign transaction was sent. | Refresh the now-stale schedule and terms hash, present the exact one-slot `createCampaign` preflight, and obtain a fresh transaction-specific confirmation. If the campaign is abandoned, explicitly approve and verify allowance revocation. |
+| L16 | Base Batches 004 application in preparation | The application closes September 9, 2026 and does not save drafts. A Base-first public home, no-wallet practice lesson, non-persisting sponsor demo, product chapter, evidence map, application response draft, and founder-video script are implemented locally. Founder/team/contact/traction/financing facts remain intentionally blank. | Verify and deploy the public product surface, complete Mike's factual fields and video, reconcile every application claim to this register, and review before form submission. No application has been submitted. |
 
 ## Facilitator inventory
 
@@ -84,6 +86,28 @@ wallet state before promising first-use compatibility.
    This file is a manual work log; background monitoring is not configured.
 
 ## Change log
+
+- 2026-09-07, session 19: Live local CDP email OTP and smart-account creation
+  succeeded and established the verified database session. Fixed the transient
+  account-creation race without weakening server validation. After Mike's exact
+  approval, sent and finalized a 1-test-USDC allowance for a second Base Sepolia
+  campaign; no campaign was created. Added a Base-first public home, completable
+  practice lesson, non-persisting sponsor workflow, Base Batches narrative chapter,
+  application draft and video script. Public deployment, the combined CDP
+  participant payout, production sponsorship, mainnet funding, and application
+  submission remain open.
+
+- 2026-09-06, session 18: Rechecked the sponsored claim at Base's finalized tag.
+  Finalized head `46480230` is beyond transaction block `46450098`; the receipt
+  remains successful, recipient code is deployed, recipient USDC is `1000000`,
+  slot `0` is used and campaign outstanding is zero. Chose CDP User Wallet for
+  participants instead of the blocked hosted Base Account path. Added email-OTP
+  smart-account onboarding, server-side CDP token validation, a short database
+  session bridge, signed wallet verification and direct CDP UserOperation
+  submission through the existing claim-only proxy. CDP access tokens are not
+  stored. Unit 256/256, Base/Postgres 55/55 and browser 15/15 pass; lint,
+  typecheck and the Node 20 production build pass. Production gates remain off;
+  live CDP email/signature/UserOperation acceptance is still required.
 
 - 2026-09-05, session 17: Completed the split Base Sepolia backend proof with a
   fresh local Coinbase Smart Account. A preparation-only run reached both CDP

@@ -283,15 +283,15 @@ export function SponsorEditor({
       });
   return (
     <>
-      <Link className="learn-back" href="/learn/studio">
-        <ArrowLeft size={16} /> Campaign studio
+      <Link className="learn-back" href={preview ? "/#sponsors" : "/learn/studio"}>
+        <ArrowLeft size={16} /> {preview ? "For sponsors" : "Campaign studio"}
       </Link>
       <div className="learn-heading">
         <div>
           <p className="learn-kicker">
             <LockKeyhole size={14} />
             {preview
-              ? "Local studio preview / Saving disabled"
+              ? "Sponsor workflow demo / Saving disabled"
               : `Private workspace${review ? ` / Revision ${review.revision}` : ""}`}
           </p>
           <h1>{review?.publicContent.title || "New learning campaign"}</h1>

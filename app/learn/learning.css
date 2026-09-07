@@ -352,6 +352,65 @@ body:has(.learning) .skip-link:not(:focus) {
   margin-bottom: 12px;
   max-width: 100%;
 }
+.learn-auth {
+  margin: 12px 0 20px;
+}
+.learn-auth form {
+  display: grid;
+  gap: 10px;
+}
+.learn-auth label {
+  color: #40565c;
+  font-size: 13px;
+  font-weight: 600;
+}
+.learn-auth-row {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  align-items: center;
+  min-height: 42px;
+  border: 1px solid #b7c7ca;
+  background: #fff;
+}
+.learn-auth-row svg {
+  justify-self: center;
+  color: #52686b;
+}
+.learn-auth-row input {
+  width: 100%;
+  min-width: 0;
+  height: 40px;
+  border: 0;
+  border-left: 1px solid #d4dddf;
+  border-radius: 0;
+  padding: 8px 10px;
+  color: #182325;
+  background: #fff;
+}
+.learn-auth .learn-muted {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.learn-auth-reset {
+  justify-self: start;
+  border: 0;
+  padding: 4px 0;
+  background: transparent;
+  color: #40565c;
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.learn-account {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: #40565c;
+}
+.learn-account svg {
+  flex-shrink: 0;
+}
 .learn-steps {
   list-style: none;
   padding: 0;

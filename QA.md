@@ -35,6 +35,53 @@ yarn test:acceptance:base-build
 
 ## Current local implementation evidence
 
+### Reshape session 19, 2026-09-07: Base-first public product and second pilot prep
+
+- Fresh CDP email OTP, smart-account creation, same-project server validation,
+  and the database session bridge completed locally. The client now waits for
+  `createOnLogin` to publish the smart account instead of briefly submitting an
+  empty recipient and showing a false failure. The wallet challenge, funded
+  UserOperation, and finalized recovery remain open for this participant.
+- After Mike's explicit exact approval, native Base Sepolia USDC transaction
+  `0x3ae0338128215613cff99b82c43b2c81b48519083d8a3b29a70a462077b8ed47`
+  set an allowance of `1000000` for the escrow. Independent reads at finalized
+  head `46518203` show deployer balance and allowance both `1000000`; transaction
+  block is `46518041`. No second campaign transaction was sent.
+- Added the Base-first home, public no-reward practice lesson with answer checking,
+  public non-persisting sponsor workflow, updated share image, Base Batches
+  chapter, application response draft, evidence map, and founder-video script.
+  Production-funded routes and APIs remain gated.
+- Node 20: unit **256/256**, browser **18/18**, Base/Postgres integration
+  **55/55**, Rust contract **30/30**, Base contract **29/29**, and built-production
+  HTTP/packaging **1/1** pass. ESLint, standalone TypeScript, optimized Next
+  production build, and diff whitespace checks pass. The shared Cargo target
+  became unresponsive during compilation; an isolated nonincremental target
+  compiled cleanly and passed, so no contract source was changed for the cache
+  failure.
+
+### Reshape session 18, 2026-09-06: CDP participant accounts
+
+- Rechecked sponsored claim transaction
+  `0x35860a8044d025b6086acbacc02a3f173520b88410fc9338c6267117dc6f1255`
+  at the finalized tag. Finalized head `46480230` is beyond transaction block
+  `46450098`; receipt status, deployed recipient code, `1000000` recipient USDC,
+  used slot `0` and zero campaign outstanding all match the inclusion evidence.
+- Replaced hosted Base Account participant onboarding with CDP User Wallet email
+  OTP and smart accounts. The server validates the CDP access token, verified
+  email and requested smart-account ownership before issuing a 14-minute existing
+  database session. Access tokens are not stored. The participant still signs the
+  campaign-specific wallet challenge before issuance; UserOperations still pass
+  through the strict claim-only sponsorship proxy.
+- Node 20.18.3: unit **256/256**, Base/Postgres integration **55/55**, and browser
+  **15/15** pass. ESLint, standalone TypeScript, clean Next production build and
+  diff whitespace checks pass. Base contract **29/29**, compiled
+  escrow/Postgres **1/1**, built-production HTTP/packaging **1/1**, and the
+  production dependency audit also pass. The browser suite covers existing
+  fallback mode; live CDP email, signature and UserOperation acceptance remains
+  open.
+- No production flag, Render secret, mainnet transfer, new Base transaction or
+  provider billing configuration changed. Sponsor authentication is unchanged.
+
 ### Reshape session 14, 2026-09-05: one-slot campaign funding
 
 - Approval block `46441008` was finalized before campaign creation. The stale

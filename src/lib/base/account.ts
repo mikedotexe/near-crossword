@@ -2,28 +2,16 @@ import {
   encodeFunctionData,
   getAddress,
   hashTypedData,
-  numberToHex,
-  stringToHex,
   type Address,
   type Hex,
 } from "viem";
+import type {
+  SendUserOperationOptions,
+  SendUserOperationResult,
+} from "@coinbase/cdp-core";
 import { baseClaimTypedData } from "./claim";
 import { learningRewardsAbi } from "./escrow-abi";
 
-export interface AccountProvider {
-  request(args: {
-    method: string;
-    params?: readonly unknown[] | object;
-  }): Promise<unknown>;
-  on(
-    event: "accountsChanged" | "chainChanged" | "disconnect",
-    listener: () => void,
-  ): unknown;
-  removeListener(
-    event: "accountsChanged" | "chainChanged" | "disconnect",
-    listener: () => void,
-  ): unknown;
-}
 export type WalletConfiguration = {
   enabled: boolean;
   sponsoredGas: boolean;
@@ -53,72 +41,9 @@ export type AuthorizedReward = {
   };
 };
 
-export async function createAccountProvider(
-  chainId: number,
-): Promise<AccountProvider> {
-  if (chainId !== 8453 && chainId !== 84532)
-    throw new Error("Base Account is unavailable on this network");
-  const { createBaseAccountSDK } = await import("@base-org/account/browser");
-  return createBaseAccountSDK({
-    appName: "Crossword",
-    appChainIds: [chainId],
-    preference: { telemetry: false },
-  }).getProvider();
-}
-
-export async function connectAccount(
-  provider: AccountProvider,
-  chainId: number,
-) {
-  const result = await provider.request({ method: "eth_requestAccounts" });
-  if (!Array.isArray(result) || typeof result[0] !== "string")
-    throw new Error("No account was connected");
-  const recipient = getAddress(result[0]);
-  await provider.request({
-    method: "wallet_switchEthereumChain",
-    params: [{ chainId: numberToHex(chainId) }],
-  });
-  await assertAccount(provider, recipient, chainId);
-  return recipient;
-}
-
-export async function assertAccount(
-  provider: AccountProvider,
-  recipient: string,
-  chainId: number,
-) {
-  const accounts = await provider.request({ method: "eth_accounts" });
-  const network = await provider.request({ method: "eth_chainId" });
-  if (
-    !Array.isArray(accounts) ||
-    typeof accounts[0] !== "string" ||
-    accounts[0].toLowerCase() !== recipient.toLowerCase() ||
-    typeof network !== "string" ||
-    BigInt(network) !== BigInt(chainId)
-  )
-    throw new Error("Account or network changed. Reconnect before continuing.");
-}
-
-export async function signWalletChallenge(
-  provider: AccountProvider,
-  recipient: Address,
-  chainId: number,
-  message: string,
-) {
-  await assertAccount(provider, recipient, chainId);
-  const signature = await provider.request({
-    method: "personal_sign",
-    params: [stringToHex(message), recipient],
-  });
-  await assertAccount(provider, recipient, chainId);
-  if (
-    typeof signature !== "string" ||
-    !/^0x(?:[0-9a-fA-F]{2})+$/.test(signature) ||
-    signature.length > 8194
-  )
-    throw new Error("Wallet returned an unsupported proof");
-  return signature;
-}
+export type CdpSendUserOperation = (
+  options: SendUserOperationOptions,
+) => Promise<SendUserOperationResult>;
 
 export function claimCall(
   reward: AuthorizedReward,
@@ -171,7 +96,7 @@ export function claimCall(
 }
 
 export async function sendSponsoredClaim(
-  provider: AccountProvider,
+  sendUserOperation: CdpSendUserOperation,
   reward: AuthorizedReward,
   expected: Parameters<typeof claimCall>[1],
   configuration: WalletConfiguration,
@@ -198,39 +123,22 @@ export async function sendSponsoredClaim(
   if (!permit || !/^[0-9a-f]{64}$/.test(permit.token) || permit.digest !== reward.digest ||
       !Number.isSafeInteger(permit.expiresAt) || permit.expiresAt <= Math.floor(Date.now() / 1000) + 15)
     throw new Error("A fresh claim-specific gas permit is required");
-  await assertAccount(provider, expected.recipient, expected.chainId);
-  const capabilities = await provider.request({
-    method: "wallet_getCapabilities",
-    params: [expected.recipient, [numberToHex(expected.chainId)]],
-  });
-  const support = capabilities as Record<
-    string,
-    { paymasterService?: { supported?: boolean } }
-  > | null;
-  if (!support?.[numberToHex(expected.chainId)]?.paymasterService?.supported)
-    throw new Error(
-      "This account cannot receive sponsored gas. No transaction was sent.",
-    );
-  await assertAccount(provider, expected.recipient, expected.chainId);
+  const network = expected.chainId === 84532
+    ? "base-sepolia"
+    : expected.chainId === 8453
+      ? "base"
+      : null;
+  if (!network) throw new Error("CDP Wallet is unavailable on this network");
   beforeSubmission?.();
-  const result = await provider.request({
-    method: "wallet_sendCalls",
-    params: [
-      {
-        version: "2.0.0",
-        chainId: numberToHex(expected.chainId),
-        from: expected.recipient,
-        atomicRequired: true,
-        calls: [call],
-        capabilities: { paymasterService: { url: proxy.href, context: { token: permit.token } } },
-      },
-    ],
+  const result = await sendUserOperation({
+    evmSmartAccount: getAddress(expected.recipient),
+    network,
+    calls: [{ ...call, value: 0n }],
+    paymasterUrl: proxy.href,
+    paymasterContext: { token: permit.token },
   });
-  const id =
-    typeof result === "string"
-      ? result
-      : (result as { id?: unknown } | null)?.id;
-  if (typeof id !== "string" || !/^0x[0-9a-fA-F]{1,512}$/.test(id))
+  const id = result?.userOperationHash;
+  if (typeof id !== "string" || !/^0x[0-9a-fA-F]{64}$/.test(id))
     throw new Error(
       "Wallet submission is uncertain. Check your reward before trying again.",
     );

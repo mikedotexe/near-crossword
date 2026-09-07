@@ -1,76 +1,92 @@
-# Base Account and sponsored gas
+# Base account and sponsored gas
 
-Local checkpoint, 2026-09-04. Do not activate sponsorship from this chapter alone.
+Updated 2026-09-06 after the finalized Base Sepolia backend proof and the CDP
+User Wallet participant decision. Do not activate sponsorship from this chapter
+alone; use [chapter 09](09-claim-sponsorship.md) and
+[chapter 10](10-cdp-participant-accounts.md) as well.
 
-## Implemented
+## Selected browser path
 
-`src/lib/base/account.ts` lazily imports the pinned Base Account SDK browser
-entry point on explicit connect. It checks account and chain before/after message
-signing, and again before sending a single zero-value `LearningRewards.claim`.
-The UI compares recipient, amount, escrow, network, campaign, deadline and EIP-712
-digest to the loaded lesson. It requests mandatory paymaster support with
-`wallet_sendCalls`; there is no `eth_sendTransaction`, token approval, spending
-permission, or user-paid gas fallback.
+Participants use CDP User Wallet email OTP and its smart account. The abandoned
+`@base-org/account` popup adapter is no longer a runtime dependency: fresh hosted
+Base Accounts connected on Base Sepolia but rejected transactions and sub-account
+creation before the Crossword proxy, matching upstream issue #363.
 
-Account/chain/disconnect events invalidate browser authorization. Rejected wallet
-actions do not silently retry. Before send, session storage holds an uncertainty
-marker, then an opaque calls ID if returned. No signatures are persisted in browser
-storage. `wallet_getCallsStatus` may report submission failure, but only the server's
-finalized exact `RewardPaid` receipt changes the UI to paid. Lost call IDs require
-account activity inspection; automated resend is intentionally withheld.
+`app/learn/ParticipantAccount.tsx` owns CDP lifecycle, smart-account selection,
+message signing and UserOperation submission. `src/lib/base/account.ts` remains a
+pure transaction boundary: it compares recipient, amount, escrow, network,
+campaign, slot, nonce, deadline and EIP-712 digest to the loaded reward, then
+sends exactly one zero-value `LearningRewards.claim` through the configured
+paymaster proxy. There is no ordinary transaction, token approval, spend
+permission or user-paid gas fallback.
+
+Rejected wallet actions do not silently retry. The browser stores no wallet
+signature, CDP token or paymaster permit. A returned UserOperation hash is only
+submission evidence; only the server's exact finalized `RewardPaid` recovery
+changes the reward to paid. Unknown outcomes remain subject to the durable
+sponsorship recovery rules in chapter 09.
+
+## Counterfactual verification
 
 Counterfactual verification is default off. When separately enabled, the reader
 accepts only ERC-6492 signatures for an operator-pinned factory runtime and
 implementation runtime. It validates canonical `createAccount(bytes[],uint256)`
-calldata, 1-4 bounded address/passkey owners, and the factory's predicted recipient
-at the same canonical finalized block. Viem's established universal validator
-performs an `eth_call` capped at one million gas. **Verification never deploys or
-sends a transaction.** ERC-8010/delegation preparation remains unsupported; plain
-EOA/deployed ERC-1271 behavior is preserved. Wrapper authority does not fall back
-to an unwrapped former owner key.
+calldata, 1-4 bounded address/passkey owners, and the factory's predicted
+recipient at the same canonical finalized block. Viem's universal validator
+performs a bounded `eth_call`. Verification never deploys or sends a transaction.
 
-The compiled local acceptance test uses a synthetic CREATE2 factory with the
-required interface, not a real Base passkey/account deployment. It proves that
-verification leaves the recipient undeployed, and the approved recipient can be
-allocated and receive a finalized USDC reward. It does not prove the hosted wallet
-popup, a fresh passkey, CDP, bundler gas costs, or sponsorship acceptance.
+EOA and deployed ERC-1271 behavior remains supported. ERC-8010/delegation
+preparation is unsupported, and wrapper authority does not fall back to an
+unwrapped former owner key. The compiled local test uses a synthetic CREATE2
+factory and proves verification cannot mutate account state. The selected CDP
+User Wallet must still pass this same signed-challenge boundary in live acceptance.
+
+## Observed Base Sepolia proof
+
+Session 17 used a fresh local Coinbase Smart Account v1.1, not the hosted popup,
+to prove the escrow, EntryPoint 0.6, factory, strict Crossword proxy and CDP
+paymaster together. UserOperation
+`0x92e56f426be9c882cb8729e269cb1e6d07981b5194872626a80d7f2e65c470ee`
+produced transaction
+`0x35860a8044d025b6086acbacc02a3f173520b88410fc9338c6267117dc6f1255`
+at block `46450098`. The zero-ETH recipient received exactly 1 test USDC and paid
+no gas. Session 18 rechecked the successful receipt, deployed account, used slot
+and zero outstanding at finalized head `46480230`.
+
+This closes backend sponsorship finality. It does not prove fresh CDP email OTP,
+the CDP-generated smart account's ERC-6492 message signature, database-backed
+issuance, or live browser submission through this adapter.
 
 ## Activation gates
 
-`BASE_ACCOUNT_ENABLED`, `BASE_COUNTERFACTUAL_ENABLED` and
-`BASE_SPONSORED_GAS_ENABLED` are independent, default-false switches.
+`BASE_ACCOUNT_ENABLED`, `CDP_PARTICIPANT_AUTH_ENABLED`,
+`BASE_COUNTERFACTUAL_ENABLED` and `BASE_SPONSORED_GAS_ENABLED` are separate,
+default-false switches. Account UI also requires `NEXT_PUBLIC_CDP_PROJECT_ID`.
 Factory address, factory code hash and implementation code hash must be reviewed
-for the selected network. No production factory address is guessed or auto-pinned.
+for the selected network. No production address is guessed or auto-pinned.
 
-`BASE_SPONSORED_CLAIM_PROXY_URL` is a **public, credential-free, reviewed HTTPS
-proxy URL**, not a CDP API URL. The raw CDP endpoint is rejected by the browser and
-configuration helper. Query strings, credentials and fragments are rejected.
-Do not configure an open relay just to make the button work.
+`BASE_SPONSORED_CLAIM_PROXY_URL` is a public, credential-free, reviewed HTTPS
+proxy URL, not a CDP API URL. The raw CDP endpoint is rejected by browser
+configuration. Query strings, credentials and fragments are rejected. The
+private permit endpoint requires a database session; the browser passes its
+short-lived token through ERC-7677 context, not a site cookie.
 
-Session 8 implements the local claim-specific proxy. See
-[chapter 09](09-claim-sponsorship.md) for the supported wire format, durable
-allowance/retry rules and unresolved live compatibility gates. The private permit
-endpoint requires a real session; the wallet passes its short-lived token through
-ERC-7677 context, not a site cookie. No mainnet activation is implemented.
-CDP contract/function allowlists and billing budgets still need operator review.
-Do not infer hosted-wallet compatibility or provider acceptance from local tests.
-
-Next acceptance: explicitly scoped Base Sepolia deployment, fresh browser/passkey
-with zero ETH, wallet proof, one gas-sponsored redemption, cancellation and lost
-response recovery, finalized receipt, provider cost, and account/network changes.
-Only then propose a bounded mainnet pilot for approval. x402 payer compatibility
-is a separate checkpoint; supporting ERC-6492 reward verification does not change
-our facilitator's current counterfactual-payment limitations.
+Next acceptance is one fresh CDP User Wallet email session on Base Sepolia with
+zero ETH, signed wallet proof, database issuance, sponsored redemption, finalized
+recovery, duplicate/lost-response behavior and observed provider cost. Only then
+should a bounded mainnet pilot be proposed. x402 payer compatibility is a separate
+checkpoint; reward signature support does not change the facilitator's current
+counterfactual-payment limitations.
 
 ## References and dependencies
 
-- [Base sponsorship guide](https://docs.base.org/sdks/base-account/improve-ux/sponsor-gas/paymasters)
+- [CDP User Wallet](https://docs.cdp.coinbase.com/embedded-wallets/welcome)
 - [CDP paymaster security](https://docs.cdp.coinbase.com/paymaster/reference-troubleshooting/security)
 - [ERC-6492](https://eips.ethereum.org/EIPS/eip-6492)
 - [Coinbase factory source](https://github.com/coinbase/smart-wallet/blob/main/src/CoinbaseSmartWalletFactory.sol)
+- [Hosted Base Account issue #363](https://github.com/base/account-sdk/issues/363)
 
-The SDK is pinned to 2.5.10, with browser telemetry disabled. Its Node-only CDP
-dependency pinned vulnerable Axios 1.16.0. The repository resolves Axios to
-1.18.1 (also used by the existing 1Click client) for
-[GHSA-gcfj-64vw-6mp9](https://github.com/advisories/GHSA-gcfj-64vw-6mp9).
-Audit both production and full dependency trees after future SDK changes.
+CDP browser packages are pinned to 0.0.123 and the server SDK to 1.52.0. SDK
+analytics/error reporting are disabled. CDP Core's optional deprecated x402 v1
+browser import is excluded; Crossword stays on its existing x402 v2 stack.
+Audit production and full dependency trees after future SDK changes.

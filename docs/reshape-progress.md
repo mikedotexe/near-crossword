@@ -1,7 +1,7 @@
 # Reshape session checkpoint
 
-Last setup session: 2026-09-05, America/Los_Angeles, session 14 after
-`8a4b951` (finalized deployment check).
+Last implementation session: 2026-09-07, America/Los_Angeles, session 19 after
+`3653f78` (Base-first product and application preparation; uncommitted).
 
 Read this after the [work order](reshape-action-plan.md). It is a continuation
 record, not evidence of deployment. Live gates remain in
@@ -39,15 +39,22 @@ not unique humans or learning. Manual authoring remains valid.
   approved allowance transaction. Session 14 verifies approval finality,
   recomputes a stale campaign schedule, and creates campaign `1` with exactly
   one 1-test-USDC slot after explicit approval.
+  Sessions 15-17 separate an upstream hosted Base Account Sepolia failure from
+  the backend and complete one sponsored claim with a local Coinbase Smart
+  Account. Session 18 confirms its finality and implements the chosen CDP User
+  Wallet participant path with database session bridging. Session 19 accepts a
+  fresh CDP email/smart-account session locally, fixes its initialization race,
+  and prepares a second one-slot campaign plus the Base Batches product surface.
   See [local setup](base-sepolia-local-setup.md). The encrypted deployer is not a
   paymaster or fresh participant wallet, and no mainnet funding or
   transaction-specific approval is implied by creating/funding it.
 - The original `/Users/mikepurvis/other/near-crossword` worktree remains on
   `codex/crossword-campaigns` with pre-existing changes. Do not overwrite it or
   assume it is the launch-candidate branch. Recheck both worktrees next session.
-- No merge, push, Render configuration change, production migration,
-  public-chain transaction, or deployment was performed. The original ignored `.env` was not
-  edited or copied. Session 3 applied all nine migrations twice to isolated local
+- No merge, push, Render configuration change, production migration, or
+  deployment was performed in sessions 18-19. Session 19 sent one explicitly
+  approved Base Sepolia USDC allowance transaction and no campaign transaction.
+  The original ignored `.env` was not edited or copied. Session 3 applied all nine migrations twice to isolated local
   schemas. Session 5 applied all ten migrations twice to fresh isolated local
   Postgres schemas and tested compiled contracts on disposable loopback Anvil.
   Session 6 applies/replays all eleven migrations and extends the local EVM check
@@ -66,13 +73,32 @@ not unique humans or learning. Manual authoring remains valid.
 | R2a provider adapter | GLM 5.1 non-thinking default passes live bounded SDK/source requests | Representative quality, reliability, layout and cost evaluation; real credit-exhaustion acceptance |
 | R2b lesson/source drafts | Two live synthetic drafts validate; private review API and manual editor implemented | Representative quality evaluation and versioned paid generation orchestration |
 | R3a contract design | Implemented locally with shared typed-data fixture | Independent security review and integration review |
-| R3b contract/accounting | Base Sepolia escrow deployed and deployment finality verified; campaign `1` funded with 1 native test USDC | Finalized campaign verification, reviewed RPC/finality policy, supervised scanner, scale validation, independent security review and live acceptance |
-| R4 workflows | Sponsor/player screens, approved publication, claim recovery and strict Sepolia gas proxy implemented locally; disabled local env, funded test deployer, validated CDP endpoint, deployed escrow, claim-only CDP allowlist, local eligibility signer, 1-test-USDC allowance and funded one-slot campaign | Live wire compatibility and fresh passkey/gas acceptance, operator gas recovery, sponsor wallet funding/control/dashboard, live email acceptance, fraud policy, retention/export |
+| R3b contract/accounting | Base Sepolia escrow, campaign and one CDP-sponsored claim finalized with exact event/state reconciliation | Reviewed RPC/finality policy, supervised scanner, scale validation and independent security review |
+| R4 workflows | Public practice/sponsor demos, private publication, claim recovery, strict Sepolia gas proxy and CDP User Wallet email/smart-account integration implemented locally; backend sponsored claim finalized; fresh CDP email/account/session accepted | Combined CDP wallet challenge/UserOperation/finalized recovery, operator gas recovery, sponsor wallet funding/control/dashboard, fraud policy, retention/export |
 | R5 Base x402 | Not started | EVM scheme/payer, facilitator configuration, first-wallet and settlement/recovery proof |
 | R6 pilot | Gated | Earlier milestones, reviewed release, explicit small budget and identities |
 
 ## What landed locally
 
+- Session 19: completed fresh CDP email OTP, smart-account creation, server
+  validation, and database-session acceptance. Fixed the brief client race that
+  could report a missing smart account while CDP was still creating it. After
+  exact approval, sent native Base Sepolia USDC allowance transaction
+  `0x3ae0338128215613cff99b82c43b2c81b48519083d8a3b29a70a462077b8ed47`;
+  finalized state has exactly `1000000` deployer balance and allowance. No second
+  campaign was created. Added a Base-first home, public completable practice
+  lesson, non-persisting sponsor workflow, Base Batches chapter, application draft,
+  evidence map, and founder-video script. Production remains unchanged.
+
+- Session 18: finalized-tag recheck closed the sponsored claim's finality gap at
+  head `46480230`. CDP User Wallet replaces hosted Base Account for participants:
+  inline email OTP requests a smart account, server-side CDP validation binds its
+  verified email and recipient to a short database session, the existing signed
+  wallet challenge remains mandatory, and the exact claim goes through the same
+  claim-only paymaster proxy. CDP access tokens are never persisted; sponsor auth
+  is unchanged. Unit 256/256, Base/Postgres 55/55, browser 15/15, lint, typecheck
+  and a clean Node 20 production build pass. Live CDP acceptance and every
+  production gate remain open.
 - Session 14: verified the approval block was finalized, refreshed the
   one-slot campaign schedule because the older preflight had gone stale, and
   sent the approved `createCampaign` transaction. Campaign `1` now holds exactly
@@ -422,31 +448,36 @@ replace the key or add stake simply to obtain an inference response.
 
 ## Start here next session
 
-1. Read this checkpoint, action plan, launch register, and Base design; inspect
-   branch/worktree state before editing. Preserve unrelated original-worktree work.
-2. Read chapters 07/08/09 and the Sepolia sponsorship acceptance checklist.
-   Verify finalization for the deployed escrow, reuse the encrypted test-deployer
-   wallet, do not regenerate it, and keep the CDP endpoint private in ignored env
-   or a staging secret store. The next approvals are for independent eligibility
-   signer setup and a one-slot test campaign. The facilitator's mainnet keys are
-   not reusable. Do not change AWS ingress/IAM to recover credentials without
-   specific approval. Keep production flags off, and do not relax unknown-outcome
-   handling to make retries work.
-3. Prove real fresh Base Account/passkey onboarding and sponsored redemption gas
-   against the deployed Base Sepolia escrow. Local ERC-6492 simulation and a
-   mocked browser provider are not that acceptance evidence. Build sponsor wallet
+1. Read this checkpoint, launch register, and chapters 10-11; inspect both
+   worktrees before editing. Preserve unrelated original-worktree work. Until the
+   September 9 deadline, use the Base Batches application draft as the short
+   product checklist without bending evidence to fit it.
+2. Finish visual/browser/build checks for the public home, practice lesson, and
+   sponsor demo. Review the complete dirty diff, make a launch-candidate commit,
+   and prepare the Render deployment and exact CDP `crossword.xyz` origin. Do not
+   enable reward or sponsorship gates merely to make the public demo look live.
+3. Read chapters 07-10 and the Sepolia sponsorship acceptance checklist. Keep
+   the private CDP paymaster endpoint and Secret API Key only in ignored env or a
+   staging secret store. The facilitator's mainnet keys are not reusable. Keep
+   production flags off, and do not relax unknown-outcome handling to make retries
+   work.
+4. The fresh email OTP, smart-account creation, and database session now pass.
+   Refresh the second campaign's stale schedule and obtain a new exact campaign
+   transaction confirmation before sending. Then prove signed wallet
+   challenge, database issuance, sponsored redemption and finalized recovery on
+   Base Sepolia. Build sponsor wallet
    create/fund/control and reporting views. Resolve live email acceptance,
    explicit sponsor export/retention and pilot fraud policy. Account uniqueness
    is not human uniqueness. Keep consent optional and private. Compose funding
    and redemption with the existing reconciled reader. Production activation still
    needs finalized deployment/code/RPC pins, reviewed finality policy and a
    supervised scan cadence. Benchmark the bounded rebuild before large campaigns.
-4. Keep the verified GLM 5.1 recipe for representative source/lesson evaluation.
+5. Keep the verified GLM 5.1 recipe for representative source/lesson evaluation.
    Human-review clue correctness, factual support and layout viability; measure
    acceptable-draft cost/latency and actual exhaustion before paid activation.
    Mike separately verifies staking-credit linkage and exact farm configuration.
    No broad model sweep, guessed validator/pool or assumed Gemma access is needed.
-5. Connect AI generation to private review through a new versioned paid workflow,
+6. Connect AI generation to private review through a new versioned paid workflow,
    not the old clue cache. Update this checkpoint and the launch register with actual new evidence.
    Do not close R2/R3 on the strength of this session alone.
 

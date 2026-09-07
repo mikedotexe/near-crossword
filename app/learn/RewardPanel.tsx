@@ -1,20 +1,16 @@
 "use client";
-import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Check, ExternalLink, RefreshCw, Wallet } from "lucide-react";
 import type { Address } from "viem";
 import {
-  assertAccount,
-  connectAccount,
-  createAccountProvider,
   sendSponsoredClaim,
-  signWalletChallenge,
-  type AccountProvider,
   type AuthorizedReward,
   type WalletConfiguration,
 } from "../../src/lib/base/account";
 import { usdcAmount, type PublicLesson } from "../../src/lib/base/learning";
-import { learningApi, LearningApiError, loginLink } from "./api";
+import { learningApi, LearningApiError } from "./api";
+import { useParticipantAccount } from "./ParticipantAccount";
+import { ParticipantSignIn } from "./ParticipantSignIn";
 
 type Recovery = {
   status: string;
@@ -51,15 +47,13 @@ export function RewardPanel({
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
-  const [recipient, setRecipient] = useState<Address | null>(null);
   const [authorization, setAuthorization] = useState<AuthorizedReward | null>(
     null,
   );
   const [pending, setPending] = useState<string | null>(null);
   const [consentDraft, setConsentDraft] = useState<boolean | null>(null);
-  const provider = useRef<AccountProvider | null>(null);
-  const generation = useRef(0);
-  const cleanup = useRef<() => void>(() => {});
+  const account = useParticipantAccount();
+  const recipient = account.recipient;
   const path = `/api/base/participants/${id}`;
   const terms = lesson
     ? { ...lesson.terms, onChainId: lesson.onChainId }
@@ -98,8 +92,7 @@ export function RewardPanel({
     return () => {
       active = false;
     };
-  }, [refresh, completionVersion, id]);
-  useEffect(() => () => cleanup.current(), []);
+  }, [refresh, completionVersion, id, account.sessionVersion]);
 
   async function act(run: () => Promise<void>) {
     if (busy) return;
@@ -123,68 +116,29 @@ export function RewardPanel({
       setBusy(false);
     }
   }
-  async function connect() {
-    if (!wallet.enabled || !terms) return;
-    cleanup.current();
-    provider.current ??= await createAccountProvider(terms.chainId);
-    const current = provider.current;
-    const invalidate = () => {
-      generation.current++;
-      setRecipient(null);
-      setAuthorization(null);
-    };
-    for (const event of [
-      "accountsChanged",
-      "chainChanged",
-      "disconnect",
-    ] as const)
-      current.on(event, invalidate);
-    cleanup.current = () => {
-      for (const event of [
-        "accountsChanged",
-        "chainChanged",
-        "disconnect",
-      ] as const)
-        current.removeListener(event, invalidate);
-    };
-    const account = await connectAccount(current, terms.chainId);
-    setRecipient(account);
-    setAuthorization(null);
-    if (
-      recovery?.recipient &&
-      recovery.recipient.toLowerCase() !== account.toLowerCase()
-    )
-      setNotice(
-        "This reward belongs to a different account. Reconnect that account to recover it.",
-      );
-  }
   async function authorize() {
-    if (!provider.current || !recipient || !terms || !recovery) return;
-    const current = provider.current,
-      version = generation.current;
+    if (!recipient || !terms || !recovery || account.state !== "ready") return;
     const challenge = await learningApi<{
       challengeId: string;
       message: string;
     }>(`${path}/wallet-challenge`, { revision: recovery.revision, recipient });
-    const signature = await signWalletChallenge(
-      current,
-      recipient,
-      terms.chainId,
-      challenge.message,
-    );
-    if (generation.current !== version) throw new Error();
+    const signature = await account.signMessage(challenge.message);
     const result = await learningApi<AuthorizedReward | Recovery>(
       `${path}/claim`,
       { recipient, proof: { challengeId: challenge.challengeId, signature } },
     );
-    await assertAccount(current, recipient, terms.chainId);
-    if (generation.current !== version) throw new Error();
     if (result.status === "AUTHORIZED" && "typedData" in result)
       setAuthorization(result);
     await refresh();
   }
   async function send() {
-    if (!provider.current || !recipient || !authorization || !terms || pending)
+    if (
+      !recipient ||
+      !authorization ||
+      !terms ||
+      pending ||
+      account.state !== "ready"
+    )
       return;
     const latest = await refresh();
     if (latest.status !== "RECOVERABLE") {
@@ -193,11 +147,9 @@ export function RewardPanel({
     }
     let batch: string;
     try {
-      const current = provider.current, version = generation.current;
       const permit = await learningApi<import("../../src/lib/base/account").SponsorshipPermit>(`${path}/sponsorship`, { digest: authorization.digest });
-      if (generation.current !== version || provider.current !== current) throw new Error();
       batch = await sendSponsoredClaim(
-        current,
+        account.sendUserOperation,
         authorization,
         { recipient, ...terms },
         wallet,
@@ -223,17 +175,6 @@ export function RewardPanel({
     );
   }
   async function check() {
-    if (pending && pending !== "uncertain" && provider.current) {
-      const result = (await provider.current.request({
-        method: "wallet_getCallsStatus",
-        params: [pending],
-      })) as { status?: number };
-      if (typeof result.status === "number" && result.status >= 400) {
-        setPending(null);
-        sessionStorage.removeItem(`crossword:pending:${id}`);
-        setNotice("The wallet batch failed. Your saved reward can be retried.");
-      }
-    }
     await refresh();
   }
   const eligible =
@@ -262,9 +203,7 @@ export function RewardPanel({
       {anonymous ? (
         <>
           <p>Verify your email to save a completion and claim a reward.</p>
-          <Link className="learn-button" href={loginLink(`/learn/${id}`)}>
-            Sign in to continue
-          </Link>
+          <ParticipantSignIn returnTo={`/learn/${id}`} />
         </>
       ) : recovery ? (
         <>
@@ -312,40 +251,39 @@ export function RewardPanel({
                   )[recovery.status] || "Reward availability is being checked."}
                 </p>
               )}
-              {!recovery.emailVerified && (
-                <Link href={loginLink(`/learn/${id}`)}>Verify your email</Link>
-              )}
               {!wallet.enabled || !wallet.sponsoredGas ? (
                 <p className="learn-notice">
                   Sponsored wallet claims are not enabled on this deployment.
                 </p>
+              ) : account.state !== "ready" || !recipient ? (
+                <>
+                  <p>Sign in to create your private Base reward account.</p>
+                  <ParticipantSignIn returnTo={`/learn/${id}`} />
+                </>
               ) : (
                 <>
-                  <button
-                    className="learn-button secondary"
-                    disabled={busy || !terms}
-                    onClick={() => void act(connect)}
-                  >
-                    <Wallet size={17} />
-                    {recipient
-                      ? "Reconnect Base Account"
-                      : "Connect or create Base Account"}
-                  </button>
-                  {recipient && <p className="learn-address">{recipient}</p>}
-                  {recipient && (
-                    <button
-                      className="learn-button"
-                      disabled={
-                        busy || !eligible || wrongAccount || Boolean(pending)
-                      }
-                      onClick={() => void act(authorize)}
-                    >
-                      {authorization
-                        ? "Refresh authorization"
-                        : "Verify wallet and reserve reward"}
-                    </button>
+                  <p className="learn-account">
+                    <Wallet size={16} aria-hidden="true" />
+                    <span className="learn-address">{recipient}</span>
+                  </p>
+                  {wrongAccount && (
+                    <p className="learn-notice">
+                      This reward belongs to another account. Sign in with the
+                      Coinbase account originally used for this campaign.
+                    </p>
                   )}
-                  {authorization && recipient && (
+                  <button
+                    className="learn-button"
+                    disabled={
+                      busy || !eligible || wrongAccount || Boolean(pending)
+                    }
+                    onClick={() => void act(authorize)}
+                  >
+                    {authorization
+                      ? "Refresh authorization"
+                      : "Verify account and reserve reward"}
+                  </button>
+                  {authorization && (
                     <div className="learn-confirm">
                       <strong>
                         {usdcAmount(authorization.typedData.message.amount)}{" "}

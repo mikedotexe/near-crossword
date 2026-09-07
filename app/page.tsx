@@ -1,228 +1,287 @@
 import Link from "next/link";
-import { CampaignCard } from "./components/CampaignCard";
 import { PixelMark } from "./components/PixelMark";
 import { PuzzleDiagram } from "./components/PuzzleDiagram";
 import { SectionHeading } from "./components/SectionHeading";
-import { StatusBadge } from "./components/StatusBadge";
-import { listCampaigns } from "./lib/api";
+import { demoCampaigns } from "./lib/demo-data";
 
-export default async function HomePage() {
-  const campaigns = await listCampaigns();
-  const featured = campaigns.slice(0, 2);
-  const heroCampaign = campaigns[0];
+const escrowAddress = "0x77fdCEF7d08c54eD2a87FD54fBf24a660fa2A304";
+const acceptanceTransaction =
+  "0x35860a8044d025b6086acbacc02a3f173520b88410fc9338c6267117dc6f1255";
 
+export default function HomePage() {
   return (
     <>
-      <section className="hero">
+      <section className="hero hero--learning">
         <div className="shell hero__grid">
           <div className="hero__copy">
-            <p className="eyebrow eyebrow--blue">Crosswords with real stakes</p>
-            <h1>
-              A good clue
-              <br />
-              deserves a <em>great prize.</em>
-            </h1>
+            <p className="eyebrow eyebrow--blue">
+              Sponsor-funded learning / Base
+            </p>
+            <h1>Crossword</h1>
+            <p className="hero__statement">
+              Turn learning into a reward people can verify.
+            </p>
             <p className="hero__lede">
-              Create a crossword for your community, fund it with a supported
-              asset, and let the first solver take the prize wherever they want
-              it.
+              Sponsors publish a short, source-grounded lesson and fund a pool
+              of small USDC rewards. Learners read, solve, and receive their
+              reward through an account that feels like email.
             </p>
             <div className="hero__actions">
-              <Link className="button button--blue" href="/create">
-                Create a campaign
+              <Link className="button button--blue" href="/learn/practice">
+                Try a lesson
               </Link>
-              <Link className="button button--quiet" href="/explore">
-                Find a puzzle <span aria-hidden="true">→</span>
+              <Link className="button button--quiet" href="/learn/sponsor-demo">
+                See the sponsor workflow
               </Link>
             </div>
             <dl className="hero__proof">
               <div>
-                <dt>Free</dt>
-                <dd>to solve</dd>
+                <dt>USDC</dt>
+                <dd>rewards on Base</dd>
               </div>
               <div>
-                <dt>Locked</dt>
-                <dd>before launch</dd>
+                <dt>Email</dt>
+                <dd>instead of a seed phrase</dd>
               </div>
               <div>
-                <dt>Flexible</dt>
-                <dd>winner payout</dd>
+                <dt>Onchain</dt>
+                <dd>campaign accounting</dd>
               </div>
             </dl>
           </div>
 
-          {heroCampaign ? (
-            <div className="hero-ticket-wrap">
-              <span className="hero-ticket-wrap__scribble">Today&apos;s prize</span>
-              <article className="hero-ticket">
-                <div className="hero-ticket__top">
-                  <span className="sponsor-mark sponsor-mark--large">
-                    {heroCampaign.sponsorMark}
-                  </span>
-                  <StatusBadge state={heroCampaign.state} compact />
+          <div className="hero-ticket-wrap hero-ticket-wrap--learning">
+            <span className="hero-ticket-wrap__scribble">A two-minute lesson</span>
+            <article className="hero-ticket">
+              <div className="hero-ticket__top">
+                <span className="sponsor-mark sponsor-mark--large">CW</span>
+                <span className="demo-label">Base Sepolia pilot</span>
+              </div>
+              <PuzzleDiagram
+                puzzle={demoCampaigns[0].puzzle}
+                compact
+                maxCellSizeRem={1.25}
+              />
+              <div className="hero-ticket__body">
+                <p className="eyebrow">Practice lesson</p>
+                <h2>Understanding digital payments</h2>
+                <div className="hero-ticket__prize">
+                  <span>Finalized acceptance reward</span>
+                  <strong>1 USDC</strong>
                 </div>
-                <PuzzleDiagram puzzle={heroCampaign.puzzle} compact />
-                <div className="hero-ticket__body">
-                  <p className="eyebrow">
-                    Presented by {heroCampaign.sponsorName}
-                  </p>
-                  <h2>{heroCampaign.title}</h2>
-                  <div className="hero-ticket__prize">
-                    <span>First correct solve</span>
-                    <strong>
-                      {heroCampaign.reward.type === "token"
-                        ? `${heroCampaign.reward.amount} ${heroCampaign.reward.symbol}`
-                        : heroCampaign.reward.title}
-                    </strong>
-                  </div>
-                  <Link
-                    className="button button--ink button--wide"
-                    href={`/campaigns/${heroCampaign.slug}/play`}
-                  >
-                    Open the puzzle
-                  </Link>
-                </div>
-                <div className="ticket-notch ticket-notch--left" />
-                <div className="ticket-notch ticket-notch--right" />
-              </article>
-              {heroCampaign.isDemo ? (
-                <span className="demo-stamp">Illustrative campaign</span>
-              ) : null}
-            </div>
-          ) : (
-            <PixelMark />
-          )}
+                <Link
+                  className="button button--ink button--wide"
+                  href="/learn/practice"
+                >
+                  Open the lesson
+                </Link>
+              </div>
+              <div className="ticket-notch ticket-notch--left" />
+              <div className="ticket-notch ticket-notch--right" />
+            </article>
+          </div>
         </div>
       </section>
 
-      <section className="rail-strip" aria-label="How prize routing works">
+      <section className="rail-strip" aria-label="How a reward moves">
         <div className="shell rail-strip__inner">
-          <span>Fund with</span>
-          <strong>ETH · USDC · SOL · more</strong>
+          <span>Sponsor funds</span>
+          <strong>USDC on Base</strong>
           <i aria-hidden="true">→</i>
-          <span>Prize locked as</span>
-          <strong>USDC on NEAR</strong>
+          <span>Learner completes</span>
+          <strong>Lesson + crossword</strong>
           <i aria-hidden="true">→</i>
-          <span>Winner chooses</span>
-          <strong>Asset + destination</strong>
+          <span>Escrow pays</span>
+          <strong>With sponsored gas</strong>
         </div>
       </section>
 
-      <section className="section section--paper">
+      <section className="section section--paper" id="sponsors">
         <div className="shell">
           <SectionHeading
-            eyebrow="Open now"
-            title="Puzzles with something on the line."
+            eyebrow="For sponsors"
+            title="One campaign budget. Many small, accountable rewards."
             action={
-              <Link className="text-link" href="/explore">
-                Explore all campaigns <span aria-hidden="true">→</span>
+              <Link className="text-link" href="/learn/sponsor-demo">
+                Open the sponsor demo <span aria-hidden="true">→</span>
               </Link>
             }
           >
             <p>
-              Free to enter. Transparent prize. One satisfying final square.
+              Fund a campaign once, set exact reward terms, and let Crossword
+              handle distribution. The Base ledger shows where the campaign
+              funds went; optional contact consent stays private and separate.
             </p>
           </SectionHeading>
 
-          {featured.every((campaign) => campaign.isDemo) ? (
-            <p className="catalog-demo-note">
-              Preview catalog — campaign data below is illustrative until the v2
-              contract is deployed and funded.
-            </p>
-          ) : null}
-
-          <div className="campaign-grid">
-            {featured.map((campaign) => (
-              <CampaignCard campaign={campaign} key={campaign.id} />
-            ))}
+          <div className="sponsor-value-grid">
+            <article>
+              <span>01</span>
+              <h3>Teach one useful thing</h3>
+              <p>
+                Build a brief lesson from supplied sources, then review every
+                fact, clue, answer, and reward term before publication.
+              </p>
+            </article>
+            <article>
+              <span>02</span>
+              <h3>Distribute at campaign scale</h3>
+              <p>
+                A $10,000 sponsor budget can become thousands of fixed USDC
+                rewards without asking each learner to acquire gas.
+              </p>
+            </article>
+            <article>
+              <span>03</span>
+              <h3>Reconcile the promise</h3>
+              <p>
+                Funded terms, payouts, unused funds, and the final campaign
+                balance can be checked against escrow instead of a private report.
+              </p>
+            </article>
           </div>
         </div>
       </section>
 
       <section className="section section--ink">
         <div className="shell">
-          <SectionHeading eyebrow="For creators" title="One idea. Four honest steps.">
+          <SectionHeading eyebrow="The workflow" title="A campaign in four steps.">
             <p>
-              The experience keeps puzzle making playful and prize movement
-              explicit.
+              The sponsor keeps editorial and budget control. The learner gets a
+              short experience with no wallet ceremony.
             </p>
           </SectionHeading>
           <ol className="how-it-works">
             <li>
               <span>01</span>
-              <h3>Write the puzzle</h3>
-              <p>
-                Build clues yourself or buy a single AI-assisted draft through
-                x402.
-              </p>
+              <h3>Add sources</h3>
+              <p>Start from material the sponsor is prepared to stand behind.</p>
             </li>
             <li>
               <span>02</span>
-              <h3>Set the promise</h3>
-              <p>
-                Choose the sponsor story, campaign window, and exact USDC prize.
-              </p>
+              <h3>Review the lesson</h3>
+              <p>Approve the copy, crossword layout, and immutable reward terms.</p>
             </li>
             <li>
               <span>03</span>
-              <h3>Fund from anywhere</h3>
-              <p>
-                A live Intents quote routes a supported asset into escrow.
-              </p>
+              <h3>Fund Base escrow</h3>
+              <p>Reserve the complete USDC reward pool before learners arrive.</p>
             </li>
             <li>
               <span>04</span>
-              <h3>Share the link</h3>
-              <p>
-                Solvers play for free. The first valid proof unlocks the payout.
-              </p>
+              <h3>Share and settle</h3>
+              <p>Qualified completions receive sponsored, auditable payouts.</p>
             </li>
           </ol>
+        </div>
+      </section>
+
+      <section className="section section--proof" id="proof">
+        <div className="shell">
+          <SectionHeading
+            eyebrow="Working proof"
+            title="The hard payment path is already real."
+          >
+            <p>
+              The public experience is an early pilot. Its Base Sepolia escrow
+              and sponsored payout have completed independently verifiable tests.
+            </p>
+          </SectionHeading>
+          <div className="proof-ledger">
+            <article>
+              <div>
+                <span className="proof-ledger__state">Deployed</span>
+                <h3>USDC campaign escrow</h3>
+              </div>
+              <p>
+                Campaign funds are reserved against fixed per-person rewards and
+                claim limits.
+              </p>
+              <a
+                className="text-link"
+                href={`https://sepolia.basescan.org/address/${escrowAddress}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                View contract <span aria-hidden="true">↗</span>
+              </a>
+            </article>
+            <article>
+              <div>
+                <span className="proof-ledger__state">Finalized</span>
+                <h3>Sponsored smart-account payout</h3>
+              </div>
+              <p>
+                A fresh, zero-ETH smart account received 1 test USDC through the
+                claim-only paymaster path.
+              </p>
+              <a
+                className="text-link"
+                href={`https://sepolia.basescan.org/tx/${acceptanceTransaction}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                View transaction <span aria-hidden="true">↗</span>
+              </a>
+            </article>
+            <article>
+              <div>
+                <span className="proof-ledger__state">Accepted locally</span>
+                <h3>Email-first reward account</h3>
+              </div>
+              <p>
+                Coinbase Developer Platform creates the participant smart account
+                behind email verification, with no seed phrase or ETH required.
+              </p>
+              <Link className="text-link" href="/learn/practice">
+                Try the product <span aria-hidden="true">→</span>
+              </Link>
+            </article>
+          </div>
         </div>
       </section>
 
       <section className="section section--workflows">
         <div className="shell">
           <SectionHeading
-            eyebrow="Two new workflows"
-            title="A puzzle is the fun part. The rails disappear."
+            eyebrow="Made for the open internet"
+            title="Base is the reward rail. The rest of the stack earns its place."
           />
           <div className="workflow-grid">
             <article>
               <span className="workflow-grid__number">A</span>
               <div>
-                <p className="eyebrow">Cross-chain jackpot</p>
-                <h3>Fund on one chain. Reward on another.</h3>
+                <p className="eyebrow">Base-native distribution</p>
+                <h3>Stable rewards without wallet homework.</h3>
                 <p>
-                  A sponsor can send a supported asset into locked NEAR USDC.
-                  The winner can route the result to a supported destination
-                  without needing a NEAR wallet to solve.
+                  USDC settles on Base, CDP supplies familiar onboarding, and a
+                  narrowly scoped paymaster sponsors only valid reward claims.
                 </p>
                 <div className="mini-route">
-                  <span>Base ETH</span>
+                  <span>Email</span>
                   <i>→</i>
-                  <span>Locked USDC</span>
+                  <span>Smart account</span>
                   <i>→</i>
-                  <span>Solana USDC</span>
+                  <span>Base USDC</span>
                 </div>
               </div>
             </article>
             <article>
               <span className="workflow-grid__number">B</span>
               <div>
-                <p className="eyebrow">x402 campaign</p>
-                <h3>Pay the tool, not the player pool.</h3>
+                <p className="eyebrow">Metered intelligence</p>
+                <h3>Pay for creation, not from the reward pool.</h3>
                 <p>
-                  AI generation is a discrete x402 service with its own receipt.
-                  The creator funds the complete prize separately, keeping the
-                  economics visible and solvent.
+                  NEAR AI can draft source-grounded material, while x402 meters
+                  the generation request. Sponsor funds remain separate and fully
+                  reserved for learners.
                 </p>
                 <div className="mini-route">
-                  <span>Prompt</span>
+                  <span>Sources</span>
                   <i>→</i>
-                  <span>x402 receipt</span>
+                  <span>x402 request</span>
                   <i>→</i>
-                  <span>Editable puzzle</span>
+                  <span>Reviewed lesson</span>
                 </div>
               </div>
             </article>
@@ -234,11 +293,11 @@ export default async function HomePage() {
         <div className="shell final-cta__inner">
           <PixelMark inverse />
           <div>
-            <p className="eyebrow">Your community knows the answers</p>
-            <h2>Give them a reason to fill the grid.</h2>
+            <p className="eyebrow">The next generation of learn and earn</p>
+            <h2>Make every reward easy to receive and easy to account for.</h2>
           </div>
-          <Link className="button button--paper" href="/create">
-            Start a campaign
+          <Link className="button button--paper" href="/learn/sponsor-demo">
+            Explore the pilot
           </Link>
         </div>
       </section>

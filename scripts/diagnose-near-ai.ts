@@ -62,7 +62,8 @@ export async function runDiagnostic(options: DiagnosticOptions, apiKey: string, 
     ] : [{ label: "inference-cost", key: apiKey }];
     let ok = true;
     for (const probe of probes) {
-      const start = Date.now(); const signal = AbortSignal.timeout(Math.min(options.timeoutMs, 15000));
+      const start = Date.now(); const deadlineMs = Math.min(options.timeoutMs, 15000);
+      const signal = AbortSignal.timeout(deadlineMs);
       try {
         const response = await fetcher(`${gateway}/billing/costs`, {
           method: "POST", redirect: "error", signal,
@@ -79,7 +80,8 @@ export async function runDiagnostic(options: DiagnosticOptions, apiKey: string, 
         });
         ok = ok && response.status === (probe.label === "invalid-control" ? 401 : 200);
       } catch (error) {
-        ok = false; log({ mode: options.mode, probe: probe.label, elapsedMs: Date.now() - start, ...diagnosticError(error, signal.aborted) });
+        const elapsedMs = Date.now() - start;
+        ok = false; log({ mode: options.mode, probe: probe.label, elapsedMs, ...diagnosticError(error, signal.aborted || elapsedMs >= deadlineMs) });
       }
     }
     return ok;
@@ -123,7 +125,8 @@ export async function runDiagnostic(options: DiagnosticOptions, apiKey: string, 
       finishReason: ["stop", "length", "content_filter", "tool_calls"].includes(finish || "") ? finish : "other", usage: diagnosticUsage(usage) });
     return matched && finish === "stop";
   } catch (error) {
-    log({ phase: "failed", elapsedMs: Date.now() - start, requestId, ...diagnosticError(error, signal.aborted) });
+    const elapsedMs = Date.now() - start;
+    log({ phase: "failed", elapsedMs, requestId, ...diagnosticError(error, signal.aborted || elapsedMs >= options.timeoutMs) });
     return false;
   }
 }

@@ -1,9 +1,9 @@
 # Base Sepolia sponsorship acceptance
 
-Status: Base Sepolia escrow deployed and one-slot campaign funded, updated
-2026-09-05. No provider sponsorship request or fresh hosted-wallet claim has
-been performed.
-CDP faucet transfers funded the test deployer on Base Sepolia. Local synthetic proofs are in
+Status: Base Sepolia escrow, paymaster and one-slot sponsored claim are finalized,
+updated 2026-09-06. Hosted Base Account onboarding was rejected upstream, so the
+selected participant path is now CDP User Wallet email OTP plus smart accounts.
+CDP faucet transfers funded the test deployer on Base Sepolia. Local proofs are in
 [QA](../QA.md); architecture is in [chapter 09](../md-CLAUDE-chapters/09-claim-sponsorship.md).
 Session 9 adds an encrypted test-deployer wallet and disabled local env profile;
 see [local setup and recovery](base-sepolia-local-setup.md). Session 10 confirms
@@ -13,9 +13,10 @@ provider wire acceptance remains pending. Session 12 deployed the escrow and
 saved a claim-only CDP allowlist. Session 13 configured a separate eligibility
 signer and sent the exact 1-test-USDC approval after explicit approval. Session
 14 verified approval finality, recomputed the stale campaign schedule and created
-campaign `1` after explicit approval. Deployment finality is verified; campaign
-finality is pending. Managed CDP sponsorship is account-billed, not an ETH
-deposit into this separate deployment wallet.
+campaign `1` after explicit approval. Session 17 used a fresh local Coinbase Smart
+Account to claim it with CDP-sponsored gas. Session 18 verified that transaction,
+event and resulting state at the finalized tag. Managed CDP sponsorship is
+account-billed, not an ETH deposit into this separate deployment wallet.
 
 ## Existing infrastructure investigation
 
@@ -82,7 +83,8 @@ exists. A dedicated Crossword paymaster configuration remains required.
    `0x77fdCEF7d08c54eD2a87FD54fBf24a660fa2A304`, transaction
    `0x0419e4a8a2334233cec9272a846f95b77cb35915931e5115599d1c454e6a7a03`,
    block `46440190`, now finalized with matching code hash. Campaign `1` was
-   funded at block `46444150`; wait for campaign finality before issuing a claim. See
+   funded at block `46444150` and its sponsored claim at block `46450098` is
+   finalized with matching event and state. See
    [the 2026-09-05 deployment record](base-sepolia-deployment-preflight-2026-09-05.md).
 2. Record deployment anchor/code hash and independently verify RPC chain, token,
    canonical history and finality policy. Configure an isolated staging Postgres
@@ -110,9 +112,9 @@ exists. A dedicated Crossword paymaster configuration remains required.
    immediately before each funded step. One 1-USDC slot is now prefunded; never
    top up from an operator reserve to mask a shortfall. Link and publish only
    after finalized accounting matches reviewed terms.
-2. Start a genuinely fresh Base Account/passkey session. Mike handles the wallet's
-   passkey/biometric prompts. Record public recipient, zero ETH, code/nonce state
-   and supported entrypoint before the flow. No EOA fixture may substitute.
+2. Start a genuinely fresh CDP User Wallet email-OTP session and let CDP create
+   its smart account. Record only the public recipient, zero ETH, code/nonce state
+   and supported EntryPoint before the flow. No EOA fixture may substitute.
 3. Solve, verify email, prove wallet control and receive the exact claim/permit.
    Exercise rejection before send. A provider-requested cancellation may retain
    an allowance and need reconciliation; do not promise automatic retries.
@@ -216,11 +218,32 @@ The approved send then succeeded:
 The in-memory owner was deliberately discarded, making the received test USDC
 unrecoverable. At the end of the bounded 20-minute confirmation window, Base's
 finalized head was block `46450038`, 60 blocks behind the claim at `46450098`.
-The transaction, event and resulting state were stable at latest, but finality
-remains an explicit recheck. This result proves inclusion through the
+This result initially proved inclusion through the
 escrow/EntryPoint/CDP sponsorship and accounting path; hosted Base Account/
 passkey onboarding remains a separate upstream blocker, and every production
 gate remains disabled.
+
+## Session 18 finality and participant decision
+
+On 2026-09-06, Base's finalized head was `46480230`, well beyond claim block
+`46450098`. A finalized-tag recheck confirmed the successful transaction receipt,
+deployed recipient code, `1000000` atomic test USDC at the recipient, used slot
+`0`, and `outstanding(1) = 0`. The backend sponsored-claim proof is final.
+
+The participant product decision is CDP User Wallet, not the hosted Base Account
+SDK path. The browser now uses CDP email OTP, requests a smart account at login,
+signs the existing campaign-specific wallet challenge, and submits the exact
+claim through CDP's UserOperation hook with the reviewed proxy URL and private
+permit context. The server validates the CDP access token with a Secret API Key,
+checks that the requested recipient belongs to that end user, links the verified
+email into the existing user tables and mints a 14-minute database session. It
+does not store the CDP access token. Sponsor authentication remains unchanged.
+
+The next live acceptance needs a CDP project ID, same-project server Secret API
+Key and exact local/staging origin allowlist. It must cover email OTP, smart-account
+creation, ERC-6492 wallet proof compatibility, database issuance, sponsored
+submission, finalized receipt recovery, duplicate handling and provider cost.
+Production gates remain disabled until that pass is recorded.
 
 ## References
 

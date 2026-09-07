@@ -8,14 +8,34 @@ import {
   noOverflow,
 } from "./learning.fixture";
 
-test("practice grid is usable and persists guesses without claiming a reward", async ({
+test("Base-first home leads to both public product demos", async ({
+  page,
+}, info) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Crossword", level: 1 })).toBeVisible();
+  await expect(page.getByText("Sponsor-funded learning / Base")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Try a lesson", exact: true }).first()).toHaveAttribute("href", "/learn/practice");
+  await expect(page.getByRole("link", { name: "See the sponsor workflow", exact: true })).toHaveAttribute("href", "/learn/sponsor-demo");
+  const rail = await page.locator(".rail-strip").boundingBox();
+  expect(rail?.y).toBeLessThan(page.viewportSize()!.height);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await page.screenshot({ path: info.outputPath("base-home-desktop.png"), fullPage: true });
+});
+
+test("public practice grid checks answers and persists guesses without claiming a reward", async ({
   page,
 }, info) => {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
-  await page.goto("/learn/preview");
+  await page.goto("/learn/practice");
   await expect(page.getByText("Practice / No reward")).toBeVisible();
   await fillPuzzle(page);
+  await page
+    .getByRole("button", { name: "Check crossword", exact: true })
+    .click();
+  await expect(
+    page.getByText("Correct. You completed the practice lesson."),
+  ).toBeVisible();
   await page.reload();
   await expect(page.getByLabel("Row 1, column 2", { exact: true })).toHaveValue(
     "L",
@@ -30,6 +50,14 @@ test("practice grid is usable and persists guesses without claiming a reward", a
     "",
   );
   expect(errors).toEqual([]);
+});
+
+test("public sponsor demo does not persist changes", async ({ page }) => {
+  await page.goto("/learn/sponsor-demo");
+  await expect(page.getByText("Sponsor workflow demo / Saving disabled")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Save draft", exact: true }),
+  ).toBeDisabled();
 });
 
 test("anonymous learner solves before sign-in and returns to the same lesson", async ({

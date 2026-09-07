@@ -132,6 +132,8 @@ test(
       assert.ok(ready);
       for (const path of ["/learn/preview", "/learn/studio/preview"])
         assert.equal((await fetch(origin + path)).status, 404);
+      for (const path of ["/learn/practice", "/learn/sponsor-demo"])
+        assert.equal((await fetch(origin + path)).status, 200);
       for (const method of ["POST", "OPTIONS"]) {
         const disabled = await fetch(origin + "/api/base/paymaster", { method });
         assert.equal(disabled.status, 404);

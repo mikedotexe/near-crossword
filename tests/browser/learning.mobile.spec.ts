@@ -1,17 +1,28 @@
 import { expect, test } from "@playwright/test";
 import { fillPuzzle, noOverflow } from "./learning.fixture";
 
+test("phone home shows the next section without horizontal overflow", async ({
+  page,
+}, info) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Crossword", level: 1 })).toBeVisible();
+  const rail = await page.locator(".rail-strip").boundingBox();
+  expect(rail?.y).toBeLessThan(page.viewportSize()!.height);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await page.screenshot({ path: info.outputPath("base-home-mobile.png"), fullPage: true });
+});
+
 test("phone practice board and private studio fit without page overflow", async ({
   page,
 }, info) => {
-  await page.goto("/learn/preview");
+  await page.goto("/learn/practice");
   await fillPuzzle(page);
   await noOverflow(page);
   await page.screenshot({
     path: info.outputPath("player-mobile.png"),
     fullPage: true,
   });
-  await page.goto("/learn/studio/preview");
+  await page.goto("/learn/sponsor-demo");
   await expect(
     page.getByRole("button", { name: "Save draft", exact: true }),
   ).toBeDisabled();
