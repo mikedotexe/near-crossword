@@ -105,3 +105,32 @@ It is bound only to application campaign
 acceptance database. The idempotent recheck preserved its unused slot for the
 email-backed CDP participant flow described above. See the
 [campaign 3 record](../docs/base-sepolia-campaign-3-2026-09-07.md).
+
+Session 23 added both `http://localhost:3125` and `https://crossword.xyz` to the
+same CDP Web client. The returning email participant again passed OTP, smart
+account creation and server token validation. At finalized block `46523842`,
+recipient `0xFB5766CAa773F1711C876a5d0489084563e56F7c` had no deployed code,
+ETH, USDC or EntryPoint nonce. Optional sponsor-contact consent persisted as
+version 1; an unrelated post-save accounting refresh then failed against the
+public RPC. The UI now applies the successful consent response directly, and a
+browser regression proves consent does not initiate a reward recovery read.
+No completion, allocation, wallet signature, sponsorship request or payout had
+occurred at that checkpoint.
+
+Session 24 completed the puzzle and corrected wallet proof semantics. CDP's plain
+EVM signer controls the smart account's owner EOA, so message ownership now uses
+Coinbase replay-safe typed data, wraps the owner signature for the Smart Wallet's
+ERC-1271 validator, and adds the pinned factory ERC-6492 envelope while the account
+is counterfactual. The server accepted that proof and issued the one immutable
+campaign-3 allocation. Successful consent and authorization mutations now update
+their local panel state directly; redundant recovery reads can no longer turn a
+saved mutation into a red error. The server permit remains the authoritative
+pre-send chain check.
+
+The subsequent custom-paymaster callback did not reach a final paymaster request
+or UserOperation. After one append-only reviewed retry, the second stub was
+durably `UNKNOWN` and chain state remained untouched. The embedded-wallet project
+currently lacks a per-network Paymaster configuration. The next participant mode
+to implement is CDP managed Paymaster for Base Sepolia, using the project's private
+URL and the existing escrow `claim` allowlist, with application-side gas budget
+reservation and finalized receipt recovery preserved.

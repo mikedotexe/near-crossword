@@ -50,7 +50,7 @@ credential is not, by itself, proof that a provider is unusable.
 | L11 | Private consent and verified-email persistence locally implemented; policy acceptance pending | Google server sign-in persists verification only for a matching linked subject/email. Optional campaign-scoped contact consent has versioned opt-in/withdrawal and email binding; no export exists. Rewards do not require opt-in. | Complete actual email/OAuth callback acceptance (L05), private sponsor export, retention/deletion and pilot fraud policy. Account/email/wallet control does not prove unique humans or learning; multiple-account and collusion risks remain. |
 | L12 | Key and inference accepted; staking linkage unverified | Protected auth control returned 401 for an invalid key and 200 for the supplied key. Successful inference and matching billing records are observed. Intended default organization, staking-credit source, farm/pool/rate, and stake amount/destination remain unverified. | Mike confirms the intended organization's credit source and exact staking setup in R1. A replacement key or extra stake is not required merely to repeat the working call. |
 | L13 | Bounded live source drafts passed; broader acceptance open | Gateway GLM 5.1 with documented thinking disabled produced two validated three-entry drafts in 12.1/13.7 seconds; billed costs were $0.0022806/$0.002725. This is the local default only. Earlier GLM 5.3/Qwen timeouts and direct Gemma TLS resets remain unexplained, with failed-request billing unknown. | Engineering follows the [sanitized evaluation record](near-ai-evaluation-2026-09-04.md) for representative source/clue quality, layout, reliability and paid delivery/recovery. Do not equate two synthetic successes with publication readiness or production activation. |
-| L14 | Finalized backend proof and exact participant campaign; live CDP email account; combined claim pending | Sessions 8-18 implement the strict EntryPoint 0.6 proxy, deployed escrow, finalized sponsored claim, and selected CDP User Wallet participant path. On September 6 a fresh email OTP, CDP smart-account creation, verified server bridge, and database session all succeeded locally. Exact-commitment campaign `3` is finalized and locally bound/published with one untouched 1-test-USDC slot. This participant has not yet completed wallet challenge, issuance, UserOperation, and finalized recovery. | Add `https://crossword.xyz` to the CDP allowed domains when the dashboard is available, then run the complete journey with the returning authenticated participant. Record recipient, exact claim, operation/transaction, paymaster cost, finalized payout, duplicate behavior, and recovery. Keep production sponsorship disabled until that evidence is recorded. |
+| L14 | Wallet, completion and allocation verified; hosted custom-paymaster transport blocked | The CDP participant completed revision `2`, proved control of the counterfactual smart account and received the only campaign-3 allocation and signed 1-test-USDC authorization. Two bounded custom-proxy attempts produced only stub requests; the second is durably `UNKNOWN`. Final checks found no deployment, nonce, balance or escrow-claim change. The embedded-wallet project has no Paymaster network configuration, while the separate Base Paymaster policy already restricts the escrow `claim` selector and small caps. | Configure Base Sepolia Paymaster inside the CDP embedded-wallet project and implement the documented managed `useCdpPaymaster` path with local reservation/finalized recovery. Do not retry campaign 3 while epoch 1 is unknown. Keep production sponsorship disabled until a managed fresh-wallet payout and duplicate recovery finalize. |
 | L15 | Campaign 2 mismatch recovered; campaign 3 finalized and locally published | Mike's standing approval is limited to small Base Sepolia test assets and incidental test gas. The application rejected campaign `2`'s noncanonical terms commitment before participant issuance; recovery transaction `0x865c8aaca90733d4b5ec1d390e66d3aa01287d1420559d4b37ce1cae7d704224` returned its full test USDC to the sponsor and finalized. Exact allowance `0x519ae06cd5269f368deab1bd7ab739c9ec8a20947c6c0207559307787cd3d319` and funding `0x4c9199cfaa7f8c138bc64da55a2ab7cddbe7a8eab77e9f7adfff99b13a1cbd99` created campaign `3` with canonical review hash `0x8ceb4b64f564424caf61e0957dc2bd090ce7cf315178f498468f1ed482d97ad8`. Finalized block `46522071` reconciles exact runtime, terms, reserve, balances and unused slot; local binding/publication and idempotent recheck passed. | Reserve campaign `3`, slot `0`, only for L14. Standing approval does not cover mainnet, production activation, materially larger spend, or submission. See the [campaign 2 recovery](base-sepolia-campaign-2-2026-09-07.md) and [campaign 3 record](base-sepolia-campaign-3-2026-09-07.md). |
 | L16 | Public product surface live; Base Batches 004 application in preparation | The September 7 Render deployment `dep-dafgjup42hec73d9c3l0` serves the Base-first home, no-reward practice lesson, and non-persisting sponsor demo. Live checks returned 200 for those routes and `/legacy`; developer previews returned 404. The application closes September 9, 2026 and does not save drafts. Founder/team/contact/traction/financing facts remain intentionally blank. | Complete Mike's factual fields and video, reconcile every application claim to this register, and review before form submission. No application has been submitted. |
 
@@ -90,6 +90,32 @@ wallet state before promising first-use compatibility.
    This file is a manual work log; background monitoring is not configured.
 
 ## Change log
+
+- 2026-09-07, session 24: Completed campaign `3` revision `2`, verified the
+  Coinbase smart-account owner with replay-safe ERC-1271/ERC-6492 proof, and
+  durably allocated its one 1-test-USDC reward. The first hosted-wallet call
+  reached only a non-final paymaster stub and did not broadcast. Migration 014
+  added dry-run-first append-only recovery reviews and permit epochs; a finalized
+  review admitted one exact retry without deleting evidence or releasing budget.
+  The retry's stub became `UNKNOWN` after three Cloudflare callback cancellations.
+  Latest/finalized chain reads still show an undeployed zero-balance account,
+  nonce zero and unused claim. Coinbase's embedded-wallet Paymaster page had no
+  network configuration, identifying managed CDP Paymaster as the next reviewed
+  path. Also removed redundant post-consent/authorization reads and made finalized
+  application reads tolerate concurrent unfinalized scanner progress. Unit 257/257,
+  local Postgres 57/57, lint and typecheck pass. No production flag, mainnet
+  transfer, payout or Batches submission occurred.
+
+- 2026-09-07, session 23: Confirmed localhost and `crossword.xyz` in the CDP Web
+  client, repeated the returning participant's email/smart-account session, and
+  recorded its zero-balance undeployed pre-claim state. Added a dry-run-first,
+  fail-closed historical accounting bootstrap after the new local scanner exposed
+  impractical empty-block catch-up. Five escrow events reconstructed all three
+  campaigns and the recent finality window; ordinary reconciliation resumed
+  healthy. Optional email consent saved successfully. Fixed the client so a
+  later reward-read failure cannot misreport that preference write as failed.
+  No completion, allocation, sponsorship request, payout, production activation,
+  mainnet transfer or Batches submission occurred at this checkpoint.
 
 - 2026-09-07, session 22: The application correctly rejected campaign `2`'s
   noncanonical terms commitment before participant issuance. A labeled sponsor

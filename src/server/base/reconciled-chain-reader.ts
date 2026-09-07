@@ -28,6 +28,14 @@ export class ReconciledBaseChainReader implements BaseChainReader {
       return row;
     });
   }
+  private sameFinalizedCheckpoint(before: Record<string, unknown>, after: Record<string, unknown>) {
+    if (
+      before.finalized_hash !== after.finalized_hash ||
+      before.finalized_number !== after.finalized_number ||
+      before.snapshot_hash !== after.snapshot_hash ||
+      JSON.stringify(before.accounting) !== JSON.stringify(after.accounting)
+    ) chainFailure("BASE_ACCOUNTING_NOT_READY");
+  }
   async readFinalizedCampaign(binding: ChainBinding, signal: AbortSignal) {
     signal.throwIfAborted();
     const before = await this.checkpoint(binding);
@@ -38,7 +46,7 @@ export class ReconciledBaseChainReader implements BaseChainReader {
     if (Object.keys(json).length !== Object.keys(before.accounting).length ||
         Object.entries(json).some(([key, value]) => before.accounting[key] !== value)) chainFailure("BASE_ACCOUNTING_NOT_READY");
     const after = await this.checkpoint(binding);
-    if (before.version !== after.version) chainFailure("BASE_ACCOUNTING_NOT_READY");
+    this.sameFinalizedCheckpoint(before, after);
     signal.throwIfAborted();
     return state;
   }
@@ -48,7 +56,7 @@ export class ReconciledBaseChainReader implements BaseChainReader {
     if (before.finalized_hash !== blockHash) chainFailure("BASE_ACCOUNTING_NOT_READY");
     const result = await this.chain.readClaimUse(binding, claim, blockHash, signal);
     const after = await this.checkpoint(binding);
-    if (before.version !== after.version) chainFailure("BASE_ACCOUNTING_NOT_READY");
+    this.sameFinalizedCheckpoint(before, after);
     signal.throwIfAborted();
     return result;
   }
@@ -66,7 +74,7 @@ export class ReconciledBaseChainReader implements BaseChainReader {
       [before.id, before.finalized_number, toEventSelector("RewardPaid(uint256,uint32,bytes32,address,uint256)"),
         toHex(binding.onChainId, { size: 32 }), toHex(claim.slot, { size: 32 }), claim.participantId]));
     const after = await this.checkpoint(binding);
-    if (before.version !== after.version) chainFailure("BASE_ACCOUNTING_NOT_READY");
+    this.sameFinalizedCheckpoint(before, after);
     signal.throwIfAborted();
     if (!used.slotUsed && !used.participantUsed && rows.rowCount === 0) return null;
     if (!used.slotUsed || !used.participantUsed || rows.rowCount !== 1) chainFailure("BASE_ACCOUNTING_NOT_READY");

@@ -127,9 +127,19 @@ export function RewardPanel({
       `${path}/claim`,
       { recipient, proof: { challengeId: challenge.challengeId, signature } },
     );
-    if (result.status === "AUTHORIZED" && "typedData" in result)
+    if ("typedData" in result) {
       setAuthorization(result);
-    await refresh();
+      setRecovery((current) =>
+        current
+          ? {
+              ...current,
+              status: "RECOVERABLE",
+              recipient: result.typedData.message.recipient,
+              amountAtomic: result.typedData.message.amount,
+            }
+          : current,
+      );
+    } else setRecovery(result);
   }
   async function send() {
     if (
@@ -140,11 +150,6 @@ export function RewardPanel({
       account.state !== "ready"
     )
       return;
-    const latest = await refresh();
-    if (latest.status !== "RECOVERABLE") {
-      setAuthorization(null);
-      return;
-    }
     let batch: string;
     try {
       const permit = await learningApi<import("../../src/lib/base/account").SponsorshipPermit>(`${path}/sponsorship`, { digest: authorization.digest });
@@ -324,7 +329,7 @@ export function RewardPanel({
                   setConsentDraft(shareEmail);
                   void act(async () => {
                     try {
-                      await learningApi(
+                      const consent = await learningApi<Recovery["consent"]>(
                         `${path}/consent`,
                         {
                           expectedVersion: recovery.consent.version,
@@ -332,7 +337,9 @@ export function RewardPanel({
                         },
                         "PUT",
                       );
-                      await refresh();
+                      setRecovery((current) =>
+                        current ? { ...current, consent } : current,
+                      );
                     } finally {
                       setConsentDraft(null);
                     }

@@ -101,7 +101,7 @@ before(async () => {
       env: { ...process.env, DATABASE_URL: url.toString() }, encoding: "utf8", timeout: 30000,
     });
     assert.equal(migrated.status, 0, "Isolated migration run must succeed");
-    assert.equal(migrated.stdout.split(pass === 0 ? "Applied " : "Already applied ").length - 1, 13);
+    assert.equal(migrated.stdout.split(pass === 0 ? "Applied " : "Already applied ").length - 1, 14);
   }
   const result = await pool.query(
     `INSERT INTO users (email, email_verified)
@@ -525,7 +525,94 @@ test("unknown provider outcomes survive restarts, cannot bypass by changing esti
   assert.equal(ctx.controls.calls, 1);
   const saved = await pool.query("SELECT * FROM base_gas_requests WHERE allocation_id = $1", [ctx.issued.allocationId]);
   assert.equal(saved.rows[0].state, "UNKNOWN"); assert.equal(saved.rows[0].result, null);
+  await assert.rejects(
+    ctx.service().reviewExpiredStubOnlyRecovery(
+      ctx.issued.allocationId,
+      "test-operator",
+    ),
+    { status: 403 },
+  );
   assert.doesNotMatch(JSON.stringify(saved.rows), /SECRET/);
+});
+
+test("expired stub-only sponsorship requires append-only operator review before exact retry", async () => {
+  const ctx = await sponsorshipSetup();
+  await ctx.service().proxy(ctx.request);
+  const now = Math.floor(Date.now() / 1000);
+  const expiredStub = {
+    ...gasResult(ctx.policy, now - 30),
+    isFinal: false,
+  };
+  await pool.query(
+    `UPDATE base_gas_requests SET result = $2
+     WHERE allocation_id = $1 AND permit_epoch = 0`,
+    [ctx.issued.allocationId, expiredStub],
+  );
+  await pool.query(
+    `UPDATE base_gas_sponsorships SET expires_at = to_timestamp($2)
+     WHERE allocation_id = $1`,
+    [ctx.issued.allocationId, now - 20],
+  );
+  ctx.state.blockTimestamp = now;
+  await assert.rejects(
+    ctx.service().permit(learners[0], ctx.review.id, ctx.issued.digest),
+    { status: 403 },
+  );
+  const dryRun = await ctx.service().reviewExpiredStubOnlyRecovery(
+    ctx.issued.allocationId,
+    "test-operator",
+  );
+  assert.equal(dryRun.committed, false);
+  assert.equal(
+    (await pool.query("SELECT count(*)::INTEGER AS n FROM base_gas_recovery_reviews"))
+      .rows[0].n,
+    0,
+  );
+  const review = await ctx.service().reviewExpiredStubOnlyRecovery(
+    ctx.issued.allocationId,
+    "test-operator",
+    true,
+  );
+  assert.equal(review.committed, true);
+  const repeatedReview = await ctx.service().reviewExpiredStubOnlyRecovery(
+    ctx.issued.allocationId,
+    "test-operator",
+    true,
+  );
+  assert.deepEqual(repeatedReview, review);
+  const renewed = await ctx
+    .service()
+    .permit(learners[0], ctx.review.id, ctx.issued.digest);
+  ctx.request.params[3].token = renewed.token;
+  await ctx.service().proxy(ctx.request);
+  const sponsorship = await pool.query(
+    `SELECT permit_epoch, reserved_wei, attempts
+     FROM base_gas_sponsorships WHERE allocation_id = $1`,
+    [ctx.issued.allocationId],
+  );
+  assert.equal(sponsorship.rows[0].permit_epoch, 1);
+  assert.equal(
+    sponsorship.rows[0].reserved_wei,
+    ctx.policy.maxOperationWei.toString(),
+  );
+  assert.equal(sponsorship.rows[0].attempts, 2);
+  const requests = await pool.query(
+    `SELECT permit_epoch, state FROM base_gas_requests
+     WHERE allocation_id = $1 ORDER BY permit_epoch`,
+    [ctx.issued.allocationId],
+  );
+  assert.deepEqual(
+    requests.rows,
+    [
+      { permit_epoch: 0, state: "READY" },
+      { permit_epoch: 1, state: "READY" },
+    ],
+  );
+  const recovery = await pool.query(
+    "SELECT consumed_at FROM base_gas_recovery_reviews WHERE allocation_id = $1",
+    [ctx.issued.allocationId],
+  );
+  assert.ok(recovery.rows[0].consumed_at);
 });
 
 test("expired, nonce-replaced, rotated, paused, paid and unpinned accounts cannot obtain sponsorship", async () => {

@@ -19,7 +19,9 @@ Migration 012 adds immutable layout approvals and publication/withdrawal records
 It does not rewrite v1 funded terms or previous approvals. Migration 013 adds
 private short-lived gas permit hashes, lifetime reserved allowances and durable
 upstream request identities/results. Unknown outcomes are never TTL-deleted or
-automatically released. No campaign prize principal funds gas. All thirteen migrations
+automatically released. Migration 014 adds numbered permit epochs and append-only
+operator reviews for expired, finalized, stub-only attempts; it never deletes a
+request or releases reserved gas allowance. No campaign prize principal funds gas. All fourteen migrations
 apply/replay in local integration tests; production application remains gated.
 
 The migration runner holds a Postgres advisory lock, applies every migration in

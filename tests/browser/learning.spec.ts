@@ -101,7 +101,8 @@ test("completion and optional consent stay separate; only recovery's receipt dis
   let completed = false,
     paid = false,
     shareEmail = false,
-    version = 0;
+    version = 0,
+    recoveryReads = 0;
   await page.route(`**/api/base/lessons/${id}`, (route) =>
     route.fulfill({ json: lesson }),
   );
@@ -123,6 +124,7 @@ test("completion and optional consent stay separate; only recovery's receipt dis
       version++;
       return route.fulfill({ json: { shareEmail, version } });
     }
+    recoveryReads++;
     return route.fulfill({
       json: {
         status: paid ? "PAID" : "NOT_ALLOCATED",
@@ -150,10 +152,12 @@ test("completion and optional consent stay separate; only recovery's receipt dis
     page.getByText(/Puzzle complete. Your completion is saved/),
   ).toBeVisible();
   await expect(page.getByRole("checkbox")).not.toBeChecked();
+  const readsBeforeConsent = recoveryReads;
   await page.getByRole("checkbox").check();
   await expect(page.getByRole("checkbox")).toBeChecked();
   await page.getByRole("checkbox").uncheck();
   await expect(page.getByRole("checkbox")).not.toBeChecked();
+  expect(recoveryReads).toBe(readsBeforeConsent);
   await expect(
     page.getByText(/Sponsored wallet claims are not enabled/),
   ).toBeVisible();

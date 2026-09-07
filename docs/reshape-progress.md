@@ -1,7 +1,7 @@
 # Reshape session checkpoint
 
-Last implementation session: 2026-09-07, America/Los_Angeles, session 22 based
-on `4bd3765` (campaign `2` recovery and exact-commitment campaign `3`).
+Last implementation session: 2026-09-07, America/Los_Angeles, session 24 based
+on `4bd3765` (database-backed CDP participant and sponsorship acceptance).
 
 Read this after the [work order](reshape-action-plan.md). It is a continuation
 record, not evidence of deployment. Live gates remain in
@@ -103,7 +103,11 @@ not unique humans or learning. Manual authoring remains valid.
   balances, and unused slot. The dry-run-first local harness then bound campaign
   `3` to application revision `2` and published commitment
   `0xd3988864ebb85055be484ba49647be36dd931152cef4fec6d208dd2e586d90da`;
-  an idempotent recheck passed. Combined participant acceptance remains open.
+  an idempotent recheck passed. Session 24 then completed email OTP, smart-account
+  proof, completion, optional consent, allocation and reward authorization. The
+  custom callback path returned one expired non-final stub, then an exact reviewed
+  retry ended `UNKNOWN` after the hosted caller canceled the tunnel callbacks.
+  No transaction or balance change occurred; do not retry that allocation.
   See the [campaign 2 recovery](base-sepolia-campaign-2-2026-09-07.md) and
   [campaign 3 record](base-sepolia-campaign-3-2026-09-07.md).
 
@@ -289,6 +293,14 @@ and no-payment demos are now Base-first, while production-funded Base claims
 remain disabled.
 
 ## Verification
+
+Session 24 checks, Node 24.10.0 local runtime:
+
+- Campaign `3` participant completion, CDP smart-account proof, allocation and
+  reward authorization passed. Final chain checks showed an undeployed recipient,
+  nonce zero, zero ETH/USDC and unused claim markers after both hosted attempts.
+- Unit **257/257**, Base/Postgres **57/57**, and browser **18/18** pass. ESLint,
+  TypeScript, optimized production build and diff whitespace checks pass.
 
 Session 22 checks, Node 24.10.0 local runtime:
 
@@ -518,26 +530,20 @@ replace the key or add stake simply to obtain an inference response.
    worktrees before editing. Preserve unrelated original-worktree work. Until the
    September 9 deadline, use the Base Batches application draft as the short
    product checklist without bending evidence to fit it.
-2. Finish visual/browser/build checks for the public home, practice lesson, and
-   sponsor demo. Review the complete dirty diff, make a launch-candidate commit,
-   and prepare the Render deployment and exact CDP `crossword.xyz` origin. Do not
-   enable reward or sponsorship gates merely to make the public demo look live.
-3. Read chapters 07-10 and the Sepolia sponsorship acceptance checklist. Keep
-   the private CDP paymaster endpoint and Secret API Key only in ignored env or a
-   staging secret store. The facilitator's mainnet keys are not reusable. Keep
-   production flags off, and do not relax unknown-outcome handling to make retries
-   work.
-4. The fresh email OTP, smart-account creation, and database session now pass.
-   Refresh the second campaign's stale schedule and obtain a new exact campaign
-   transaction confirmation before sending. Then prove signed wallet
-   challenge, database issuance, sponsored redemption and finalized recovery on
-   Base Sepolia. Build sponsor wallet
-   create/fund/control and reporting views. Resolve live email acceptance,
-   explicit sponsor export/retention and pilot fraud policy. Account uniqueness
-   is not human uniqueness. Keep consent optional and private. Compose funding
-   and redemption with the existing reconciled reader. Production activation still
-   needs finalized deployment/code/RPC pins, reviewed finality policy and a
-   supervised scan cadence. Benchmark the bounded rebuild before large campaigns.
+2. In the CDP embedded-wallet project, save the existing private endpoint for
+   Base Sepolia under Paymaster. Keep it in the portal/ignored env only. Then
+   implement managed `useCdpPaymaster` while preserving server-issued reward
+   authorization, database gas reservation and finalized receipt recovery.
+3. Do not retry campaign `3` allocation
+   `f92e25ea-6efb-411e-8629-d00f0aef8272`: its epoch-1 attempt is `UNKNOWN`.
+   Use a fresh reviewed allocation for managed-mode acceptance and record the
+   UserOperation, canonical transaction, exact finalized event, recipient delta
+   and provider cost. Keep all production sponsorship and mainnet gates off.
+4. Build sponsor wallet create/fund/control and reporting views. Resolve explicit
+   sponsor export/retention and pilot fraud policy. Account uniqueness is not
+   human uniqueness; keep consent optional and private. Production activation
+   still needs finalized deployment/code/RPC pins, reviewed finality policy and
+   a supervised scan cadence. Benchmark the bounded rebuild before large campaigns.
 5. Keep the verified GLM 5.1 recipe for representative source/lesson evaluation.
    Human-review clue correctness, factual support and layout viability; measure
    acceptable-draft cost/latency and actual exhaustion before paid activation.

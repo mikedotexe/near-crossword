@@ -3,6 +3,7 @@ import type { Pool } from "pg";
 import {
   encodeFunctionData,
   hashTypedData,
+  sliceHex,
   verifyTypedData,
   type Address,
   type Hex,
@@ -169,6 +170,8 @@ export class ClaimSponsorship {
     return {
       allocationId: row.id as string,
       epoch: row.signer_epoch as string,
+      binding,
+      claim,
       state,
       recipient: row.recipient as Address,
       deadline: Number(row.deadline),
@@ -177,6 +180,147 @@ export class ClaimSponsorship {
         functionName: "claim",
         args: [claim, row.signature],
       }),
+    };
+  }
+
+  private async stubOnlyRecoveryCandidate(allocationId: string) {
+    validId(allocationId);
+    const candidate = await transaction(this.pool, async (client) => {
+      const saved = await client.query(
+        `SELECT s.*, r.campaign_id, r.user_id::TEXT
+         FROM base_gas_sponsorships s
+         JOIN base_reward_allocations r ON r.id = s.allocation_id
+         WHERE s.allocation_id = $1`,
+        [allocationId],
+      );
+      const row = saved.rows[0];
+      if (
+        !row ||
+        !row.operation_identity ||
+        Number(row.permit_epoch) >= 12 ||
+        row.final_request_hash ||
+        new Date(row.expires_at).getTime() >= Date.now()
+      ) sponsorshipDenied();
+      const requests = await client.query(
+        `SELECT method, state, result FROM base_gas_requests
+         WHERE allocation_id = $1 AND permit_epoch = $2
+         ORDER BY created_at`,
+        [allocationId, row.permit_epoch],
+      );
+      if (!requests.rowCount) sponsorshipDenied();
+      let maxValidUntil = 0;
+      for (const request of requests.rows) {
+        const data = request.result?.paymasterAndData;
+        if (
+          request.method !== "pm_getPaymasterStubData" ||
+          request.state !== "READY" ||
+          request.result?.isFinal !== false ||
+          typeof data !== "string" ||
+          !/^0x[0-9a-f]{388}$/.test(data)
+        ) sponsorshipDenied();
+        const validUntil = Number(BigInt(sliceHex(data as Hex, 20, 26)));
+        if (!Number.isSafeInteger(validUntil) || validUntil <= 0)
+          sponsorshipDenied();
+        maxValidUntil = Math.max(maxValidUntil, validUntil);
+      }
+      const expiresAt = Math.floor(new Date(row.expires_at).getTime() / 1000);
+      if (maxValidUntil > expiresAt || maxValidUntil >= Date.now() / 1000)
+        sponsorshipDenied();
+      return {
+        allocationId,
+        campaignId: row.campaign_id as string,
+        userId: row.user_id as string,
+        digest: row.digest as string,
+        operationIdentity: row.operation_identity as string,
+        permitEpoch: Number(row.permit_epoch),
+        expiresAt,
+        maxValidUntil,
+      };
+    });
+    const loaded = await this.load(
+      candidate.userId,
+      candidate.campaignId,
+      candidate.digest,
+    );
+    if (
+      loaded.allocationId !== candidate.allocationId ||
+      loaded.state.blockTimestamp <= candidate.maxValidUntil
+    ) sponsorshipDenied();
+    return { ...candidate, state: loaded.state };
+  }
+
+  async reviewExpiredStubOnlyRecovery(
+    allocationId: string,
+    reviewedBy: string,
+    commit = false,
+  ) {
+    if (!/^[a-zA-Z0-9:_-]{3,100}$/.test(reviewedBy)) sponsorshipDenied();
+    const candidate = await this.stubOnlyRecoveryCandidate(allocationId);
+    if (commit) {
+      await transaction(this.pool, async (client) => {
+        const current = await client.query(
+          "SELECT * FROM base_gas_sponsorships WHERE allocation_id = $1 FOR UPDATE",
+          [candidate.allocationId],
+        );
+        const row = current.rows[0];
+        if (
+          !row ||
+          Number(row.permit_epoch) !== candidate.permitEpoch ||
+          row.operation_identity !== candidate.operationIdentity ||
+          row.final_request_hash ||
+          Math.floor(new Date(row.expires_at).getTime() / 1000) !==
+            candidate.expiresAt
+        ) sponsorshipDenied();
+        await client.query(
+          `INSERT INTO base_gas_recovery_reviews
+             (allocation_id, from_permit_epoch, to_permit_epoch, operation_identity,
+              prior_expires_at, max_valid_until, finalized_block_hash,
+              finalized_block_number, finalized_block_timestamp, reviewed_by)
+           VALUES ($1, $2, $3, $4, to_timestamp($5), to_timestamp($6), $7, $8, $9, $10)
+           ON CONFLICT (allocation_id, from_permit_epoch) DO NOTHING`,
+          [
+            candidate.allocationId,
+            candidate.permitEpoch,
+            candidate.permitEpoch + 1,
+            candidate.operationIdentity,
+            candidate.expiresAt,
+            candidate.maxValidUntil,
+            candidate.state.blockHash,
+            candidate.state.blockNumber.toString(),
+            candidate.state.blockTimestamp,
+            reviewedBy,
+          ],
+        );
+        const review = await client.query(
+          `SELECT * FROM base_gas_recovery_reviews
+           WHERE allocation_id = $1 AND from_permit_epoch = $2`,
+          [candidate.allocationId, candidate.permitEpoch],
+        );
+        if (
+          review.rows[0]?.operation_identity !== candidate.operationIdentity ||
+          Number(review.rows[0]?.to_permit_epoch) !==
+            candidate.permitEpoch + 1 ||
+          Math.floor(
+            new Date(review.rows[0]?.prior_expires_at).getTime() / 1000,
+          ) !== candidate.expiresAt ||
+          Math.floor(
+            new Date(review.rows[0]?.max_valid_until).getTime() / 1000,
+          ) !== candidate.maxValidUntil ||
+          review.rows[0]?.consumed_at
+        ) sponsorshipDenied();
+      });
+    }
+    return {
+      allocationId: candidate.allocationId,
+      fromPermitEpoch: candidate.permitEpoch,
+      toPermitEpoch: candidate.permitEpoch + 1,
+      operationIdentity: candidate.operationIdentity,
+      priorExpiresAt: new Date(candidate.expiresAt * 1000).toISOString(),
+      maxValidUntil: new Date(candidate.maxValidUntil * 1000).toISOString(),
+      finalizedBlockHash: candidate.state.blockHash,
+      finalizedBlockNumber: candidate.state.blockNumber.toString(),
+      finalizedBlockTimestamp: candidate.state.blockTimestamp,
+      committed: commit,
     };
   }
 
@@ -196,7 +340,9 @@ export class ClaimSponsorship {
       );
       const row = saved.rows[0],
         now = Math.floor(Date.now() / 1000);
-      let expiry = Math.min(now + 600, loaded.deadline);
+      let expiry = Math.min(now + 600, loaded.deadline),
+        permitEpoch = Number(row?.permit_epoch || 0),
+        recoveryEpoch: number | null = null;
       if (row) {
         if (row.digest !== digest || row.policy_hash !== policyHash)
           sponsorshipDenied();
@@ -205,13 +351,37 @@ export class ClaimSponsorship {
         );
         if (row.operation_identity) {
           // Never renew a possibly signed operation. Its nonce, allowance and deadline survive restarts.
-          if (priorExpiry <= now + 30) sponsorshipDenied();
-          expiry = priorExpiry;
+          if (priorExpiry <= now + 30) {
+            const recovery = await client.query(
+              `SELECT * FROM base_gas_recovery_reviews
+               WHERE allocation_id = $1 AND from_permit_epoch = $2
+                 AND to_permit_epoch = $3 AND operation_identity = $4
+                 AND prior_expires_at = $5 AND max_valid_until <= NOW()
+                 AND consumed_at IS NULL
+               FOR UPDATE`,
+              [
+                loaded.allocationId,
+                permitEpoch,
+                permitEpoch + 1,
+                row.operation_identity,
+                row.expires_at,
+              ],
+            );
+            if (!recovery.rowCount) sponsorshipDenied();
+            recoveryEpoch = permitEpoch;
+            permitEpoch += 1;
+          } else expiry = priorExpiry;
         }
         await client.query(
-          "UPDATE base_gas_sponsorships SET token_hash = $2, expires_at = to_timestamp($3) WHERE allocation_id = $1",
-          [loaded.allocationId, sha256(token), expiry],
+          "UPDATE base_gas_sponsorships SET token_hash = $2, expires_at = to_timestamp($3), permit_epoch = $4 WHERE allocation_id = $1",
+          [loaded.allocationId, sha256(token), expiry, permitEpoch],
         );
+        if (recoveryEpoch !== null)
+          await client.query(
+            `UPDATE base_gas_recovery_reviews SET consumed_at = NOW()
+             WHERE allocation_id = $1 AND from_permit_epoch = $2 AND consumed_at IS NULL`,
+            [loaded.allocationId, recoveryEpoch],
+          );
       } else {
         await client.query(
           `INSERT INTO base_gas_sponsorships (allocation_id, signer_epoch, digest, policy_hash, token_hash, expires_at)
@@ -286,16 +456,16 @@ export class ClaimSponsorship {
       )
         sponsorshipDenied();
       const previous = await client.query(
-        "SELECT * FROM base_gas_requests WHERE allocation_id = $1 AND request_hash = $2",
-        [loaded.allocationId, identity.requestHash],
+        "SELECT * FROM base_gas_requests WHERE allocation_id = $1 AND permit_epoch = $2 AND request_hash = $3",
+        [loaded.allocationId, permit.permit_epoch, identity.requestHash],
       );
       if (previous.rowCount) {
         if (previous.rows[0].state !== "READY") sponsorshipUnavailable();
         return { cached: previous.rows[0].result as PaymasterResult };
       }
       const uncertain = await client.query(
-        "SELECT 1 FROM base_gas_requests WHERE allocation_id = $1 AND state <> 'READY' LIMIT 1",
-        [loaded.allocationId],
+        "SELECT 1 FROM base_gas_requests WHERE allocation_id = $1 AND permit_epoch = $2 AND state <> 'READY' LIMIT 1",
+        [loaded.allocationId, permit.permit_epoch],
       );
       if (uncertain.rowCount) sponsorshipUnavailable();
       if (row.final_request_hash || row.attempts >= 12) sponsorshipDenied();
@@ -331,8 +501,13 @@ export class ClaimSponsorship {
         ],
       );
       await client.query(
-        "INSERT INTO base_gas_requests (allocation_id, request_hash, method, state) VALUES ($1, $2, $3, 'IN_FLIGHT')",
-        [loaded.allocationId, identity.requestHash, request.method],
+        "INSERT INTO base_gas_requests (allocation_id, permit_epoch, request_hash, method, state) VALUES ($1, $2, $3, $4, 'IN_FLIGHT')",
+        [
+          loaded.allocationId,
+          permit.permit_epoch,
+          identity.requestHash,
+          request.method,
+        ],
       );
       return { cached: null };
     });
@@ -378,8 +553,13 @@ export class ClaimSponsorship {
       );
       await transaction(this.pool, async (client) => {
         await client.query(
-          "UPDATE base_gas_requests SET state = 'READY', result = $3 WHERE allocation_id = $1 AND request_hash = $2 AND state = 'IN_FLIGHT'",
-          [loaded.allocationId, identity.requestHash, result],
+          "UPDATE base_gas_requests SET state = 'READY', result = $4 WHERE allocation_id = $1 AND permit_epoch = $2 AND request_hash = $3 AND state = 'IN_FLIGHT'",
+          [
+            loaded.allocationId,
+            permit.permit_epoch,
+            identity.requestHash,
+            result,
+          ],
         );
         if (result.isFinal)
           await client.query(
@@ -391,8 +571,8 @@ export class ClaimSponsorship {
     } catch {
       await transaction(this.pool, (client) =>
         client.query(
-          "UPDATE base_gas_requests SET state = 'UNKNOWN' WHERE allocation_id = $1 AND request_hash = $2 AND state = 'IN_FLIGHT'",
-          [loaded.allocationId, identity.requestHash],
+          "UPDATE base_gas_requests SET state = 'UNKNOWN' WHERE allocation_id = $1 AND permit_epoch = $2 AND request_hash = $3 AND state = 'IN_FLIGHT'",
+          [loaded.allocationId, permit.permit_epoch, identity.requestHash],
         ),
       ).catch(() => undefined);
       sponsorshipUnavailable();
