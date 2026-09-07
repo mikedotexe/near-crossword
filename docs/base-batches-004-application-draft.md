@@ -21,6 +21,8 @@ evidence is recorded in the launch register.
   `https://sepolia.basescan.org/address/0x77fdCEF7d08c54eD2a87FD54fBf24a660fa2A304`
 - Finalized sponsored payout:
   `https://sepolia.basescan.org/tx/0x35860a8044d025b6086acbacc02a3f173520b88410fc9338c6267117dc6f1255`
+- Exact app-committed pilot funding:
+  `https://sepolia.basescan.org/tx/0x4c9199cfaa7f8c138bc64da55a2ab7cddbe7a8eab77e9f7adfff99b13a1cbd99`
 
 ## Company
 
@@ -152,8 +154,10 @@ We have built a full Base campaign and participant path:
 
 On Base Sepolia, the escrow is deployed and a fresh zero-ETH Coinbase Smart
 Account has received a finalized 1 test USDC reward with sponsored gas. A fresh
-CDP email account also created its participant smart account locally; the final
-combined CDP User Wallet reward acceptance remains in progress.
+CDP email account also created its participant smart account locally. A new
+one-slot campaign commits to the exact sponsor-approved application revision and
+is funded, finalized, and locally bound for the final combined CDP User Wallet
+reward acceptance, which remains in progress.
 
 ### Current traction
 
@@ -176,6 +180,8 @@ Suggested honest opening if still accurate:
   `0x77fdCEF7d08c54eD2a87FD54fBf24a660fa2A304`
 - Finalized sponsored payout:
   `0x35860a8044d025b6086acbacc02a3f173520b88410fc9338c6267117dc6f1255`
+- Exact app-committed pilot funding:
+  `0x4c9199cfaa7f8c138bc64da55a2ab7cddbe7a8eab77e9f7adfff99b13a1cbd99`
 
 Before submission: decide whether to include the implementation repository. Do
 not imply that testnet USDC is TVL or revenue.

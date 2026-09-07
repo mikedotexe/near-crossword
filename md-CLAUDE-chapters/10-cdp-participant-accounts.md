@@ -82,3 +82,26 @@ must never submit an empty-recipient session request. ERC-6492 message signature
 database issuance, CDP UserOperation through the strict proxy, finalized reward
 recovery, duplicate/uncertain behavior and provider cost remain open. Keep
 production disabled until that evidence is recorded.
+
+## Funded acceptance campaign
+
+Session 21 created Base Sepolia campaign `2` for the remaining combined test.
+Session 22's application binding check then caught that its readable harness
+commitment did not equal the canonical approved application terms hash. No
+participant or paymaster request occurred. A labeled direct-gas recovery claim
+returned its full test USDC to the sponsor and finalized beyond block `46521526`.
+This is a successful fail-closed recovery, not participant acceptance. See the
+[campaign 2 record](../docs/base-sepolia-campaign-2-2026-09-07.md).
+
+Replacement campaign `3` was prepared from approved application revision `2`
+and layout before funding. It reserves one reward of `1000000` native test-USDC
+atomic units for slot `0`, with canonical terms hash
+`0x8ceb4b64f564424caf61e0957dc2bd090ce7cf315178f498468f1ed482d97ad8`.
+Funding transaction
+`0x4c9199cfaa7f8c138bc64da55a2ab7cddbe7a8eab77e9f7adfff99b13a1cbd99`
+was included at block `46522033` and reconciled at finalized block `46522071`.
+It is bound only to application campaign
+`247c4bff-fb70-4a50-b78e-9d6ed194ab4d`, revision `2`, and published in the local
+acceptance database. The idempotent recheck preserved its unused slot for the
+email-backed CDP participant flow described above. See the
+[campaign 3 record](../docs/base-sepolia-campaign-3-2026-09-07.md).

@@ -1,16 +1,19 @@
 # Local Base Sepolia setup
 
-Recorded 2026-09-05, sessions 9-14. Testnet deployment and one-slot campaign
-funding only: no provider sponsorship request, fresh hosted-wallet claim,
-mainnet transfer or production change.
+Recorded 2026-09-05 through 2026-09-07, sessions 9-22. Testnet deployment and
+campaign funding only: no new participant sponsorship request, mainnet transfer
+or production activation.
 
 ## Configuration state
 
 - Active worktree: `/Users/mikepurvis/other/near-crossword-launch-candidate`,
-  branch `codex/early-launch-discovery`, after `8a4b951`.
+  branch `codex/base-campaign3-acceptance`, based on `4bd3765`.
 - Its new ignored `.env.local` is owner-readable/writable only (0600). It sets
   chain 84532 and the public `https://sepolia.base.org` RPC. All claim, signing,
   indexer, sponsorship, publication, x402 and broadcast gates remain false.
+- The local finalized-state freshness policy is `1800` seconds. This accepts the
+  observed Base Sepolia finalized-tag delay while still rejecting stale RPC
+  state; it is not a reviewed production setting.
 - `BASE_PAYMASTER_UPSTREAM_URL` is present in this ignored local file. Its shape
   validates as the CDP Base Sepolia RPC path, and a read-only `eth_chainId` call
   returned `0x14a34`. The endpoint was not printed or committed. It is still a
@@ -60,6 +63,10 @@ fresh participant Base Account. Keep all those roles separate.
 | Post-approval balance | 0.000088488025569621 test ETH and 1 native test USDC; nonce 2 |
 | Campaign creation spend | `createCampaign` used 276,149 gas and 0.000001656894 test ETH |
 | Post-campaign balance | 0.000086822276296911 test ETH and 0 native test USDC; nonce 3 |
+| Second campaign funding | A second faucet USDC, exact allowance transaction `0x3ae0338128215613cff99b82c43b2c81b48519083d8a3b29a70a462077b8ed47`, then campaign `2` transaction `0xb8c25e901974647e86c18ff98d227fed29da39c48c17862946191b9cf27ba803` |
+| Campaign 2 recovery | Exact sponsor recovery transaction `0x865c8aaca90733d4b5ec1d390e66d3aa01287d1420559d4b37ce1cae7d704224`, finalized beyond block `46521526` |
+| Third campaign funding | Exact allowance transaction `0x519ae06cd5269f368deab1bd7ab739c9ec8a20947c6c0207559307787cd3d319`, then campaign `3` transaction `0x4c9199cfaa7f8c138bc64da55a2ab7cddbe7a8eab77e9f7adfff99b13a1cbd99` |
+| Current balance | 0.000082181870023979 test ETH, 0 USDC and nonce 8 after campaign `3` |
 
 ## Deployed escrow
 
@@ -73,8 +80,8 @@ fresh participant Base Account. Keep all those roles separate.
 | Actual runtime code hash | `0xebc5371a9a09231045c01981600b619436374e6226048855a6116d1d0c2dce00` |
 | Immutable token | `0x036CbD53842c5426634e7929541eC2318f3dCF7e` |
 | Initial state | `totalReserved() = 0`, `campaignCount() = 0` |
-| Funded campaign | Campaign `1` created by transaction `0x1a1f49f3c06d37c1fe2295ad0188f0e27e78a8b1c0b4636a9e7f0f4175bf6182`; `totalReserved() = 1000000`, `outstanding(1) = 1000000` |
-| Finality | Deployment finalized and code hash verified at later observation; latest `46441104`, finalized `46440531` |
+| Campaign history | Campaign `1` paid its finalized backend acceptance reward. Campaign `2` was returned in full to the sponsor after its app-terms mismatch, using a labeled recovery claim before participant issuance. Campaign `3` now holds the replacement one-test-USDC slot with the exact approved app terms; `totalReserved() = 1000000`, `outstanding(3) = 1000000` |
+| Finality | Deployment, campaign `1` payout, campaign `2` funding/recovery, and campaign `3` funding are finalized. Campaign `3` was hash-pinned and rechecked at finalized block `46522071` |
 
 CDP Paymaster on Base Testnet (Sepolia) was saved with one `Crossword Claim`
 allowlist entry for this contract and selector `0x8bd53692`, the selector for
@@ -143,13 +150,9 @@ explicit spending limits and a runbook.
 
 ## Continue setup
 
-1. Wait for finalization of campaign block `46444150`, then verify campaign
-   state against finalized chain history before issuing a claim.
-2. The one-slot approval and campaign transactions recorded in
-   [base-sepolia-campaign-preflight-2026-09-05.md](base-sepolia-campaign-preflight-2026-09-05.md)
-   are mined. Campaign `1` holds exactly 1 native test USDC in escrow; allowance
-   is back to zero.
-3. Complete the [live acceptance checklist](base-sepolia-sponsorship-acceptance.md):
+1. Add `https://crossword.xyz` to the CDP project's allowed domains when the
+   authenticated dashboard is available. Keep production gates disabled.
+2. Complete the [live acceptance checklist](base-sepolia-sponsorship-acceptance.md):
    reviewed deployment/account pins, real session, healthy scanner, hosted
    wallet compatibility, bounded CDP responses and fresh zero-ETH participant.
    An encrypted deployer wallet does not satisfy the fresh-passkey test.

@@ -1,7 +1,7 @@
 # Reshape session checkpoint
 
-Last implementation session: 2026-09-07, America/Los_Angeles, session 19 after
-`3653f78` (Base-first product and application preparation; uncommitted).
+Last implementation session: 2026-09-07, America/Los_Angeles, session 22 based
+on `4bd3765` (campaign `2` recovery and exact-commitment campaign `3`).
 
 Read this after the [work order](reshape-action-plan.md). It is a continuation
 record, not evidence of deployment. Live gates remain in
@@ -19,7 +19,7 @@ not unique humans or learning. Manual authoring remains valid.
 ## Working location
 
 - Worktree: `/Users/mikepurvis/other/near-crossword-launch-candidate`
-- Branch: `codex/early-launch-discovery`
+- Branch: `codex/base-campaign3-acceptance`
 - Planning baseline: `83d1cb8`; prior implementation commits: `8f475e3` and
   `a373f7e`, followed by `cf560e6`, `6f38ece`, `8d7404e`, `f3b9eb3` and `ce9b527`.
   Session 8 follows Mike's request for the claim-only sponsorship proxy and a
@@ -45,15 +45,22 @@ not unique humans or learning. Manual authoring remains valid.
   Wallet participant path with database session bridging. Session 19 accepts a
   fresh CDP email/smart-account session locally, fixes its initialization race,
   and prepares a second one-slot campaign plus the Base Batches product surface.
+  Session 20 merges the Base-first product, deploys it to `crossword.xyz`, and
+  records the verified public boundary. Session 21 creates and finalizes Base
+  Sepolia campaign `2`. Session 22 catches its application-terms mismatch before
+  participant issuance, recovers the full test USDC to the sponsor through a
+  labeled direct claim, creates replacement campaign `3` from the exact approved
+  application commitment, verifies finality, and binds/publishes it locally.
   See [local setup](base-sepolia-local-setup.md). The encrypted deployer is not a
   paymaster or fresh participant wallet, and no mainnet funding or
   transaction-specific approval is implied by creating/funding it.
 - The original `/Users/mikepurvis/other/near-crossword` worktree remains on
   `codex/crossword-campaigns` with pre-existing changes. Do not overwrite it or
   assume it is the launch-candidate branch. Recheck both worktrees next session.
-- No merge, push, Render configuration change, production migration, or
-  deployment was performed in sessions 18-19. Session 19 sent one explicitly
-  approved Base Sepolia USDC allowance transaction and no campaign transaction.
+- Session 20 merged PRs #7 and #8 and deployed the public Base-first product and
+  documentation to Render without changing any production environment setting
+  or activation gate. Session 21 sent one standing-approved Base Sepolia
+  `createCampaign` transaction; no production or mainnet transaction was sent.
   The original ignored `.env` was not edited or copied. Session 3 applied all nine migrations twice to isolated local
   schemas. Session 5 applied all ten migrations twice to fresh isolated local
   Postgres schemas and tested compiled contracts on disposable loopback Anvil.
@@ -74,11 +81,43 @@ not unique humans or learning. Manual authoring remains valid.
 | R2b lesson/source drafts | Two live synthetic drafts validate; private review API and manual editor implemented | Representative quality evaluation and versioned paid generation orchestration |
 | R3a contract design | Implemented locally with shared typed-data fixture | Independent security review and integration review |
 | R3b contract/accounting | Base Sepolia escrow, campaign and one CDP-sponsored claim finalized with exact event/state reconciliation | Reviewed RPC/finality policy, supervised scanner, scale validation and independent security review |
-| R4 workflows | Public practice/sponsor demos, private publication, claim recovery, strict Sepolia gas proxy and CDP User Wallet email/smart-account integration implemented locally; backend sponsored claim finalized; fresh CDP email/account/session accepted | Combined CDP wallet challenge/UserOperation/finalized recovery, operator gas recovery, sponsor wallet funding/control/dashboard, fraud policy, retention/export |
+| R4 workflows | Public practice/sponsor demos are live; private publication, claim recovery, strict Sepolia gas proxy and CDP User Wallet email/smart-account integration are implemented locally; backend sponsored claim finalized; fresh CDP email/account/session accepted; exact-commitment campaign `3` is finalized and locally published with one test-USDC slot | Combined CDP wallet challenge/UserOperation/finalized recovery; operator gas recovery; sponsor wallet funding/control/dashboard; fraud policy; retention/export |
 | R5 Base x402 | Not started | EVM scheme/payer, facilitator configuration, first-wallet and settlement/recovery proof |
 | R6 pilot | Gated | Earlier milestones, reviewed release, explicit small budget and identities |
 
 ## What landed locally
+
+- Session 22: binding preflight exposed that campaign `2` committed a readable
+  harness string instead of the application review's canonical public terms.
+  No participant or paymaster request occurred. Recovery transaction
+  `0x865c8aaca90733d4b5ec1d390e66d3aa01287d1420559d4b37ce1cae7d704224`
+  returned the full test USDC to the sponsor and finalized at block `46521565`.
+  Exact approval transaction
+  `0x519ae06cd5269f368deab1bd7ab739c9ec8a20947c6c0207559307787cd3d319`
+  and funding transaction
+  `0x4c9199cfaa7f8c138bc64da55a2ab7cddbe7a8eab77e9f7adfff99b13a1cbd99`
+  then created campaign `3` with one test-USDC slot and approved application
+  terms hash
+  `0x8ceb4b64f564424caf61e0957dc2bd090ce7cf315178f498468f1ed482d97ad8`.
+  Finalized block `46522071` reconciled the exact runtime, terms, reserve,
+  balances, and unused slot. The dry-run-first local harness then bound campaign
+  `3` to application revision `2` and published commitment
+  `0xd3988864ebb85055be484ba49647be36dd931152cef4fec6d208dd2e586d90da`;
+  an idempotent recheck passed. Combined participant acceptance remains open.
+  See the [campaign 2 recovery](base-sepolia-campaign-2-2026-09-07.md) and
+  [campaign 3 record](base-sepolia-campaign-3-2026-09-07.md).
+
+- Session 21: under standing approval limited to small Base Sepolia test assets
+  and incidental test gas, created campaign `2` with transaction
+  `0xb8c25e901974647e86c18ff98d227fed29da39c48c17862946191b9cf27ba803`.
+  Its funding and exact onchain state finalized correctly; the session 22 binding
+  check later identified the offchain commitment mismatch and recovered it
+  without exposing a participant.
+
+- Session 20: PR #7 passed CI, merged, and deployed the Base-first public home,
+  practice lesson, and sponsor demo to `crossword.xyz`; live route and production
+  gate checks passed. PR #8 then updated the launch evidence, Batches material,
+  and public README. No Render variable or production payment setting changed.
 
 - Session 19: completed fresh CDP email OTP, smart-account creation, server
   validation, and database-session acceptance. Fixed the brief client race that
@@ -245,10 +284,37 @@ available only through the gated private API. Authenticated Base claim routes an
 the real eligibility composition are implemented locally, but remain disabled
 and unconfigured in production. There is no deployed issuer key or relayer.
 Tests use synthetic source material and keys on local databases/EVM, not live Base.
-The payment scheme/browser payer is still
-NEAR. The live product has not switched networks or gained multi-recipient claims.
+The legacy payment scheme/browser payer is still NEAR. The live public narrative
+and no-payment demos are now Base-first, while production-funded Base claims
+remain disabled.
 
 ## Verification
+
+Session 22 checks, Node 24.10.0 local runtime:
+
+- Campaign `2` recovery finalized beyond block `46521526` with zero remaining
+  liability. Campaign `3` funding finalized at block `46522071`; canonical
+  receipt, runtime, token, exact terms, reserve, balances, signer state and unused
+  slot all agree. Exact local binding/publication and its idempotent dry run pass.
+- Unit **256/256**, Base/Postgres **55/55**, browser **18/18**, and Base contract
+  **29/29** pass. ESLint, TypeScript, production dependency audit, optimized
+  production build, production trace/HTTP acceptance **1/1**, and diff whitespace
+  checks pass. The first trace invocation followed Playwright's dev server and
+  found no production `.next` trace; the clean rebuild and immediate rerun passed.
+
+Session 21 checks, Node 24.10.0 local runtime:
+
+- Campaign `2` transaction
+  `0xb8c25e901974647e86c18ff98d227fed29da39c48c17862946191b9cf27ba803`
+  succeeded at block `46520630`, funded one 1-test-USDC slot, and reconciles
+  across the event, nonce, campaign, reserve, allowance and token balances.
+  The all-in Base fee was `0.000001562510468571` test ETH. Finalized block
+  `46520808` crossed the campaign block; receipt/canonical hashes and exact state
+  agree at finalized history.
+- Unit **256/256**, Base/Postgres **55/55**, browser **18/18**, and Base contract
+  **29/29** pass. ESLint, TypeScript, the production build and diff whitespace
+  checks pass. The first integration invocation named an obsolete local role
+  and reached no behavior; the corrected disposable database run passed.
 
 Session 14 checks, Node 20.18.3:
 

@@ -35,6 +35,83 @@ yarn test:acceptance:base-build
 
 ## Current local implementation evidence
 
+### Reshape session 22, 2026-09-07: exact campaign commitment and recovery
+
+- The application correctly rejected campaign `2` because its readable harness
+  commitment did not equal approved review revision `2`'s canonical public-terms
+  hash. No participant allocation, CDP claim, or paymaster request occurred.
+- A fail-closed recovery harness used the dedicated eligibility signer and a
+  labeled participant ID to return the exact 1 test USDC to the sponsor. Recovery
+  transaction
+  `0x865c8aaca90733d4b5ec1d390e66d3aa01287d1420559d4b37ce1cae7d704224`
+  used 138,564 gas and `0.000000843258809629` total test ETH. Finalized block
+  `46521565` crossed its inclusion block; hash-pinned state shows zero reserve,
+  zero escrow USDC, and the full amount back at the sponsor.
+- Local review revision `2` and its layout were approved before replacement
+  funding. The canonical application terms hash is
+  `0x8ceb4b64f564424caf61e0957dc2bd090ce7cf315178f498468f1ed482d97ad8`;
+  the layout hash is
+  `0x4b39dace2fd83e6c8fdb58782aeee5c7edc178c5df37b309abe4d8780efb9490`.
+- Exact allowance transaction
+  `0x519ae06cd5269f368deab1bd7ab739c9ec8a20947c6c0207559307787cd3d319`
+  cost `0.000000336893719298` test ETH. Replacement funding transaction
+  `0x4c9199cfaa7f8c138bc64da55a2ab7cddbe7a8eab77e9f7adfff99b13a1cbd99`
+  created campaign `3` at block `46522033`, used 259,049 gas, and cost
+  `0.000001559482293718` test ETH. Its one slot holds exactly 1 test USDC and
+  commits to the application hash above. Finalized block `46522071` crossed the
+  funding block; canonical receipt, runtime, token, exact terms, reserve,
+  balances, signer state, and unused slot all match.
+- Added exact approval, funding, recovery, and local bind/publish harnesses. They
+  use the configured Base RPC, independently match receipt hashes to canonical
+  blocks, enforce fixed runtime/address/nonce/balance/state expectations, and
+  cap each direct-gas operation below `0.00001` test ETH. The binding harness
+  accepts only the local `near_crossword` database and exact review/layout hashes.
+  Dry run, bind/publication, and an idempotent post-bind dry run passed. Local
+  publication hash is
+  `0xd3988864ebb85055be484ba49647be36dd931152cef4fec6d208dd2e586d90da`.
+- After these changes, unit **256/256**, Base/Postgres integration **55/55**,
+  browser **18/18**, and Base contract **29/29** pass. ESLint, standalone
+  TypeScript, the production build, and diff whitespace checks pass. A packaging
+  acceptance invocation ran after Playwright's development server had replaced
+  `.next`, so it found no production trace and reached no application behavior.
+  A clean production rebuild followed immediately by the packaging acceptance
+  check passed **1/1**.
+
+### Reshape session 21, 2026-09-07: CDP participant campaign funding
+
+- Added an exact Base Sepolia campaign `2` harness that checks chain ID, escrow
+  runtime hash and token, nonce, campaign count, balances, allowance, simulation,
+  and a `0.00001` test-ETH L2 execution-cost ceiling before loading the encrypted signer.
+  Preflight estimated 275,713 gas, submitted a 344,642 gas limit, and bounded the
+  maximum L2 execution cost at 0.000002412494 test ETH. The corrected harness
+  now adds twice the estimated L1 data fee to the total ceiling. ESLint and
+  TypeScript pass.
+- Under Mike's standing approval for low-balance build transfers, interpreted
+  only as small Base Sepolia test assets and incidental test gas, transaction
+  `0xb8c25e901974647e86c18ff98d227fed29da39c48c17862946191b9cf27ba803`
+  created campaign `2` at block `46520630`. It used 259,049 gas and
+  paid 0.000001554294 test ETH for L2 execution plus
+  0.000000008216468571 for L1 data, 0.000001562510468571 total.
+- Independent nonce, event, campaign, slot, balance, allowance and reserve reads
+  agreed at that finalized history: one unused 1-test-USDC slot was funded,
+  `totalReserved()` and `outstanding(2)` were `1000000`, and sponsor
+  USDC/allowance were zero. The first postflight request reached a lagging RPC
+  replica; no retry transaction was sent, and the harness now retries
+  receipt-block reads.
+- Finalized block `46520808` crossed campaign block `46520630`. Receipt and
+  canonical block hashes match, and hash-pinned reads reproduce the exact
+  runtime code, terms, reserve, outstanding amount, unused slot, balances, and
+  zero allowance. Session 22 later identified the app-terms mismatch and safely
+  recovered this campaign before participant use. CDP wallet challenge, claim
+  issuance, sponsored UserOperation, production activation, mainnet transfer
+  and Batches submission remain open. See the
+  [campaign record](docs/base-sepolia-campaign-2-2026-09-07.md).
+- After the harness and ABI change: unit **256/256**, Base/Postgres integration
+  **55/55**, browser **18/18**, and Base contract **29/29** pass. ESLint,
+  standalone TypeScript, the production build, and diff whitespace checks pass.
+  An initial integration invocation used an obsolete nonexistent local role and
+  reached no behavior; the corrected disposable local database run passed.
+
 ### Reshape session 19, 2026-09-07: Base-first public product and second pilot prep
 
 - Fresh CDP email OTP, smart-account creation, same-project server validation,
