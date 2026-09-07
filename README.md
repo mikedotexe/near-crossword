@@ -1,103 +1,116 @@
-# Crossword Campaigns
+# Crossword
 
-Early launch: [observed status and open items](docs/early-launch-status.md).
-Product direction: [discovery notebook](docs/product-discovery.md).
-Agreed reshape: [Base rewards and NEAR AI action plan](docs/reshape-action-plan.md).
-Next session: [implementation checkpoint](docs/reshape-progress.md).
+Sponsor-funded learning rewards on Base.
 
-The product description below covers the current NEAR v2 application. The
-agreed Base, many-recipient learning experience is under development; the
-[Base escrow](contract-base/README.md) and [private review/issuance backend](docs/base-learning-workflow.md)
-are locally tested, but not connected to production claims or deployed. This branch uses NEAR AI for generation, while production remains
-on the release recorded in the launch register.
+Crossword lets a company publish a short, source-grounded lesson and crossword,
+prefund fixed USDC rewards, and reconcile every payout and refund against
+onchain escrow. Learners enter through email-backed Coinbase Developer Platform
+smart accounts, so the intended experience requires neither a seed phrase nor
+ETH.
 
-**Fund with anything. Win anywhere.**
+- Live product: [crossword.xyz](https://crossword.xyz)
+- Practice lesson: [crossword.xyz/learn/practice](https://crossword.xyz/learn/practice)
+- Sponsor workflow: [crossword.xyz/learn/sponsor-demo](https://crossword.xyz/learn/sponsor-demo)
+- Launch status and open gates: [docs/early-launch-status.md](docs/early-launch-status.md)
+- Base Batches narrative: [md-CLAUDE-chapters/11-base-batches.md](md-CLAUDE-chapters/11-base-batches.md)
 
-Crossword Campaigns turns the original NEAR Crossword into a sponsor-funded
-campaign platform. A creator writes a puzzle, locks a complete USDC prize before
-publication, and shares a campaign page. Solving is free; the first valid
-solution wins.
+The public practice and sponsor pages are no-payment demos. Production reward
+publication, participant wallets, paymaster sponsorship, and chain broadcasting
+remain disabled until the acceptance evidence in the launch register is
+complete.
 
-The v2 design makes two workflows possible:
+## Why this exists
 
-1. **Cross-chain jackpot** — fund with an asset currently supported by NEAR
-   Intents, solve without a NEAR wallet, and route the prize to a supported
-   destination.
-2. **x402 campaign** — pay once for AI-assisted puzzle creation through x402,
-   then publish a separately funded prize with independent creation and payout
-   receipts.
+The original Crossword was inspired by Coinbase Earn: learn one useful thing,
+answer a question, and receive a small onchain reward. This version turns that
+idea into infrastructure any sponsor can use.
 
-“Any asset” always means a route returned by the live 1Click catalog and quote
-API. It is not a promise that every asset has liquidity.
+A sponsor can turn one campaign budget into many small rewards without asking
+learners to acquire gas. Base provides the public accounting layer. Private
+source material, completion evidence, email, and optional contact consent stay
+offchain.
 
-## Product boundaries
+The crossword is the first learning format, not the boundary of the product.
+The commercial surface is campaign creation, accountable reward distribution,
+and sponsor reporting.
 
-- Sponsored, free-to-play, winner-take-all campaigns only in v1.
-- Prize escrow is pinned native USDC on NEAR.
-- Prize principal, routing costs, and platform fees are separate ledger values.
-- x402 pays for discrete services. It never substitutes for funded escrow.
-- Paid entry, raffles, pooled bounties, arbitrary merchant URLs, exact-asset
-  escrow, and public first-N rewards are intentionally excluded.
-- Creators know their answers and can collude or self-claim. V1 addresses this
-  honestly with sponsor identity, public evidence, beta caps, and reputation;
-  it does not claim an impossible cryptographic guarantee.
+## Product flow
+
+1. A sponsor supplies sources and reviews the lesson, puzzle, and exact reward
+   terms.
+2. The full campaign reward pool is reserved in USDC escrow on Base.
+3. A learner completes the lesson through an email-backed CDP smart account.
+4. The application issues a one-time eligibility claim after verifying the
+   completion and wallet binding.
+5. A narrow ERC-4337 proxy sponsors only the approved escrow claim.
+6. Contract events and the canonical indexer reconcile payouts, remaining
+   obligations, and refunds.
+
+The contract proves budget constraints and money movement. It does not claim to
+prove that a person learned something or that every account belongs to a unique
+human.
+
+## Working Base proof
+
+The Base Sepolia pilot includes:
+
+- `LearningRewards` escrow at
+  [`0x77fd...A304`](https://sepolia.basescan.org/address/0x77fdCEF7d08c54eD2a87FD54fBf24a660fa2A304)
+- A
+  [finalized sponsored payout](https://sepolia.basescan.org/tx/0x35860a8044d025b6086acbacc02a3f173520b88410fc9338c6267117dc6f1255)
+  of 1 test USDC to a fresh, zero-ETH Coinbase Smart Account
+- Tested EOA, deployed ERC-1271, and undeployed ERC-6492 authorization paths
+- Durable publication, claim issuance, chain reconciliation, and recovery
+- Local email OTP and CDP smart-account creation
+
+The combined email-backed CDP account plus funded sponsored claim is still an
+open acceptance item. Testnet USDC is not revenue, TVL, or user traction.
 
 ## Architecture
 
 ```text
-Creator / solver
-      │
-      ▼
-Next.js App Router + /api/v2
-      │
-      ├── Postgres workflow ledger
-      │     campaigns · funding orders · claims · events · durable jobs
-      │
-      ├── 1Click adapters
-      │     exact-output funding · exact-input payout · live token catalog
-      │
-      ├── x402 AI service
-      │     payment-identifier deduplication · single-use campaign receipt
-      │
-      └── gated chain worker
-            │
-            ▼
-      Crossword Campaigns v2 contract
-      pinned NEP-141 USDC escrow · claim proofs · expiry/refunds
+Sponsor sources and campaign terms
+              |
+              v
+Private review + immutable publication commitment
+              |
+              +--------------------------+
+              |                          |
+              v                          v
+      Postgres workflow             Base USDC escrow
+      lessons, consent,             funded terms,
+      claims, recovery              payouts, refunds
+              |                          ^
+              v                          |
+Learner email OTP -> CDP smart account -> claim-only paymaster
 ```
 
-Postgres is canonical for workflow intent and external receipts. The contract
-is canonical for escrow, claims, and refunds. Every paid or chain operation uses
-idempotency keys, compare-and-set transitions, bounded retry, and durable
+Postgres is canonical for private workflow intent and external receipts. Base is
+canonical for campaign funds, claims, and refunds. Paid and chain operations use
+idempotency keys, compare-and-set transitions, bounded retries, and durable
 reconciliation.
 
-An x402-paid AI result returns a minimal versioned receipt handle. Campaign
-creation verifies that handle against the completed durable payment record and
-copies only a public receipt digest, network, and settlement reference into the
-campaign evidence. Each paid generation can be linked to one campaign; manual
-campaigns remain valid without one. Prompts, generated answers, payer identity,
-raw payment headers, and payment authorization never enter campaign evidence.
+The independent Solidity package is in [`contract-base`](contract-base/README.md).
+The sponsor and participant backend is documented in
+[`docs/base-learning-workflow.md`](docs/base-learning-workflow.md). The complete
+implementation sequence lives in
+[`docs/reshape-progress.md`](docs/reshape-progress.md).
 
-The browser derives a transient ed25519 solution key from a canonical,
-domain-separated answer representation. Only the public key is stored with the
-campaign. A claim signature binds the contract, campaign, receiver or 1Click
-deposit account, payout digest, nonce, and deadline. Answer material and private
-keys are neither sent to the API nor persisted in browser storage.
+## Supporting services
 
-## Application routes
+Base is the reward and accounting network. Two other systems have deliberately
+narrower roles:
 
-- `/explore` — browse public, funded campaigns
-- `/create` — manual or x402-assisted campaign builder
-- `/campaigns/[slug]` — rules, prize state, timing, and evidence
-- `/campaigns/[slug]/play` — anonymous solving and winner payout choice
-- `/dashboard` — creator campaigns and recovery actions
-- `/legacy` — isolated access to the original claim flow
+- **NEAR AI** prepares source-grounded lesson drafts for mandatory human review.
+  The local adapter uses `NEAR_AI_API_KEY`; bounded GLM 5.1 checks are recorded
+  in [`docs/near-ai-evaluation-2026-09-04.md`](docs/near-ai-evaluation-2026-09-04.md).
+- **x402** is the intended payment boundary for campaign-intelligence services.
+  It does not hold sponsor principal or pay learner rewards. Production x402 is
+  currently disabled.
 
-The old `crossword.puzzle.near` contract and its funds are untouched. The
-original contract source remains in `contract/`; the independent v2 contract is
-in `contract-v2/`. The former market-agent worker remains only as source
-history: no package script compiles or starts it, and `worker:start` is an alias
-for the gated v2 reconciliation worker.
+The original NEAR winner-take-all campaign application remains available at
+[`/legacy`](https://crossword.xyz/legacy). Its contracts and outstanding state
+are preserved and tracked separately in the launch register.
 
 ## Local development
 
@@ -105,10 +118,10 @@ Requirements:
 
 - Node 20 and Yarn 4
 - Rust stable plus `wasm32-unknown-unknown`
-- Postgres for persistent development; deterministic in-memory mode is
-  available only outside production
+- Postgres for persistent development
+- Foundry, provisioned through the repository helper, for Solidity tests
 
-Install and run the safe local mode:
+Install and run the no-payment public experience:
 
 ```bash
 corepack enable
@@ -122,22 +135,7 @@ yarn dev
 ```
 
 Mock mode moves no funds, accepts no payment as settled, and loses its state
-when the process restarts. It is designed for product and browser testing.
-
-Real clue generation uses `NEAR_AI_API_KEY`, optional `NEAR_AI_BASE_URL`
-(default `https://cloud-api.near.ai/v1`), and `V2_AI_MODEL` (default
-`zai-org/GLM-5.1-FP8`). This model uses its documented non-thinking mode and
-passed live source-draft checks. Other model overrides keep provider reasoning
-defaults; they are not automatically approved by a catalog listing.
-It has no Anthropic dependency or fallback.
-Leave `X402_ENABLED=false` until provider and payment acceptance checks pass.
-See the [backend guide](src/server/v2/README.md) for limits and recovery behavior.
-Source-grounded lessons are available through a separate draft generator and
-the opt-in `yarn ai:evaluate --env-file /path/to/ignored/.env` check, not yet the
-public creator route. See [live check results](docs/near-ai-evaluation-2026-09-04.md).
-The separate `yarn ai:diagnose --env-file /path/to/ignored/.env --mode auth`
-checks key acceptance without inference. Explicit chat/stream probes may consume
-credits; billing lookup uses the returned `Inference-Id`, not `X-Request-Id`.
+when the process restarts.
 
 For Postgres-backed development:
 
@@ -147,35 +145,34 @@ yarn db:migrate:v2
 yarn dev
 ```
 
-Internal implementation context is organized in
-[md-CLAUDE-chapters](md-CLAUDE-chapters/README.md). The new Base path has a
-read-only RPC reader and durable event reconciliation, not a deployed earning
-workflow. `yarn base:reconcile` runs one explicitly configured/gated scan batch;
-see [Base accounting](md-CLAUDE-chapters/03-base-accounting.md) for deployment
-pins, finality, recovery and local-EVM/Postgres test commands.
-The [participant chapter](md-CLAUDE-chapters/06-participants-and-recovery.md) covers
-the new authenticated completion, wallet challenge, claim/recovery and optional
-contact-consent API. `BASE_PARTICIPANT_ENABLED` and `BASE_CLAIM_ISSUANCE_ENABLED`
-default false; signing needs a dedicated `BASE_ELIGIBILITY_PRIVATE_KEY` and the
-reviewed deployment pins. Recovery does not require signing enabled. These routes
-do not broadcast transactions. Player/review UI and fresh-wallet onboarding remain
-open; local EOA/deployed-smart-wallet tests are not a production activation.
+Developer-only learning previews require `BASE_UI_PREVIEW_ENABLED=true` and are
+available at `/learn/preview` and `/learn/studio/preview`. They always return 404
+in production. The public `/learn/practice` and `/learn/sponsor-demo` routes are
+synthetic and nonpaying.
 
-The chain worker refuses to lease work unless
-`V2_CHAIN_BROADCAST_ENABLED=true`. Keep it false for normal development. A
-configured staging operator can start the worker with:
+## Activation boundaries
 
-```bash
-yarn worker:v2
-```
+Base capabilities fail closed. Their settings are documented in
+[`.env.example`](.env.example), including:
 
-Set `V2_NEAR_NETWORK` explicitly to `testnet` or `mainnet`; production refuses
-to start without it, and the server rejects a mismatch with
-`NEXT_PUBLIC_NEAR_NETWORK`.
+- `BASE_REVIEW_ENABLED`
+- `BASE_PUBLICATION_ENABLED`
+- `BASE_ACCOUNT_ENABLED`
+- `CDP_PARTICIPANT_AUTH_ENABLED`
+- `BASE_PARTICIPANT_ENABLED`
+- `BASE_CLAIM_ISSUANCE_ENABLED`
+- `BASE_SPONSORED_GAS_ENABLED`
+- `BASE_PAYMASTER_PROXY_ENABLED`
+- `BASE_INDEXER_ENABLED`
 
-Never enable broadcasting with a funded key until the contract account, pinned
-USDC token, network, operator, campaign amounts, and recovery destinations have
-been independently checked.
+CDP server credentials, paymaster endpoints, eligibility keys, deployer keys,
+and participant tokens are server-only. Never place a seed phrase or funded
+deployer key in the web environment. The retained NEAR worker also refuses chain
+operations unless its separate explicit broadcast gate is enabled.
+
+Use the [Base Sepolia acceptance checklist](docs/base-sepolia-sponsorship-acceptance.md)
+and [launch runbook](docs/launch-runbook.md) before changing any gate. A public
+demo deployment is not evidence that the funded production journey is ready.
 
 ## Verification
 
@@ -184,76 +181,22 @@ yarn lint
 yarn typecheck
 yarn audit:production
 yarn test:unit
-# Requires TEST_DATABASE_URL pointing to a disposable local Postgres target.
 yarn test:integration:base
 yarn test:browser
 yarn test:contract:v2
 yarn contract:v2:build
-git submodule update --init --recursive
 yarn contract:base:fmt
 yarn test:contract:base
 yarn contract:base:build
 yarn build
 ```
 
-The browser suite runs against explicit local mock mode. 1Click has no testnet
-environment, so automated routing tests use deterministic adapters and NEAR
-testnet token fixtures. Mainnet acceptance requires explicit small-value human
-approval and must include both successful settlement and refund recovery.
+The browser suite uses explicit local fixtures. Postgres integration tests
+require `TEST_DATABASE_URL` pointing at a disposable database. The launch
+candidate passed 256 unit tests, 55 Base/Postgres integration tests, 18 browser
+tests, 30 Rust contract tests, 29 Solidity contract tests, lint, typecheck, and
+the production build before the September 7 deployment.
 
-See [QA.md](QA.md) for the acceptance matrix and
-[contract-v2/README.md](contract-v2/README.md) for the claim encoding and escrow
-state machine. [docs/launch-runbook.md](docs/launch-runbook.md) separates
-staging, approved mainnet canaries, cutover, and rollback.
-
-## Production configuration
-
-Production fails closed without:
-
-- `DATABASE_URL`
-- `NEXT_PUBLIC_APP_URL`
-- `NEXTAUTH_URL`
-- `NEXTAUTH_SECRET`
-- `RESEND_API_KEY`
-- `V2_NEAR_NETWORK`
-- `NEXT_PUBLIC_NEAR_NETWORK`
-- `V2_CONTRACT_ID`
-- `NEXT_PUBLIC_V2_CONTRACT_ID`
-- `V2_USDC_ASSET_ID`
-- `V2_USDC_CONTRACT_ID`
-- `NEXT_PUBLIC_V2_USDC_CONTRACT_ID`
-- `V2_TRUSTED_CLIENT_IP_HEADER`
-
-The 1Click, x402, email, and chain-worker settings are documented in
-[.env.example](.env.example). Secrets, operator keys, payment credentials, and
-provider bearer tokens are server-only.
-
-V2 has a private, direct-USDC mainnet canary at
-`crossword-campaigns-v2.mike.near`; it is not a public launch. See the dated
-[canary evidence](docs/mainnet-canary-2026-07-27.md) and [`QA.md`](QA.md) for
-what it proves and the remaining launch gates.
-
-## Learning reshape: local screens
-
-The separate Base learning flow now has `/learn` and `/learn/studio` screens,
-reviewed connected layouts, publication/withdrawal and authenticated reward
-recovery. It is not deployed or activated. All Base flags default off; the
-studio links already-funded campaigns but does not yet send sponsor transactions.
-
-For synthetic, nonpaying UI previews, start the development server with
-`BASE_UI_PREVIEW_ENABLED=true`, then visit `/learn/preview` and
-`/learn/studio/preview`. These routes always return 404 in production. There is
-no fake Base session/database/payment fallback.
-
-See [publication and screens](md-CLAUDE-chapters/07-publication-and-screens.md),
-[Base Account and gas](md-CLAUDE-chapters/08-base-account-and-gas.md), and the
-[session checkpoint](docs/reshape-progress.md). The local claim-specific gas
-proxy uses private wallet-context permits and durable allowances; see
-[chapter 09](md-CLAUDE-chapters/09-claim-sponsorship.md). It is default off and
-supports a reviewed EntryPoint 0.6 Base Sepolia profile only. Real fresh
-passkey/paymaster acceptance remains open; follow the
-[staging checklist](docs/base-sepolia-sponsorship-acceptance.md), never expose a
-keyed CDP URL or enable an unrestricted sponsorship relay.
-The [local Sepolia setup record](docs/base-sepolia-local-setup.md) distinguishes
-the disabled launch-candidate env, encrypted test-deployer wallet and pending
-CDP account-billed paymaster setup. Never put a deployer seed/key in the web env.
+See [`QA.md`](QA.md) for the acceptance matrix and
+[`md-CLAUDE-chapters`](md-CLAUDE-chapters/README.md) for the subject-oriented
+engineering record.

@@ -58,7 +58,7 @@ lead with a list of protocols.
 | Base-native reward accounting exists | Base Sepolia escrow at `0x77fdCEF7d08c54eD2a87FD54fBf24a660fa2A304` | Testnet; independent review and mainnet deployment remain open |
 | A gasless USDC reward can reach a fresh account | Finalized transaction `0x35860a8044d025b6086acbacc02a3f173520b88410fc9338c6267117dc6f1255` | Backend acceptance used a throwaway local Coinbase Smart Account |
 | Email-first CDP onboarding works | Fresh email OTP and CDP smart-account creation accepted locally on 2026-09-06 | The same CDP User Wallet has not yet completed the funded claim journey |
-| Sponsor review and participant screens exist | Public synthetic demos plus gated private review/publication implementation | Sponsor funding controls, export, and reporting are incomplete |
+| Sponsor review and participant screens exist | Live public synthetic demos plus gated private review/publication implementation | Sponsor funding controls, export, and reporting are incomplete |
 | Source-grounded AI drafts work | Two bounded GLM 5.1 drafts passed validation with recorded billing | Representative sponsor quality and paid x402 orchestration remain open |
 | Sponsor spend is verifiable | Escrow events, canonical indexer, reconciliation, and finalized recovery are implemented/tested | Chain receipts prove money movement, not unique humans or learning |
 
@@ -95,8 +95,9 @@ Avoid these claims:
 
 Before submission:
 
-1. Deploy the Base-first public home, practice lesson, and non-persisting sponsor demo
-   to `crossword.xyz`; verify desktop/mobile and public metadata.
+1. Completed September 7: deploy the Base-first public home, practice lesson,
+   and non-persisting sponsor demo to `crossword.xyz`; verify desktop/mobile and
+   public metadata.
 2. Add `https://crossword.xyz` to the intended CDP project's allowed domains and
    configure same-project public/server credentials in Render without enabling
    production sponsorship.
