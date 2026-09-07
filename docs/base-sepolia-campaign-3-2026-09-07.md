@@ -191,10 +191,11 @@ block `46526083`, the account was still undeployed with EntryPoint nonce `0`,
 zero ETH, zero USDC, and unused slot/participant markers. No further retry is
 authorized from this state.
 
-The CDP embedded-wallet project was then inspected and had no Paymaster network
-configuration. Coinbase documents a managed `useCdpPaymaster` path whose private
-URL is stored in that project rather than called through a temporary public
-tunnel. Configure Base Sepolia there, retain the escrow `claim` allowlist and
-small provider caps, then implement and review managed-mode accounting before a
-new live attempt. Production sponsorship, mainnet transfers and Batches
-submission remain disabled.
+The CDP embedded-wallet project was then configured with a masked Base Sepolia
+Paymaster endpoint and blank context. Migration 015 plus the browser/server flow
+now implement managed `useCdpPaymaster` with a pre-send gas reservation,
+provider idempotency key, immutable submitted/unknown state and finalized-event
+closure. That mode cannot be substituted into this allocation: its prior proxy
+attempt remains `UNKNOWN`. Use a fresh reviewed allocation for managed
+acceptance. Production sponsorship, mainnet transfers and Batches submission
+remain disabled.

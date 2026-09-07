@@ -62,6 +62,7 @@ The Base Sepolia pilot includes:
 - Tested EOA, deployed ERC-1271, and undeployed ERC-6492 authorization paths
 - Durable publication, claim issuance, chain reconciliation, and recovery
 - Local email OTP and CDP smart-account creation
+- CDP-managed Paymaster integration with pre-send database gas reservation
 
 The combined email-backed CDP account plus funded sponsored claim is still an
 open acceptance item. Testnet USDC is not revenue, TVL, or user traction.
@@ -162,6 +163,7 @@ Base capabilities fail closed. Their settings are documented in
 - `BASE_PARTICIPANT_ENABLED`
 - `BASE_CLAIM_ISSUANCE_ENABLED`
 - `BASE_SPONSORED_GAS_ENABLED`
+- `BASE_CDP_MANAGED_PAYMASTER_ENABLED`
 - `BASE_PAYMASTER_PROXY_ENABLED`
 - `BASE_INDEXER_ENABLED`
 

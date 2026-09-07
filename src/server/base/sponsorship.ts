@@ -1,5 +1,5 @@
-import { randomBytes } from "node:crypto";
-import type { Pool } from "pg";
+import { randomBytes, randomUUID } from "node:crypto";
+import type { Pool, PoolClient } from "pg";
 import {
   encodeFunctionData,
   hashTypedData,
@@ -96,6 +96,34 @@ export class ClaimSponsorship {
     private readonly policy: SponsorshipPolicy,
     private readonly upstream: PaymasterUpstream,
   ) {}
+
+  private async lockGasBudget(client: PoolClient) {
+    await client.query(
+      "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))",
+      [`base-gas:${this.policy.chainId}:${this.policy.escrow.toLowerCase()}`],
+    );
+  }
+
+  private async ensureGasBudget(client: PoolClient, recipient: Address) {
+    const usage = await client.query(
+      `SELECT COALESCE(SUM(s.reserved_wei), 0)::TEXT AS total,
+         COUNT(*) FILTER (WHERE r.recipient = $3 AND s.reserved_wei > 0)::INTEGER AS account_count
+       FROM base_gas_sponsorships s JOIN base_reward_allocations r ON r.id = s.allocation_id
+       JOIN base_reward_campaigns c ON c.campaign_id = r.campaign_id
+       WHERE c.chain_id = $1 AND c.escrow = $2`,
+      [
+        this.policy.chainId,
+        this.policy.escrow.toLowerCase(),
+        recipient,
+      ],
+    );
+    if (
+      BigInt(usage.rows[0].total) + this.policy.maxOperationWei >
+        this.policy.totalBudgetWei ||
+      usage.rows[0].account_count >= this.policy.maxOperationsPerAccount
+    )
+      sponsorshipDenied();
+  }
 
   private async load(userId: string, campaignId: string, digest: string) {
     realUserId(userId);
@@ -196,6 +224,7 @@ export class ClaimSponsorship {
       const row = saved.rows[0];
       if (
         !row ||
+        row.sponsorship_mode !== "PROXY" ||
         !row.operation_identity ||
         Number(row.permit_epoch) >= 12 ||
         row.final_request_hash ||
@@ -344,7 +373,11 @@ export class ClaimSponsorship {
         permitEpoch = Number(row?.permit_epoch || 0),
         recoveryEpoch: number | null = null;
       if (row) {
-        if (row.digest !== digest || row.policy_hash !== policyHash)
+        if (
+          row.sponsorship_mode !== "PROXY" ||
+          row.digest !== digest ||
+          row.policy_hash !== policyHash
+        )
           sponsorshipDenied();
         const priorExpiry = Math.floor(
           new Date(row.expires_at).getTime() / 1000,
@@ -401,13 +434,135 @@ export class ClaimSponsorship {
     return { token, expiresAt, digest };
   }
 
+  async reserveManaged(userId: string, campaignId: string, digest: string) {
+    const loaded = await this.load(userId, campaignId, digest);
+    const attemptId = randomUUID();
+    const identity = sha256(
+      JSON.stringify({
+        version: "crossword:cdp-managed-claim:v1",
+        chainId: loaded.binding.chainId,
+        escrow: loaded.binding.escrow.toLowerCase(),
+        digest,
+        recipient: loaded.recipient.toLowerCase(),
+        callData: loaded.callData,
+      }),
+    );
+    await transaction(this.pool, async (client) => {
+      await this.lockGasBudget(client);
+      await client.query(
+        "SELECT id FROM base_reward_allocations WHERE id = $1 FOR UPDATE",
+        [loaded.allocationId],
+      );
+      const existing = await client.query(
+        "SELECT 1 FROM base_gas_sponsorships WHERE allocation_id = $1",
+        [loaded.allocationId],
+      );
+      if (existing.rowCount) sponsorshipDenied();
+      await this.ensureGasBudget(client, loaded.recipient);
+      const now = Math.floor(Date.now() / 1000);
+      await client.query(
+        `INSERT INTO base_gas_sponsorships
+           (allocation_id, signer_epoch, digest, policy_hash, token_hash,
+            expires_at, operation_identity, reserved_wei, attempts,
+            sponsorship_mode, managed_attempt_id, managed_state,
+            managed_updated_at)
+         VALUES ($1, $2, $3, $4, $5, to_timestamp($6), $7, $8, 1,
+                 'CDP_MANAGED', $9, 'RESERVED', NOW())`,
+        [
+          loaded.allocationId,
+          loaded.epoch,
+          digest,
+          sponsorshipPolicyHash(this.policy),
+          sha256(randomBytes(32).toString("hex")),
+          Math.min(now + 600, loaded.deadline),
+          identity,
+          this.policy.maxOperationWei.toString(),
+          attemptId,
+        ],
+      );
+    });
+    return { attemptId, digest };
+  }
+
+  async reportManaged(
+    userId: string,
+    campaignId: string,
+    digest: string,
+    attemptId: string,
+    outcome: "SUBMITTED" | "UNKNOWN",
+    userOperationHash?: string,
+  ) {
+    realUserId(userId);
+    validId(campaignId);
+    validId(attemptId);
+    if (!/^0x[0-9a-f]{64}$/.test(digest)) sponsorshipDenied();
+    const operationHash = userOperationHash?.toLowerCase();
+    if (
+      (outcome === "SUBMITTED" &&
+        (!operationHash || !/^0x[0-9a-f]{64}$/.test(operationHash))) ||
+      (outcome === "UNKNOWN" && userOperationHash !== undefined)
+    )
+      sponsorshipDenied();
+    return transaction(this.pool, async (client) => {
+      const saved = await client.query(
+        `SELECT s.* FROM base_gas_sponsorships s
+         JOIN base_reward_allocations r ON r.id = s.allocation_id
+         WHERE s.managed_attempt_id = $1 AND r.campaign_id = $2
+           AND r.user_id = $3 AND s.digest = $4
+         FOR UPDATE OF s`,
+        [attemptId, campaignId, userId, digest],
+      );
+      const row = saved.rows[0];
+      if (!row || row.sponsorship_mode !== "CDP_MANAGED")
+        sponsorshipDenied();
+      if (outcome === "SUBMITTED") {
+        if (
+          row.managed_state === "UNKNOWN" ||
+          (row.managed_user_operation_hash &&
+            row.managed_user_operation_hash !== operationHash)
+        )
+          sponsorshipDenied();
+        if (row.managed_state === "RESERVED")
+          await client.query(
+            `UPDATE base_gas_sponsorships
+             SET managed_state = 'SUBMITTED', managed_user_operation_hash = $2,
+                 managed_updated_at = NOW()
+             WHERE allocation_id = $1`,
+            [row.allocation_id, operationHash],
+          );
+      } else if (row.managed_state === "RESERVED") {
+        await client.query(
+          `UPDATE base_gas_sponsorships
+           SET managed_state = 'UNKNOWN', managed_updated_at = NOW()
+           WHERE allocation_id = $1`,
+          [row.allocation_id],
+        );
+      }
+      const current = await client.query(
+        `SELECT managed_state, managed_user_operation_hash
+         FROM base_gas_sponsorships WHERE allocation_id = $1`,
+        [row.allocation_id],
+      );
+      return {
+        attemptId,
+        digest,
+        state: current.rows[0].managed_state as string,
+        ...(current.rows[0].managed_user_operation_hash
+          ? { userOperationHash: current.rows[0].managed_user_operation_hash }
+          : {}),
+      };
+    });
+  }
+
   async proxy(raw: unknown): Promise<PaymasterResult> {
     const request = parseSponsorshipRequest(raw),
       tokenHash = sha256(request.params[3].token);
     const rows = await transaction(this.pool, (client) =>
       client.query(
         `SELECT s.*, r.campaign_id, r.user_id::TEXT FROM base_gas_sponsorships s
-       JOIN base_reward_allocations r ON r.id = s.allocation_id WHERE s.token_hash = $1 AND s.expires_at > NOW()`,
+       JOIN base_reward_allocations r ON r.id = s.allocation_id
+       WHERE s.token_hash = $1 AND s.expires_at > NOW()
+         AND s.sponsorship_mode = 'PROXY'`,
         [tokenHash],
       ),
     );
@@ -433,10 +588,7 @@ export class ClaimSponsorship {
     const expiresAt = Math.floor(new Date(permit.expires_at).getTime() / 1000);
     const decision = await transaction(this.pool, async (client) => {
       // One deployment-wide lock makes global/account quota reservation atomic across different allocations.
-      await client.query(
-        "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))",
-        [`base-gas:${this.policy.chainId}:${this.policy.escrow.toLowerCase()}`],
-      );
+      await this.lockGasBudget(client);
       const current = await client.query(
         "SELECT * FROM base_gas_sponsorships WHERE allocation_id = $1 FOR UPDATE",
         [loaded.allocationId],
@@ -470,23 +622,7 @@ export class ClaimSponsorship {
       if (uncertain.rowCount) sponsorshipUnavailable();
       if (row.final_request_hash || row.attempts >= 12) sponsorshipDenied();
       if (!row.operation_identity) {
-        const usage = await client.query(
-          `SELECT COALESCE(SUM(s.reserved_wei), 0)::TEXT AS total,
-             COUNT(*) FILTER (WHERE r.recipient = $3 AND s.reserved_wei > 0)::INTEGER AS account_count
-           FROM base_gas_sponsorships s JOIN base_reward_allocations r ON r.id = s.allocation_id
-           JOIN base_reward_campaigns c ON c.campaign_id = r.campaign_id WHERE c.chain_id = $1 AND c.escrow = $2`,
-          [
-            this.policy.chainId,
-            this.policy.escrow.toLowerCase(),
-            loaded.recipient,
-          ],
-        );
-        if (
-          BigInt(usage.rows[0].total) + this.policy.maxOperationWei >
-            this.policy.totalBudgetWei ||
-          usage.rows[0].account_count >= this.policy.maxOperationsPerAccount
-        )
-          sponsorshipDenied();
+        await this.ensureGasBudget(client, loaded.recipient);
       }
       await client.query(
         `UPDATE base_gas_sponsorships SET operation_identity = $2,

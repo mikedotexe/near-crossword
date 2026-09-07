@@ -3,8 +3,11 @@ import { useCallback, useEffect, useState } from "react";
 import { Check, ExternalLink, RefreshCw, Wallet } from "lucide-react";
 import type { Address } from "viem";
 import {
+  claimCall,
   sendSponsoredClaim,
   type AuthorizedReward,
+  type ManagedSponsorship,
+  type SponsorshipPermit,
   type WalletConfiguration,
 } from "../../src/lib/base/account";
 import { usdcAmount, type PublicLesson } from "../../src/lib/base/learning";
@@ -150,15 +153,28 @@ export function RewardPanel({
       account.state !== "ready"
     )
       return;
+    const expected = { recipient, ...terms };
+    claimCall(authorization, expected);
     let batch: string;
+    let managed: ManagedSponsorship | null = null;
     try {
-      const permit = await learningApi<import("../../src/lib/base/account").SponsorshipPermit>(`${path}/sponsorship`, { digest: authorization.digest });
+      const sponsorship: SponsorshipPermit | ManagedSponsorship =
+        wallet.proxyUrl
+          ? await learningApi<SponsorshipPermit>(`${path}/sponsorship`, {
+              digest: authorization.digest,
+            })
+          : await learningApi<ManagedSponsorship>(`${path}/sponsorship`, {
+              digest: authorization.digest,
+              mode: "CDP_MANAGED",
+              action: "RESERVE",
+            });
+      if ("attemptId" in sponsorship) managed = sponsorship;
       batch = await sendSponsoredClaim(
         account.sendUserOperation,
         authorization,
-        { recipient, ...terms },
+        expected,
         wallet,
-        permit,
+        sponsorship,
         () => {
           // After preflight, persist uncertainty before the wallet can send anything.
           sessionStorage.setItem(`crossword:pending:${id}`, "uncertain");
@@ -166,7 +182,21 @@ export function RewardPanel({
         },
       );
     } catch (e) {
-      if (typeof e === "object" && e && "code" in e && e.code === 4001) {
+      if (managed)
+        await learningApi(`${path}/sponsorship`, {
+          digest: managed.digest,
+          mode: "CDP_MANAGED",
+          action: "REPORT",
+          attemptId: managed.attemptId,
+          outcome: "UNKNOWN",
+        }).catch(() => undefined);
+      if (
+        !managed &&
+        typeof e === "object" &&
+        e &&
+        "code" in e &&
+        e.code === 4001
+      ) {
         sessionStorage.removeItem(`crossword:pending:${id}`);
         setPending(null);
       }
@@ -175,6 +205,15 @@ export function RewardPanel({
     sessionStorage.setItem(`crossword:pending:${id}`, batch);
     setPending(batch);
     setAuthorization(null);
+    if (managed)
+      await learningApi(`${path}/sponsorship`, {
+        digest: managed.digest,
+        mode: "CDP_MANAGED",
+        action: "REPORT",
+        attemptId: managed.attemptId,
+        outcome: "SUBMITTED",
+        userOperationHash: batch,
+      }).catch(() => undefined);
     setNotice(
       "Submitted to your wallet. Your reward is confirmed only after its finalized receipt appears.",
     );

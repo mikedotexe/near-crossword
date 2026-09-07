@@ -148,8 +148,8 @@ We have built a full Base campaign and participant path:
 - A participant workflow for lesson completion, optional contact consent,
   wallet-control proof, durable claim issuance, and finalized recovery.
 - Email OTP and smart-account onboarding through Coinbase Developer Platform.
-- A claim-only ERC-4337 paymaster proxy with narrow contract/function, recipient,
-  campaign, amount, deadline, and one-use authorization checks.
+- Managed CDP gas sponsorship with a claim-only provider allowlist, pre-send
+  database budget reservation, one-use authorization and finalized recovery.
 - Source-grounded lesson generation through NEAR AI, with human review required.
 
 On Base Sepolia, the escrow is deployed and a fresh zero-ETH Coinbase Smart
@@ -291,8 +291,8 @@ user, and whether the sponsor buys again."
 
 - [ ] Every `MIKE:` field is resolved with a factual answer.
 - [x] `crossword.xyz` shows the Base-first product and both demo URLs return 200.
-- [ ] CDP production domain is configured only when the participant pilot is
-  intentionally enabled.
+- [x] CDP production domain and Base Sepolia managed Paymaster are configured;
+  the production participant and sponsorship gates remain disabled.
 - [ ] Contract and transaction links open without authentication.
 - [ ] Product stage and traction agree with the dated launch register.
 - [ ] Video is 1-5 minutes, publicly viewable, audible, and demonstrates product.

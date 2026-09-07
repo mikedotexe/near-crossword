@@ -21,7 +21,10 @@ private short-lived gas permit hashes, lifetime reserved allowances and durable
 upstream request identities/results. Unknown outcomes are never TTL-deleted or
 automatically released. Migration 014 adds numbered permit epochs and append-only
 operator reviews for expired, finalized, stub-only attempts; it never deletes a
-request or releases reserved gas allowance. No campaign prize principal funds gas. All fourteen migrations
+request or releases reserved gas allowance. Migration 015 adds a separate
+CDP-managed sponsorship mode: one server-side gas reservation precedes the SDK
+call, provider operation reporting is immutable, and ambiguous outcomes remain
+blocked until finalized reward evidence appears. No campaign prize principal funds gas. All fifteen migrations
 apply/replay in local integration tests; production application remains gated.
 
 The migration runner holds a Postgres advisory lock, applies every migration in

@@ -24,7 +24,7 @@ before(async () => {
       env: { ...process.env, DATABASE_URL: url.toString() }, encoding: "utf8", timeout: 30000,
     });
     assert.equal(migrated.status, 0, "Isolated migrations must succeed");
-    assert.equal(migrated.stdout.split(pass === 0 ? "Applied " : "Already applied ").length - 1, 14);
+    assert.equal(migrated.stdout.split(pass === 0 ? "Applied " : "Already applied ").length - 1, 15);
   }
 });
 beforeEach(async () => { await pool.query("TRUNCATE base_chain_deployments CASCADE"); });

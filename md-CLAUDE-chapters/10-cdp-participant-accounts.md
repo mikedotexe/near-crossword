@@ -49,11 +49,12 @@ challenge with the CDP smart account. The server's counterfactual verifier and
 finalized accounting remain responsible for wallet control and claim issuance.
 
 `src/lib/base/account.ts` accepts CDP's `sendUserOperation` function only after it
-rechecks chain, escrow, recipient, campaign, slot, amount, nonce, deadline,
-signature digest, public proxy URL and fresh claim-specific gas permit. It sends
-one zero-value claim on `base-sepolia` or `base`, using the reviewed proxy as
-`paymasterUrl` and the private permit as `paymasterContext`. There is no user-paid
-gas or ordinary transaction fallback. Only finalized server recovery marks paid.
+rechecks chain, escrow, recipient, campaign, slot, amount, deadline and signature
+digest. Proxy mode additionally requires a reviewed public URL and fresh
+claim-specific permit. Managed mode requires the server's one-shot reservation
+ID, passes it as the CDP idempotency key and sets only `useCdpPaymaster: true`.
+Both modes send one zero-value escrow claim; there is no user-paid gas or ordinary
+transaction fallback. Only finalized server recovery marks paid.
 
 ## Configuration and acceptance
 
@@ -63,6 +64,9 @@ All are required before the participant UI is enabled:
 - `CDP_API_KEY_ID` and `CDP_API_KEY_SECRET`: server-only Secret API Key from that
   same project, authorized to validate end-user access tokens.
 - `CDP_PARTICIPANT_AUTH_ENABLED=true` and `BASE_ACCOUNT_ENABLED=true`.
+- Exactly one of `BASE_CDP_MANAGED_PAYMASTER_ENABLED` or
+  `BASE_PAYMASTER_PROXY_ENABLED`; managed mode also requires the project's saved
+  per-network Paymaster configuration.
 - The exact local/staging/production origins allowed in CDP, plus the existing
   participant, counterfactual, issuance, scanner and sponsorship gates.
 
@@ -129,8 +133,13 @@ pre-send chain check.
 
 The subsequent custom-paymaster callback did not reach a final paymaster request
 or UserOperation. After one append-only reviewed retry, the second stub was
-durably `UNKNOWN` and chain state remained untouched. The embedded-wallet project
-currently lacks a per-network Paymaster configuration. The next participant mode
-to implement is CDP managed Paymaster for Base Sepolia, using the project's private
-URL and the existing escrow `claim` allowlist, with application-side gas budget
-reservation and finalized receipt recovery preserved.
+durably `UNKNOWN` and chain state remained untouched.
+
+Session 25 saved Base Sepolia in the embedded-wallet project's Paymaster tab with
+the existing private endpoint and blank context. The SDK path now uses
+`useCdpPaymaster: true`, never the URL, after a database-backed one-shot gas
+reservation. Its reservation ID is the provider idempotency key; submitted and
+unknown outcomes are durable, and finalized claim evidence closes the attempt.
+The local acceptance database and ignored local profile are ready. The earlier
+campaign-3 allocation cannot move to this mode because its proxy attempt is
+already `UNKNOWN`; use a fresh reviewed allocation for the live proof.

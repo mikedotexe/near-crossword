@@ -275,6 +275,27 @@ the tunnel. Keep the strict contract/function policy, local reservation and
 finalized receipt recovery; use a fresh allocation for acceptance. Production
 sponsorship and every mainnet gate remain disabled.
 
+## Session 25 managed Paymaster setup
+
+The CDP User Wallet project now lists a masked Base Sepolia Paymaster
+configuration using the existing private endpoint and blank context. The URL was
+transferred from ignored local environment directly into the portal and was not
+added to browser configuration or source control.
+
+Migration 015 and the application implement managed sponsorship as a separate
+mode. The participant server reserves one bounded allowance against the exact
+signed claim before `useCdpPaymaster: true` can run. The random reservation ID is
+the SDK idempotency key. A returned UserOperation hash is recorded once;
+ambiguous results become `UNKNOWN`, never automatic retries. Finalized
+`RewardPaid` evidence closes the database attempt and remains the only paid
+status. The local acceptance database is migrated and the ignored local profile
+selects managed mode with the custom proxy disabled. No Render setting changed.
+
+Campaign `3` remains ineligible because its prior proxy epoch is `UNKNOWN`. The
+next live acceptance must use a newly reviewed allocation, then record provider
+logs/cost, UserOperation, transaction, finalized event, recipient delta and
+duplicate recovery behavior.
+
 ## References
 
 [CDP setup](https://docs.cdp.coinbase.com/paymaster/introduction/quickstart),

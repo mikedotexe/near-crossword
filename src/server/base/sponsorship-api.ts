@@ -14,17 +14,26 @@ import { cdpPaymasterUpstream, ClaimSponsorship } from "./sponsorship";
 import {
   parseSponsorshipRequest,
   sponsorshipConfigurationFromEnvironment,
+  sponsorshipPolicyFromEnvironment,
+  sponsorshipUnavailable,
 } from "./sponsorship-policy";
 
-function productionSponsorship(pool: Pool) {
-  const { policy, upstreamUrl } = sponsorshipConfigurationFromEnvironment();
+type SponsorshipMode = "PROXY" | "CDP_MANAGED";
+
+function productionSponsorship(pool: Pool, mode: SponsorshipMode = "PROXY") {
+  const configuration =
+    mode === "PROXY"
+      ? sponsorshipConfigurationFromEnvironment()
+      : { policy: sponsorshipPolicyFromEnvironment(), upstreamUrl: null };
   const rpc = new RpcBaseChainReader(baseDeploymentFromEnvironment());
   return new ClaimSponsorship(
     pool,
     new ReconciledBaseChainReader(pool, rpc),
     rpc,
-    policy,
-    cdpPaymasterUpstream(upstreamUrl),
+    configuration.policy,
+    configuration.upstreamUrl
+      ? cdpPaymasterUpstream(configuration.upstreamUrl)
+      : async () => sponsorshipUnavailable(),
   );
 }
 const cors = {
@@ -33,23 +42,57 @@ const cors = {
   "access-control-allow-headers": "content-type",
   "access-control-max-age": "300",
 };
-function enabled() {
+function proxyEnabled() {
   if (
     process.env.BASE_PAYMASTER_PROXY_ENABLED !== "true" ||
+    process.env.BASE_CDP_MANAGED_PAYMASTER_ENABLED === "true" ||
     process.env.BASE_SPONSORED_GAS_ENABLED !== "true"
   )
     throw new AppError(404, "NOT_FOUND", "Not found");
+}
+function permitMode(): SponsorshipMode {
+  const proxy = process.env.BASE_PAYMASTER_PROXY_ENABLED === "true";
+  const managed =
+    process.env.BASE_CDP_MANAGED_PAYMASTER_ENABLED === "true";
+  if (
+    process.env.BASE_SPONSORED_GAS_ENABLED !== "true" ||
+    proxy === managed
+  )
+    throw new AppError(404, "NOT_FOUND", "Not found");
+  return managed ? "CDP_MANAGED" : "PROXY";
 }
 export function createSponsorshipHandlers(
   service: typeof productionSponsorship = productionSponsorship,
 ) {
   return {
     permit: withErrors<{ id: string }>(async (request, context) => {
-      enabled();
+      const enabledMode = permitMode();
       const { pool, userId } = await participantContext(request);
+      const digest = z.string().regex(/^0x[0-9a-f]{64}$/);
       const body = z
-        .object({ digest: z.string().regex(/^0x[0-9a-f]{64}$/) })
-        .strict()
+        .union([
+          z.object({ digest }).strict(),
+          z
+            .object({
+              digest,
+              mode: z.literal("CDP_MANAGED"),
+              action: z.literal("RESERVE"),
+            })
+            .strict(),
+          z
+            .object({
+              digest,
+              mode: z.literal("CDP_MANAGED"),
+              action: z.literal("REPORT"),
+              attemptId: z.string().uuid(),
+              outcome: z.enum(["SUBMITTED", "UNKNOWN"]),
+              userOperationHash: z
+                .string()
+                .regex(/^0x[0-9a-fA-F]{64}$/)
+                .optional(),
+            })
+            .strict(),
+        ])
         .safeParse(await readParticipantJson(request));
       if (!body.success)
         throw new AppError(
@@ -57,18 +100,43 @@ export function createSponsorshipHandlers(
           "INVALID_PERMIT",
           "A saved reward authorization is required",
         );
+      const campaignId = await pathParam(context, "id");
+      if (!("mode" in body.data)) {
+        if (enabledMode !== "PROXY")
+          throw new AppError(404, "NOT_FOUND", "Not found");
+        return json(
+          await service(pool, "PROXY").permit(
+            userId,
+            campaignId,
+            body.data.digest,
+          ),
+        );
+      }
+      if (enabledMode !== "CDP_MANAGED")
+        throw new AppError(404, "NOT_FOUND", "Not found");
+      if (body.data.action === "RESERVE")
+        return json(
+          await service(pool, "CDP_MANAGED").reserveManaged(
+            userId,
+            campaignId,
+            body.data.digest,
+          ),
+        );
       return json(
-        await service(pool).permit(
+        await service(pool, "CDP_MANAGED").reportManaged(
           userId,
-          await pathParam(context, "id"),
+          campaignId,
           body.data.digest,
+          body.data.attemptId,
+          body.data.outcome,
+          body.data.userOperationHash,
         ),
       );
     }),
     proxy: async (request: Request) => {
       let id: number | string | null = null;
       try {
-        enabled();
+        proxyEnabled();
         if (
           request.headers
             .get("content-type")
@@ -120,7 +188,7 @@ export function createSponsorshipHandlers(
     },
     options: async () => {
       try {
-        enabled();
+        proxyEnabled();
         return new Response(null, {
           status: 204,
           headers: { ...cors, "cache-control": "no-store" },

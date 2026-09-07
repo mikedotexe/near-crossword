@@ -13,6 +13,7 @@ import {
   parseSponsorshipRequest,
   smartAccountAbi,
   sponsorshipConfigurationFromEnvironment,
+  sponsorshipPolicyFromEnvironment,
   validateClaimOperation,
   validatePaymasterResult,
 } from "./sponsorship-policy";
@@ -404,6 +405,13 @@ test("complete reviewed Sepolia configuration accepts only the fixed private ups
   try {
     Object.assign(process.env, env);
     assert.deepEqual(sponsorshipConfigurationFromEnvironment().policy, p);
+    process.env.BASE_PAYMASTER_PROXY_ENABLED = "false";
+    process.env.BASE_PAYMASTER_UPSTREAM_URL = "";
+    assert.deepEqual(sponsorshipPolicyFromEnvironment(), p);
+    assert.throws(sponsorshipConfigurationFromEnvironment, {
+      code: "SPONSORSHIP_UNAVAILABLE",
+    });
+    Object.assign(process.env, env);
     for (const [key, value] of [
       [
         "BASE_PAYMASTER_UPSTREAM_URL",

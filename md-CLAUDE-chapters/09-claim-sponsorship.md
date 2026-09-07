@@ -85,6 +85,17 @@ permit consumes it once. The next proxy request must retain the same sender,
 nonce, factory creation and claim bytes. `UNKNOWN`, `IN_FLIGHT`, final requests,
 unexpired provider data, changed nonces and used claims remain ineligible.
 
+Migration 015 adds `CDP_MANAGED` as a separate, one-shot sponsorship mode for
+CDP User Wallets. Before the browser calls the SDK, the authenticated participant
+API revalidates the exact signed claim against finalized accounting, acquires the
+same deployment-wide budget lock, reserves the maximum operation allowance and
+stores a random attempt ID. That ID is also the CDP idempotency key. A second
+reservation for the allocation is always denied. The browser may report exactly
+one UserOperation hash or mark the result `UNKNOWN`; conflicting hashes and a
+late success after `UNKNOWN` fail closed. A matching finalized `RewardPaid` event
+can close any managed state as `FINALIZED`, including a lost browser response.
+Managed mode has no public or private paymaster URL in browser configuration.
+
 The upstream URL is server-only, fixed to CDP Base Sepolia. Redirects, automatic
 retry and caller-selected destinations are forbidden; time/output are bounded.
 The permit/cookies are stripped, and the provider receives empty context. Its
@@ -200,6 +211,15 @@ the temporary tunnel. Treat that as a separate reviewed mode: retain the CDP
 contract/function allowlist and provider limits, add local gas reservation and
 finalized recovery evidence, and do not silently bypass this allocation's
 `UNKNOWN` record.
+
+Session 25 saved the existing Base Sepolia endpoint in the CDP User Wallet
+project's Paymaster configuration with blank context. The portal masks it after
+save. The application now supports the documented managed `useCdpPaymaster`
+option, guarded by mutually exclusive `BASE_CDP_MANAGED_PAYMASTER_ENABLED` and
+proxy switches. Migration 015 is applied to the local acceptance database, and
+the ignored local profile selects managed mode. Render and production gates were
+not changed. Campaign `3` remains blocked by its earlier proxy `UNKNOWN`; live
+managed acceptance requires a fresh reviewed allocation.
 
 Session 15 adds a live Base Sepolia acceptance harness at
 `scripts/base-sepolia-sponsored-claim-acceptance.ts`. It starts a local-only
