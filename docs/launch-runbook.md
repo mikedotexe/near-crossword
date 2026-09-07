@@ -1,5 +1,9 @@
 # V2 launch runbook
 
+For the observed production state and unresolved items, start with
+[early launch status](early-launch-status.md). The public website cutover does
+not mean every funded-flow acceptance gate below has been completed.
+
 This is an operational checklist, not authorization to move funds. Every live
 transaction requires a human to confirm network, token contract/asset ID,
 amount, payer, receiver, refund address, and recovery account.

@@ -61,7 +61,7 @@ provider again or counting released principal as escrow.
 
 Paid AI generation is enabled only with `X402_ENABLED=true`,
 `X402_FACILITATOR_URL`, `X402_PAY_TO`, `X402_NETWORK`,
-`X402_ASSET` (or `V2_USDC_CONTRACT_ID`), and `ANTHROPIC_API_KEY`. It uses x402
+`X402_ASSET` (or `V2_USDC_CONTRACT_ID`), and `NEAR_AI_API_KEY`. It uses x402
 v2, the NEAR exact scheme, and a required `payment-identifier`. Generation runs
 after verification and settlement runs only after generation succeeds. The
 result is durably cached by payment identifier; a retry with a different body is
@@ -80,6 +80,50 @@ payer identity, prompts, and generated answers are never copied into campaign
 or operation-event evidence. Manual campaigns do not require a handle.
 Mock mode emits a non-settling 402 challenge and never treats a header as proof
 of payment.
+
+`NearAiGenerator` uses the official OpenAI-compatible SDK against NEAR AI Cloud,
+not the OpenAI or Anthropic inference services. `NEAR_AI_BASE_URL` defaults to
+`https://cloud-api.near.ai/v1`; only that gateway and NEAR AI's direct
+`https://<slug>.completions.near.ai/v1` endpoints are accepted. Redirects are
+disabled. `V2_AI_MODEL` defaults to `zai-org/GLM-5.1-FP8`, with a 30-second total
+deadline, 4,096 output-token limit, and no automatic provider retries. For this
+exact model, requests include the documented
+`chat_template_kwargs: { enable_thinking: false }`. Other model overrides receive
+no thinking override; do not apply one model's template flags to another.
+Two live synthetic source drafts passed in about 12-14 seconds, with provider
+billing records; see the [evaluation record](../../../docs/near-ai-evaluation-2026-09-04.md).
+This is not quality, availability, or paid-delivery acceptance. Staking can supply
+credits but does not remove the API-key requirement, and this key's staking-credit
+linkage is still unverified. No wallet/staking key belongs in this adapter.
+
+Structured JSON output must contain exactly the requested 3-12 distinct valid
+clue/answer pairs; truncated, malformed, duplicate, or extra-field output is
+rejected before settlement. Provider authentication, credit exhaustion, rate
+limits, and timeouts return sanitized errors without raw response bodies.
+There is no Anthropic fallback. A new generation checks provider configuration;
+cached terminal results do not need provider/facilitator access, and settlement
+recovery with durable entries does not regenerate. The `X402_ENABLED` kill switch
+still applies to all of these paths. Local injected-client tests are not live
+model or payment evidence. Base payments remain subsequent work in the
+[reshape plan](../../../docs/reshape-action-plan.md).
+
+`NearAiLearningDraftGenerator` reuses the bounded `NearAiStructuredClient` but
+does not change the existing clue API or its durable paid-receipt shape. It takes
+1-5 pasted sources (maximum 24,000 text characters total), generates a short
+lesson plus 3-12 entries, and requires exact quoted evidence for every paragraph
+and clue. Answers must occur as whole words in their evidence. Source IDs,
+duplicate answers, malformed output, and model-supplied approval/reward fields
+are validated or rejected. URLs are provenance only and are never fetched.
+Manifest SHA-256 hashes refer to the trimmed source text actually sent to the
+provider. Full source text is not duplicated in the returned manifest.
+
+The returned `learning-draft:v1` always has `reviewStatus=REQUIRES_REVIEW`.
+Matching a quote does not prove factual support, puzzle quality, or learning.
+Draft prose is untrusted plain text, not executable HTML. Do not expose private
+drafts/answer evidence in public campaign receipts. Human review, publication
+guards, source retention, and a separately versioned paid lesson workflow must
+be implemented with R4/R5 before adding a public route. This module neither
+decides eligibility nor creates claim authorizations.
 
 The create page includes a keyless application-side payer adapter for
 `@fastnear/wallet`. It offers only wallets that advertise timeout-aware NEP-366

@@ -9,7 +9,7 @@ type Provider = {
   type: string;
 };
 
-export function LoginPanel() {
+export function LoginPanel({ callbackUrl = "/dashboard", learning = false }: { callbackUrl?: string; learning?: boolean }) {
   const [providers, setProviders] = useState<Record<string, Provider> | null>(
     null,
   );
@@ -57,22 +57,21 @@ export function LoginPanel() {
     setStatus("Sending a secure sign-in link…");
     await signIn(emailProvider.id, {
       email: email.trim(),
-      callbackUrl: "/dashboard",
+      callbackUrl,
     });
   };
 
   return (
     <div className="login-panel">
       <div className="login-panel__intro">
-        <p className="eyebrow">Creator access</p>
-        <h1>Your campaigns, in one calm place.</h1>
+        <p className="eyebrow">{learning ? "Crossword learning" : "Creator access"}</p>
+        <h1>{learning ? "Continue with Crossword." : "Your campaigns, in one calm place."}</h1>
         <p>
-          Sign in to save private drafts, request funding quotes, and reconcile
-          prize or refund receipts. Solvers never need an account.
+          {learning ? "Sign in to save a completion, verify your reward email, or manage private sponsor drafts. Sharing your email with a sponsor is a separate, optional choice." : "Sign in to save private drafts, request funding quotes, and reconcile prize or refund receipts. NEAR solvers never need an account."}
         </p>
         <ul>
           <li>Passwords are never stored here.</li>
-          <li>A wallet is optional until direct NEAR funding.</li>
+          <li>{learning ? "A reward wallet is connected separately." : "A wallet is optional until direct NEAR funding."}</li>
           <li>Campaign evidence remains publicly verifiable.</li>
         </ul>
       </div>
@@ -108,7 +107,7 @@ export function LoginPanel() {
           <button
             className="button button--paper button--wide"
             type="button"
-            onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+            onClick={() => signIn("google", { callbackUrl })}
           >
             Continue with Google
           </button>

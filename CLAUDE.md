@@ -1,5 +1,26 @@
 # Crossword Campaigns contributor guide
 
+## Subject chapters
+
+Read [md-CLAUDE-chapters/README.md](md-CLAUDE-chapters/README.md) for subject-specific
+implementation context. Maintain the affected chapters alongside code changes;
+the work order, checkpoint, QA matrix and launch register retain progress/evidence.
+
+## Early launch tracking
+
+Read `docs/early-launch-status.md` before launch-related work. After deployments,
+configuration changes, live acceptance tests, or product decisions, update its
+affected rows and dated change log with evidence and remaining work. Keep
+implemented, configured, enabled, and observed behavior distinct. Record
+tentative product ideas in `docs/product-discovery.md`; do not treat them as
+implementation decisions. Never record secret values in either document.
+
+For the agreed Base/NEAR AI reshape, read `docs/reshape-action-plan.md`, then
+`docs/reshape-progress.md` for the current session checkpoint. Update that
+checkpoint after implementation sessions with tests and the next concrete work.
+Use `docs/base-reward-contract.md` for the proposed Base interface; do not apply
+its encoding to existing NEAR claims or treat design as deployed functionality.
+
 ## Product invariant
 
 A campaign is never public or claimable until the complete native-USDC prize is
@@ -13,6 +34,8 @@ an operator balance or infer settlement from an unrelated shared balance.
 - `src/lib/v2/` — browser/server claim-message conformance helpers
 - `migrations/v2/` — append-only Postgres workflow schema
 - `contract-v2/` — independent pinned-USDC campaign escrow contract
+- `contract-base/` — separately tested Base learning reward escrow, not deployed
+- `src/lib/base/` — new Base EIP-712 claim helper and shared conformance fixture
 - `src/legacy/`, `contract/` — isolated legacy compatibility; do not migrate or
   redeploy as part of v2 work
 - `worker/` — retained upstream agent worker with hardened URL and secret

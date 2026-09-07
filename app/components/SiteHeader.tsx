@@ -6,14 +6,22 @@ import { useState } from "react";
 import { PixelMark } from "./PixelMark";
 
 const navigation = [
-  { href: "/explore", label: "Explore" },
-  { href: "/create", label: "Create" },
-  { href: "/dashboard", label: "Dashboard" },
+  { href: "/learn/practice", label: "Try a lesson" },
+  { href: "/#sponsors", label: "For sponsors" },
+  { href: "/#proof", label: "Proof" },
 ];
 
 export function SiteHeader() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const learning = pathname?.startsWith("/learn");
+  const links = learning
+    ? [
+        { href: "/learn/practice", label: "Practice" },
+        { href: "/learn/sponsor-demo", label: "Sponsor demo" },
+        { href: "/#proof", label: "Onchain proof" },
+      ]
+    : navigation;
 
   return (
     <header className="site-header">
@@ -21,13 +29,13 @@ export function SiteHeader() {
         <Link
           className="wordmark"
           href="/"
-          aria-label="Crossword Campaigns home"
+          aria-label="Crossword home"
           onClick={() => setMenuOpen(false)}
         >
           <PixelMark compact />
           <span>
             Crossword
-            <small>Campaigns</small>
+            <small>{learning ? "Learn" : "Base rewards"}</small>
           </span>
         </Link>
 
@@ -49,10 +57,10 @@ export function SiteHeader() {
           aria-label="Main navigation"
           className={`site-navigation${menuOpen ? " is-open" : ""}`}
         >
-          {navigation.map((item) => {
+          {links.map((item) => {
             const active =
               pathname === item.href ||
-              pathname?.startsWith(`${item.href}/`) === true;
+              (item.href !== "/learn" && pathname?.startsWith(`${item.href}/`) === true);
             return (
               <Link
                 key={item.href}
@@ -66,10 +74,10 @@ export function SiteHeader() {
           })}
           <Link
             className="button button--ink button--small"
-            href="/create"
+            href="/learn/sponsor-demo"
             onClick={() => setMenuOpen(false)}
           >
-            Start a campaign
+            Sponsor a campaign
           </Link>
         </nav>
       </div>

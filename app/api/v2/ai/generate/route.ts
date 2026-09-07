@@ -1,4 +1,4 @@
-import { AnthropicAiGenerator, parseAiGenerationInput } from "../../../../../src/server/v2/ai";
+import { NearAiGenerator, parseAiGenerationInput } from "../../../../../src/server/v2/ai";
 import { readJson, withErrors } from "../../../../../src/server/v2/http";
 import { getRepository } from "../../../../../src/server/v2/repository-factory";
 import { clientAddress, enforceRateLimit } from "../../../../../src/server/v2/security";
@@ -19,6 +19,6 @@ export const POST = withErrors(async (request) => {
     body,
     input,
     getRepository(),
-    new AnthropicAiGenerator(),
+    new NearAiGenerator(),
   );
 });

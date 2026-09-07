@@ -20,15 +20,379 @@ yarn lint
 yarn typecheck
 yarn audit:production
 yarn test:unit
+# Set TEST_DATABASE_URL to a disposable local Postgres target, never production.
+yarn test:integration:base
+yarn test:integration:base-chain
 yarn test:browser
 cargo fmt --manifest-path contract-v2/Cargo.toml --check
 cargo clippy --manifest-path contract-v2/Cargo.toml --locked --all-targets -- -D warnings
 yarn test:contract:v2
 yarn contract:v2:build
 yarn build
+# Requires that production build and a disposable TEST_DATABASE_URL.
+yarn test:acceptance:base-build
 ```
 
 ## Current local implementation evidence
+
+### Reshape session 19, 2026-09-07: Base-first public product and second pilot prep
+
+- Fresh CDP email OTP, smart-account creation, same-project server validation,
+  and the database session bridge completed locally. The client now waits for
+  `createOnLogin` to publish the smart account instead of briefly submitting an
+  empty recipient and showing a false failure. The wallet challenge, funded
+  UserOperation, and finalized recovery remain open for this participant.
+- After Mike's explicit exact approval, native Base Sepolia USDC transaction
+  `0x3ae0338128215613cff99b82c43b2c81b48519083d8a3b29a70a462077b8ed47`
+  set an allowance of `1000000` for the escrow. Independent reads at finalized
+  head `46518203` show deployer balance and allowance both `1000000`; transaction
+  block is `46518041`. No second campaign transaction was sent.
+- Added the Base-first home, public no-reward practice lesson with answer checking,
+  public non-persisting sponsor workflow, updated share image, Base Batches
+  chapter, application response draft, evidence map, and founder-video script.
+  Production-funded routes and APIs remain gated.
+- Node 20: unit **256/256**, browser **18/18**, Base/Postgres integration
+  **55/55**, Rust contract **30/30**, Base contract **29/29**, and built-production
+  HTTP/packaging **1/1** pass. ESLint, standalone TypeScript, optimized Next
+  production build, and diff whitespace checks pass. The shared Cargo target
+  became unresponsive during compilation; an isolated nonincremental target
+  compiled cleanly and passed, so no contract source was changed for the cache
+  failure.
+
+### Reshape session 18, 2026-09-06: CDP participant accounts
+
+- Rechecked sponsored claim transaction
+  `0x35860a8044d025b6086acbacc02a3f173520b88410fc9338c6267117dc6f1255`
+  at the finalized tag. Finalized head `46480230` is beyond transaction block
+  `46450098`; receipt status, deployed recipient code, `1000000` recipient USDC,
+  used slot `0` and zero campaign outstanding all match the inclusion evidence.
+- Replaced hosted Base Account participant onboarding with CDP User Wallet email
+  OTP and smart accounts. The server validates the CDP access token, verified
+  email and requested smart-account ownership before issuing a 14-minute existing
+  database session. Access tokens are not stored. The participant still signs the
+  campaign-specific wallet challenge before issuance; UserOperations still pass
+  through the strict claim-only sponsorship proxy.
+- Node 20.18.3: unit **256/256**, Base/Postgres integration **55/55**, and browser
+  **15/15** pass. ESLint, standalone TypeScript, clean Next production build and
+  diff whitespace checks pass. Base contract **29/29**, compiled
+  escrow/Postgres **1/1**, built-production HTTP/packaging **1/1**, and the
+  production dependency audit also pass. The browser suite covers existing
+  fallback mode; live CDP email, signature and UserOperation acceptance remains
+  open.
+- No production flag, Render secret, mainnet transfer, new Base transaction or
+  provider billing configuration changed. Sponsor authentication is unchanged.
+
+### Reshape session 14, 2026-09-05: one-slot campaign funding
+
+- Approval block `46441008` was finalized before campaign creation. The stale
+  schedule was refreshed immediately before signing; final terms start at
+  2026-09-05 18:31:50 PDT, end at 2026-09-06 00:31:50 PDT, and use claim
+  deadline 2026-09-07 00:31:50 PDT with terms hash
+  `0x6f544fbc2b3e1f76ab16fa36aea6b2cd6c76c306bd64a941d91d73968bb01e89`.
+- After Mike's explicit approval, `createCampaign` transaction
+  `0x1a1f49f3c06d37c1fe2295ad0188f0e27e78a8b1c0b4636a9e7f0f4175bf6182`
+  succeeded at block `46444150`, creating campaign `1`. It used 276,149 gas and
+  0.000001656894 test ETH.
+- On-chain state now shows `campaignCount() = 1`,
+  `totalReserved() = 1000000`, `outstanding(1) = 1000000`, escrow USDC
+  `1000000`, deployer USDC `0`, and allowance `0`. The campaign has paid 0,
+  refunded 0, signer epoch 1, not paused and not closed.
+- Campaign finality, provider sponsorship, fresh hosted wallet claim, production
+  setting and mainnet transfer remain open.
+
+### Reshape session 13, 2026-09-05: approval and campaign preflight
+
+- A separate local eligibility signer was generated and stored only in ignored
+  local env and macOS Keychain. Its public address is
+  `0xD7F85d32390329cce4e7375d121c912fd3119bF5`; it has no ETH/USDC spending role.
+- After Mike's explicit approval, USDC approval transaction
+  `0xf472670687b4657841cf4cf7d10c2d5049b26c3e11d0e591f346392f291065f2`
+  succeeded at block `46441008`, setting escrow allowance to `1000000` atomic
+  units. It used 55,437 gas and 0.000000332622 test ETH.
+- `createCampaign` preflight for one 1-USDC slot estimates 293,050 gas with a
+  371,660 suggested gas limit and 0.00000260162 test ETH suggested max cost.
+  Terms hash is
+  `0xcb93af85bf4d58a2377067d03efc3ead972cdc4f344e0b21e9467dd00a535163`, with
+  starts at 2026-09-05 16:49:54 PDT, ends at 2026-09-05 22:49:54 PDT, and claim
+  deadline at 2026-09-06 22:49:54 PDT. This preflight was later superseded by
+  the session 14 preflight before sending.
+- Approval finality, `createCampaign`, provider sponsorship, fresh hosted wallet
+  claim, production setting and mainnet transfer remain open.
+
+### Reshape session 12, 2026-09-05: Base Sepolia escrow deployment
+
+- Mike explicitly approved the Base Sepolia escrow deployment. The successful
+  transaction is
+  `0x0419e4a8a2334233cec9272a846f95b77cb35915931e5115599d1c454e6a7a03`,
+  deploying `LearningRewards` to
+  `0x77fdCEF7d08c54eD2a87FD54fBf24a660fa2A304` at block `46440190`.
+- The deployed contract returns native Base Sepolia USDC
+  `0x036CbD53842c5426634e7929541eC2318f3dCF7e`, `totalReserved() = 0`, and
+  `campaignCount() = 0`. Actual runtime code hash is
+  `0xebc5371a9a09231045c01981600b619436374e6226048855a6116d1d0c2dce00`.
+- Deployment used 1,808,772 gas at 6,000,000 wei effective gas price, costing
+  0.000010852632 test ETH. The deployer remains funded with
+  0.000088826683397187 test ETH and 1 native test USDC.
+- CDP Paymaster on Base Testnet (Sepolia) saved a `Crossword Claim` allowlist
+  entry for selector `0x8bd53692`, with visible $1 global/$1 per-user caps,
+  10 operations per user and sponsor name `Crossword`.
+- `yarn test:contract:base` passed **29/29** before deployment. The deployment
+  block was later finalized and the finalized deployment code hash matched the
+  latest-code hash. No campaign funding, provider sponsorship request, fresh
+  hosted wallet claim, production setting or mainnet transfer occurred.
+
+### Reshape session 9, 2026-09-05: local setup only
+
+- Focused sponsorship tests **8/8** pass on Node 20.18.3. No runtime code,
+  dependency, database or contract changed; full build/browser/database/contract
+  suites and audits were not rerun. Session 8's broader evidence remains below.
+- New ignored launch-candidate `.env.local` is mode 0600, chain 84532, with all
+  twelve included gates/review flags false; provider and eligibility-key slots
+  remain empty. Player/editor previews return HTTP 200 and disabled paymaster
+  POST returns 404. No provider request is needed for these checks.
+- New encrypted test-deployer wallet has verified keystore recovery and an
+  independently checked offline message signature. A read-only Base Sepolia
+  query confirms zero test ETH/USDC, nonce 0 and no code at block 46429850.
+  Keystore/password remain outside Git; no private value or signature is evidence.
+- The CDP Portal is at sign-in, not a completed setup. No CDP endpoint, project
+  policy, billing, payment, sponsored claim or fresh hosted passkey is verified.
+  No public-chain transaction or production change occurred. See
+  [local setup and recovery](docs/base-sepolia-local-setup.md).
+
+### Reshape session 8, 2026-09-04
+
+- Unit **254/254**, Postgres **51/51**, compiled escrow/Postgres acceptance
+  **1/1**, browser **15/15**, and built-production HTTP/packaging **1/1** pass
+  on Node 20.18.3. All thirteen migrations apply/replay in isolated local schemas.
+  Lint, standalone typecheck, production build and diff whitespace checks pass.
+- New tests cover private same-origin permit issuance and cookie-free ERC-7677
+  context, strict JSON-RPC/claim/account/factory parsing, bounded gas/expiry and
+  token-free provider output. RPC tests pin finalized/current code, implementation,
+  EntryPoint/paymaster, current nonce and read-only claim simulation. They assert
+  no broadcast method is used. Provider mocks are synthetic, not CDP acceptance.
+- PostgreSQL tests prove budget/request intent exists before the provider call,
+  concurrent deduplication, exact cache replay after restart, token refresh,
+  expiry, nonce substitution, pause/rotation/payment rejection, ambiguous-response
+  retention and independent global/per-recipient caps across campaigns.
+- Production tests also verify the sponsorship POST/OPTIONS and private permit
+  endpoint return 404 while disabled. Browser tests remain nonpaying and do not
+  open a real Base passkey or prove a provider bill. Existing compiled escrow
+  acceptance remains a separate three-recipient local contract/accounting test,
+  not an ERC-4337 bundler/paymaster acceptance test.
+- Solidity/Rust sources and dependencies were unchanged; their full standalone
+  suites and dependency audits were not rerun this session. The compiled Base
+  contract build/acceptance was rerun, retaining existing timestamp/test warnings.
+- Read-only facilitator/AWS investigation found direct settlement gas and
+  dedicated mainnet canary identities, not a CDP configuration in the repo.
+  AWS secret listing was denied and SSH timed out; no access policy was changed.
+  [Live acceptance](docs/base-sepolia-sponsorship-acceptance.md) remains open for
+  dedicated credentials, exact funded identities/budgets, actual hosted wallet/
+  provider wire compatibility, operational recovery and provider cost. No public
+  chain transfer, deploy, production migration or flag change occurred.
+
+### Reshape session 7, 2026-09-04 (historical)
+
+- Unit suite **245/245**, Postgres integration **43/43**, compiled EVM/Postgres
+  acceptance **1/1**, and built-production HTTP/packaging acceptance **1/1**.
+  Twelve migrations apply/replay on disposable local PostgreSQL 16. No live keys,
+  production migrations, public-chain calls or paid inference were used.
+- Publication tests cover ownership, same-origin private layout approval, stale
+  commitments, revision/funding races, concurrent publication, answer-free public
+  fields, withdrawal blocking new completions/allocations, and unchanged recovery
+  of existing allocations. Existing v1 funded terms and fixtures are unchanged.
+- Real compiled escrow acceptance now pays three recipients: EOA, deployed
+  ERC-1271, and a synthetic counterfactual CREATE2 wallet. ERC-6492 verification
+  leaves the recipient undeployed. Later deployment and authority revocation are
+  checked without falling back to an old key. This is not a hosted Base passkey,
+  bundler, CDP or sponsored-gas test.
+- Production HTTP acceptance starts/stops its own built Next server, authenticates
+  a synthetic database session, exercises actual private layout generation,
+  verifies dependency tracing, and asserts both practice routes return 404 even
+  with the preview flag set. This check is included in CI after `yarn build`.
+- Solidity **29/29**, including 256 fuzz runs and 128 invariant sequences with
+  8,192 calls and zero unexpected reverts. Rust was not changed or rerun.
+- Immutable install and high-severity production/full-tree audits pass after
+  resolving the SDK's transitive Axios 1.16.0 to patched 1.18.1. Existing
+  next-auth/nodemailer and transitive peer warnings remain. The real email gate
+  remains open; no production mail/provider credentials were read.
+- Browser checks found and fixed webpack's rewriting of module resolution for
+  the layout source, async consent feedback, review-grid input styling and footer
+  contrast. The dependency upgrade initially invalidated a running dev cache;
+  checks were restarted against the clean install rather than weakening assertions.
+- Browser **15/15** including eight existing regressions; desktop/phone player
+  and studio screenshots inspected. Lint and standalone typecheck pass. Production
+  build and built-server checks are recorded in the session checkpoint. The secure
+  claim-specific paymaster proxy and real fresh-wallet sponsorship remain **OPEN**
+  in launch item L14; the browser must not receive a raw keyed CDP URL.
+
+### Reshape session 6, 2026-09-04 (historical)
+
+- Full unit suite **238/238**, Postgres integration **40/40**, expanded compiled
+  EVM/Postgres acceptance **1/1**, lint, typecheck and Next production build pass
+  on Node 20.18.3. All eleven migrations apply/replay on isolated local Postgres
+  16 schemas; no production database or secrets were used.
+- Participant tests cover whole-puzzle completion without retained answers,
+  revision binding, unverified email, account/campaign/recipient/origin/expiry
+  substitutions, wrong signatures, idempotent eligibility receipts, saved-slot
+  signing recovery, session isolation, real HTTP completion/challenge/claim flow,
+  body limits, cross-site rejection and durable completion rate limits.
+- Receipt tests distinguish authorization, unfinalized payment, reorg catch-up,
+  finalized matching payment, wrong recipient, orphaned evidence and stale/halted
+  accounting. Paid POST recovery needs no new signature. One initial assertion
+  expected recovery during CATCHING_UP; the corrected test verifies denial, then
+  explicitly rescans replacement history before expecting a healthy result.
+- The compiled-contract acceptance now verifies actual EOA and deployed ERC-1271
+  wallet signatures, persisted completion/eligibility, issuer replay, two on-chain
+  local payouts and exact transaction receipt recovery. Contract-wallet revocation
+  invalidates new control proofs without hiding its prior paid receipt. Earlier
+  funding, rotation, pause, refund and surplus coverage remains. Anvil and random
+  schemas are cleaned up by the harness; the disposable Postgres server is stopped.
+- Optional consent defaults off, supports optimistic/idempotent opt-in and
+  withdrawal, is isolated by account/campaign, and is suppressed after an email
+  change. Google verification tests require the linked subject and matching
+  verified email; actual NextAuth adapter tests prove email changes clear inherited
+  verification and unrelated updates preserve it.
+- No dependency, Solidity, Rust or UI changes. Solidity/browser/audit checks were
+  not rerun; their historical evidence below remains separate. No live OAuth or
+  inbox acceptance, fresh Base Account onboarding, sponsored gas, funded public
+  transaction, provider inference, Render change, staking, push or deployment.
+  New participant/signing flags remain default off. See [chapter 06](md-CLAUDE-chapters/06-participants-and-recovery.md)
+  for current limits, API shapes and remaining launch gates.
+
+### Reshape session 5, 2026-09-04
+
+- Full unit suite **232/232**, Postgres integration **30/30**, compiled-contract
+  RPC/Postgres acceptance **1/1**, Base Solidity **29/29**, lint, typecheck and
+  Next production build pass on Node 20.18.3. All ten migrations apply/replay in
+  isolated local schemas; no production schema was touched.
+- Accounting tests cover deployment/token/code/hash pins, exact finalized reads,
+  redacted failures, cancellation, duplicate events, contract/event disagreement,
+  canonical replay, concurrent scanners, bounded catch-up/reorgs, retained and
+  returning orphan blocks, finalized-history halts, insolvency and issuer health
+  gating. Anvil exercises the compiled contract through funding, payout, rotation,
+  pause and refund; token donations remain surplus. Synthetic RPC transcript
+  tests exercise reorg/finality failure cases not claimed as live Base evidence.
+- Pinned Anvil 1.7.1 added as a dev dependency. Immutable install and full
+  high-severity audit pass; CI now includes the local EVM integration. The existing
+  next-auth/nodemailer peer warning and documented Forge timestamp/test-transfer
+  lint warnings remain. No Solidity contract behavior changed.
+- A standalone typecheck overlapped Next's regeneration of `.next/types` and
+  initially reported missing generated files. The build and sequential typecheck
+  repeat pass; no application type workaround was needed.
+- Browser and Rust checks were not rerun for this backend-only change. No new
+  provider request, public-chain transaction, production migration, Render change,
+  funded key, signing configuration or deployment. The opt-in accounting CLI
+  rejects its disabled gate before database/RPC access. Production configuration,
+  supervised indexing, scale, independent review and live acceptance remain open.
+- Implementation subjects and operational recovery are maintained under
+  [md-CLAUDE-chapters](md-CLAUDE-chapters/README.md), linked from contributor guidance.
+
+### Reshape session 4, 2026-09-04
+
+- Unit suite **221/221**, lint, typecheck and Next production build pass on
+  Node 20.18.3. Added model-specific thinking controls and safe diagnostic tests
+  for authentication controls, error/usage redaction, bounded body consumption,
+  stream completion and unknown billing records. Existing x402 recovery tests pass.
+- The actual local key passes protected authentication. GLM 5.1 with documented
+  thinking disabled passes a tiny SDK call and two source-grounded drafts. The
+  updated application evaluator completes within its unchanged 30-second limit.
+  Numeric usage and matching provider billing records are observed; see the
+  [sanitized live record](docs/near-ai-evaluation-2026-09-04.md) for exact values.
+- Human clue/factual quality, layout, representative reliability, credit-source/
+  staking linkage, cryptographic attestation and paid delivery remain unverified.
+  Prior GLM 5.3/Qwen timeouts and Gemma TLS failures have no confirmed root cause;
+  failed-request billing remains unknown. No automatic model fallback was added.
+- No dependency/lockfile, database, contract or frontend changes. Database,
+  browser, Rust/Solidity and dependency audit checks were not rerun; session 3/2
+  results below remain historical. No secret-file edit, staking, x402 settlement,
+  chain broadcast, Render change or deployment.
+
+### Reshape session 3, 2026-09-04
+
+- Unit suite **209/209** under Node 20.18.3. New tests cover public/private
+  commitment boundaries, deterministic JSONB round-trip hashing, mutation
+  origin checks, strict inputs and bounded cancellable adapters.
+- Postgres integration **19/19**, also repeated with Node 20.18.3 and UTF-8
+  Postgres 16. All nine migrations apply and rerun in isolated random schemas.
+  Tests cover actual database sessions and private route handlers, approval/
+  revision races, duplicate creation, nonowner denial, unique slot/account
+  constraints, concurrent exhaustion, signer failures, exact persisted replay,
+  rotation, cutoff/grace/expiry, stale/forked state and sanitized errors.
+- Base contract regression **29/29**, including 256 fuzz cases and the stateful
+  8,192-call solvency invariant. Lint, typecheck and Node 20 production build pass.
+- Desktop/mobile browser regression **8/8**. No new frontend was added; the
+  private Base route handlers are covered by the database integration suite.
+- Chain/eligibility ports are test doubles; signatures use public fixture keys.
+  Real wallet ownership, completion, canonical event ingestion and full user
+  journeys remain unverified. Review is a gated private API, not a new UI or
+  publication. See [workflow](docs/base-learning-workflow.md).
+- No dependency/lockfile changes, Rust changes/checks, live provider request,
+  chain transaction, production migration, payment, Render change or deployment.
+
+### Reshape session 2, 2026-09-04
+
+Local implementation, not deployment:
+
+- Application unit suite **203/203** under Node 20.20.2. Includes shared Base
+  typed-data digest/signature fixtures, source bounds/provenance/approval checks,
+  and the unchanged x402 clue-generation recovery tests.
+- Base contract suite **29/29**: 28 unit/fuzz tests plus a stateful invariant
+  with 128 sequences, 64 calls per sequence (8,192 calls), and zero unexpected
+  reverts. Exhaustion fuzzing runs 256 examples. Events reconstruct funding,
+  payout and refund facts; chain/domain/recipient/slot/participant/epoch replay,
+  ERC-1271, pause, deadline, token failure and reentrancy cases pass.
+- Solidity 0.8.30 / Forge 1.7.1 / OpenZeppelin 5.6.1 / forge-std 1.16.2 are
+  pinned. Format check and compilation pass. The wrapper's failure propagation
+  was checked with an invalid Forge option returning a nonzero exit code.
+- Browser regression **8/8** across desktop/mobile Chromium; lint, typecheck,
+  production dependency audit, immutable install, and Node 20 production build
+  pass. The existing next-auth/nodemailer peer warning remains. Rust unchanged
+  and not rerun; the earlier Rust evidence remains historical.
+- The full dependency audit (including contract/build dependencies) initially
+  found [GHSA-5p4m-2wfm-xmqj](https://github.com/advisories/GHSA-5p4m-2wfm-xmqj)
+  in ESLint's `js-yaml` 4.3.0. A compatible 4.3.1 resolution fixes it; full
+  high-severity audit, lint, YAML parsing, and the Node 20 build then passed.
+- Source drafts always require review and have no public route/paid workflow
+  yet. Quote inclusion is validated, not factual entailment or learning quality.
+  Base event tests are not production ingestion/reorg-recovery evidence.
+- Live NEAR AI attempts with the supplied local key did not produce a draft.
+  See [evaluation results](docs/near-ai-evaluation-2026-09-04.md) for timeouts,
+  stale model names, direct-endpoint resets, advertised Gemma 4, and next checks.
+  No usage/cost or staking-credit linkage was verified; timed-out calls may have
+  consumed provider credits. No x402 settlement, chain transaction, deployment,
+  database migration, or Render/production flag change was performed.
+
+### Reshape session 1, 2026-09-04
+
+The separate `codex/early-launch-discovery` branch replaces the direct Anthropic
+adapter with NEAR AI. Checks used Node 24.4.0, injected provider/facilitator
+clients, and explicit browser mock mode with broadcasting disabled:
+
+- NEAR AI and x402 focused tests: **48/48**, including bounded structured
+  requests, exact-count/unique answer validation, truncation, response-body
+  deadlines, credit exhaustion, secret-safe errors, no settlement on generation
+  failure, and cached-result recovery without provider/facilitator availability.
+- Full application unit tests: **178/178**. Browser regression tests: **8/8**
+  across desktop and mobile Chromium.
+- Lint, typecheck, and Next production build pass. The production dependency
+  audit passes the configured high-severity threshold; this is not a claim
+  that all transitive low-severity findings have disappeared.
+- Repeated the full **178/178** unit suite and production build under Node
+  **20.20.2**, matching the deployment's Node 20 major version; both pass.
+- Immutable dependency installation passes, with the existing `next-auth`
+  peer warning for `nodemailer` 10 versus its requested ^7.0.7. This session
+  does not resolve that compatibility warning; actual email sign-in remains L05
+  in the [launch register](docs/early-launch-status.md).
+- No Rust changes or Rust checks in this session. The Base contract is still
+  a [design](docs/base-reward-contract.md), with its own future test matrix.
+- No live NEAR AI inference, credit measurement, paid x402 settlement, Base
+  deployment, or production configuration change. Source-grounded lesson
+  generation is not implemented. Live model compatibility remains unverified.
+
+See the [session checkpoint](docs/reshape-progress.md) for the next work. These
+results do not supersede the older chain evidence or close launch gates.
+
+### Historical NEAR v2 baseline, 2026-07-27
 
 Independently rerun on **2026-07-27** with broadcasting disabled and no live
 funds:

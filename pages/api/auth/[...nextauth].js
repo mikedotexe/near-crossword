@@ -4,6 +4,8 @@ import EmailProvider from "next-auth/providers/email";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { Resend } from "resend";
 import PgAdapter from "../../../src/lib/pg-adapter";
+import { getDatabasePool } from "../../../src/server/v2/repository-factory";
+import { persistGoogleEmailVerification } from "../../../src/server/v2/oauth-verification";
 import {
   clientAddress,
   enforceMagicLinkRateLimits,
@@ -81,6 +83,13 @@ export const authOptions = {
     verifyRequest: "/check-email",
   },
   providers,
+  events: {
+    async signIn(event) {
+      if (hasDatabase && event.account?.provider === "google") {
+        await persistGoogleEmailVerification(getDatabasePool(), event);
+      }
+    },
+  },
   callbacks: {
     async signIn({ account, profile }) {
       // Google exposes the verification flag on the provider profile.

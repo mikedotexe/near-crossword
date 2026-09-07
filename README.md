@@ -1,5 +1,16 @@
 # Crossword Campaigns
 
+Early launch: [observed status and open items](docs/early-launch-status.md).
+Product direction: [discovery notebook](docs/product-discovery.md).
+Agreed reshape: [Base rewards and NEAR AI action plan](docs/reshape-action-plan.md).
+Next session: [implementation checkpoint](docs/reshape-progress.md).
+
+The product description below covers the current NEAR v2 application. The
+agreed Base, many-recipient learning experience is under development; the
+[Base escrow](contract-base/README.md) and [private review/issuance backend](docs/base-learning-workflow.md)
+are locally tested, but not connected to production claims or deployed. This branch uses NEAR AI for generation, while production remains
+on the release recorded in the launch register.
+
 **Fund with anything. Win anywhere.**
 
 Crossword Campaigns turns the original NEAR Crossword into a sponsor-funded
@@ -113,6 +124,21 @@ yarn dev
 Mock mode moves no funds, accepts no payment as settled, and loses its state
 when the process restarts. It is designed for product and browser testing.
 
+Real clue generation uses `NEAR_AI_API_KEY`, optional `NEAR_AI_BASE_URL`
+(default `https://cloud-api.near.ai/v1`), and `V2_AI_MODEL` (default
+`zai-org/GLM-5.1-FP8`). This model uses its documented non-thinking mode and
+passed live source-draft checks. Other model overrides keep provider reasoning
+defaults; they are not automatically approved by a catalog listing.
+It has no Anthropic dependency or fallback.
+Leave `X402_ENABLED=false` until provider and payment acceptance checks pass.
+See the [backend guide](src/server/v2/README.md) for limits and recovery behavior.
+Source-grounded lessons are available through a separate draft generator and
+the opt-in `yarn ai:evaluate --env-file /path/to/ignored/.env` check, not yet the
+public creator route. See [live check results](docs/near-ai-evaluation-2026-09-04.md).
+The separate `yarn ai:diagnose --env-file /path/to/ignored/.env --mode auth`
+checks key acceptance without inference. Explicit chat/stream probes may consume
+credits; billing lookup uses the returned `Inference-Id`, not `X-Request-Id`.
+
 For Postgres-backed development:
 
 ```bash
@@ -120,6 +146,20 @@ docker compose up -d postgres
 yarn db:migrate:v2
 yarn dev
 ```
+
+Internal implementation context is organized in
+[md-CLAUDE-chapters](md-CLAUDE-chapters/README.md). The new Base path has a
+read-only RPC reader and durable event reconciliation, not a deployed earning
+workflow. `yarn base:reconcile` runs one explicitly configured/gated scan batch;
+see [Base accounting](md-CLAUDE-chapters/03-base-accounting.md) for deployment
+pins, finality, recovery and local-EVM/Postgres test commands.
+The [participant chapter](md-CLAUDE-chapters/06-participants-and-recovery.md) covers
+the new authenticated completion, wallet challenge, claim/recovery and optional
+contact-consent API. `BASE_PARTICIPANT_ENABLED` and `BASE_CLAIM_ISSUANCE_ENABLED`
+default false; signing needs a dedicated `BASE_ELIGIBILITY_PRIVATE_KEY` and the
+reviewed deployment pins. Recovery does not require signing enabled. These routes
+do not broadcast transactions. Player/review UI and fresh-wallet onboarding remain
+open; local EOA/deployed-smart-wallet tests are not a production activation.
 
 The chain worker refuses to lease work unless
 `V2_CHAIN_BROADCAST_ENABLED=true`. Keep it false for normal development. A
@@ -144,9 +184,15 @@ yarn lint
 yarn typecheck
 yarn audit:production
 yarn test:unit
+# Requires TEST_DATABASE_URL pointing to a disposable local Postgres target.
+yarn test:integration:base
 yarn test:browser
 yarn test:contract:v2
 yarn contract:v2:build
+git submodule update --init --recursive
+yarn contract:base:fmt
+yarn test:contract:base
+yarn contract:base:build
 yarn build
 ```
 
@@ -186,3 +232,28 @@ V2 has a private, direct-USDC mainnet canary at
 `crossword-campaigns-v2.mike.near`; it is not a public launch. See the dated
 [canary evidence](docs/mainnet-canary-2026-07-27.md) and [`QA.md`](QA.md) for
 what it proves and the remaining launch gates.
+
+## Learning reshape: local screens
+
+The separate Base learning flow now has `/learn` and `/learn/studio` screens,
+reviewed connected layouts, publication/withdrawal and authenticated reward
+recovery. It is not deployed or activated. All Base flags default off; the
+studio links already-funded campaigns but does not yet send sponsor transactions.
+
+For synthetic, nonpaying UI previews, start the development server with
+`BASE_UI_PREVIEW_ENABLED=true`, then visit `/learn/preview` and
+`/learn/studio/preview`. These routes always return 404 in production. There is
+no fake Base session/database/payment fallback.
+
+See [publication and screens](md-CLAUDE-chapters/07-publication-and-screens.md),
+[Base Account and gas](md-CLAUDE-chapters/08-base-account-and-gas.md), and the
+[session checkpoint](docs/reshape-progress.md). The local claim-specific gas
+proxy uses private wallet-context permits and durable allowances; see
+[chapter 09](md-CLAUDE-chapters/09-claim-sponsorship.md). It is default off and
+supports a reviewed EntryPoint 0.6 Base Sepolia profile only. Real fresh
+passkey/paymaster acceptance remains open; follow the
+[staging checklist](docs/base-sepolia-sponsorship-acceptance.md), never expose a
+keyed CDP URL or enable an unrestricted sponsorship relay.
+The [local Sepolia setup record](docs/base-sepolia-local-setup.md) distinguishes
+the disabled launch-candidate env, encrypted test-deployer wallet and pending
+CDP account-billed paymaster setup. Never put a deployer seed/key in the web env.

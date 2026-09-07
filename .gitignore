@@ -10,6 +10,9 @@
 /.parcel-cache
 *.tsbuildinfo
 /contract-v2/target
+/contract-base/out
+/contract-base/cache
+/contract-base/broadcast
 /playwright-report
 /test-results
 .env*

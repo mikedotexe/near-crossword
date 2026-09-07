@@ -32,6 +32,8 @@ jobs:
       DATABASE_URL: postgresql://near_crossword:near_crossword_dev@127.0.0.1:5432/near_crossword
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
@@ -43,7 +45,16 @@ jobs:
       - run: yarn lint
       - run: yarn typecheck
       - run: yarn test:unit
+      - run: yarn test:integration:base
+        env:
+          TEST_DATABASE_URL: postgresql://near_crossword:near_crossword_dev@127.0.0.1:5432/near_crossword
+      - run: yarn test:integration:base-chain
+        env:
+          TEST_DATABASE_URL: postgresql://near_crossword:near_crossword_dev@127.0.0.1:5432/near_crossword
       - run: yarn build
+      - run: yarn test:acceptance:base-build
+        env:
+          TEST_DATABASE_URL: postgresql://near_crossword:near_crossword_dev@127.0.0.1:5432/near_crossword
       - run: yarn playwright install --with-deps chromium
       - run: yarn test:browser
 
@@ -64,3 +75,20 @@ jobs:
       - run: cargo clippy --manifest-path contract-v2/Cargo.toml --locked --all-targets -- -D warnings
       - run: cargo test --manifest-path contract-v2/Cargo.toml --locked
       - run: cargo build --manifest-path contract-v2/Cargo.toml --locked --target wasm32-unknown-unknown --release
+
+  contract-base:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - run: corepack enable
+      - run: yarn install --immutable
+      - run: yarn contract:base:fmt
+      - run: yarn npm audit --recursive --severity high
+      - run: yarn test:contract:base
+      - run: yarn contract:base:build

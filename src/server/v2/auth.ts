@@ -18,6 +18,15 @@ function cookies(request: Request): Map<string, string> {
   return result;
 }
 
+export function databaseSessionToken(request: Request): string | null {
+  const jar = cookies(request);
+  return (
+    jar.get("__Secure-next-auth.session-token") ??
+    jar.get("next-auth.session-token") ??
+    null
+  );
+}
+
 export async function optionalActor(request: Request): Promise<Actor | null> {
   if (isExplicitMockMode()) {
     const demoId = request.headers.get("x-demo-user-id");
@@ -29,9 +38,7 @@ export async function optionalActor(request: Request): Promise<Actor | null> {
     }
   }
   if (!process.env.DATABASE_URL) return null;
-  const jar = cookies(request);
-  const token =
-    jar.get("__Secure-next-auth.session-token") ?? jar.get("next-auth.session-token");
+  const token = databaseSessionToken(request);
   if (!token) return null;
   const result = await getDatabasePool().query(
     `SELECT u.id::TEXT, u.email

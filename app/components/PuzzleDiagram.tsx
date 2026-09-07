@@ -6,17 +6,18 @@ export function PuzzleDiagram({
   values,
   compact = false,
   labelledBy,
+  maxCellSizeRem,
 }: {
   puzzle: PuzzleDefinition;
   values?: Record<string, string>;
   compact?: boolean;
   labelledBy?: string;
+  maxCellSizeRem?: number;
 }) {
   const cells = getPuzzleCells(puzzle);
   const maxDimension = Math.max(puzzle.rows, puzzle.columns);
-  const cellSize = compact
-    ? `min(2rem, calc((100vw - 5rem) / ${maxDimension}))`
-    : `min(2.7rem, calc((100vw - 4rem) / ${maxDimension}))`;
+  const maxSize = maxCellSizeRem ?? (compact ? 2 : 2.7);
+  const cellSize = `min(${maxSize}rem, calc((100vw - ${compact ? 5 : 4}rem) / ${maxDimension}))`;
 
   return (
     <div

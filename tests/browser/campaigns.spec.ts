@@ -1,19 +1,7 @@
 import { expect, test } from "@playwright/test";
 
-test("home and explore label illustrative campaigns honestly", async ({
-  page,
-}) => {
-  await page.goto("/");
-
-  await expect(
-    page.getByRole("heading", { name: /A good clue deserves a great prize/i }),
-  ).toBeVisible();
-  await expect(page.getByText("Illustrative campaign").first()).toBeVisible();
-  await expect(
-    page.getByText(/campaign data below is illustrative/i),
-  ).toBeVisible();
-
-  await page.getByRole("link", { name: /Find a puzzle/i }).click();
+test("legacy explore labels illustrative campaigns honestly", async ({ page }) => {
+  await page.goto("/explore");
   await expect(
     page.getByRole("heading", { name: /Find the clue that clicks/i }),
   ).toBeVisible();

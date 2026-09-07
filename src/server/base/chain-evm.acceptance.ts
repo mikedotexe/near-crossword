@@ -1,0 +1,200 @@
+import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
+import { spawn, spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import { createServer } from "node:net";
+import { once } from "node:events";
+import { setTimeout as sleep } from "node:timers/promises";
+import { test } from "node:test";
+import pg from "pg";
+import { createPublicClient, createTestClient, createWalletClient, encodeAbiParameters, encodeFunctionData, http, keccak256, serializeErc6492Signature, type Abi, type Address, type Hex } from "viem";
+import { foundry } from "viem/chains";
+import { baseClaimTypedData } from "../../lib/base/claim";
+import { BaseChainIndexer } from "./chain-indexer";
+import { RpcBaseChainReader, parseBaseDeployment } from "./chain-reader";
+import { ReconciledBaseChainReader } from "./reconciled-chain-reader";
+import { recipient, reviewFixture, rotatedTestSigner, testSigner } from "./workflow.fixture";
+import { participant, testHash } from "./chain.fixture";
+import { PostgresReviewRepository } from "./review-repository";
+import { PostgresParticipantRepository } from "./participant-repository";
+import { ParticipantRecovery } from "./participant-recovery";
+import { BaseRewardIssuer } from "./issuer";
+import { LearningPublication } from "./publication";
+import { accountFactoryAbi } from "./counterfactual";
+
+const connectionString = process.env.TEST_DATABASE_URL;
+if (!connectionString) throw new Error("TEST_DATABASE_URL must name disposable local PostgreSQL");
+const databaseUrl = new URL(connectionString);
+if (!["localhost", "127.0.0.1", "[::1]"].includes(databaseUrl.hostname)) throw new Error("Acceptance test refuses nonlocal PostgreSQL");
+const require = createRequire(import.meta.url);
+function artifact(path: string): { abi: Abi; bytecode: { object: Hex } } { return JSON.parse(readFileSync(path, "utf8")); }
+
+test("compiled escrow reconciles publication, EOA/ERC-1271/counterfactual control, three participant payouts and refunds", { timeout: 120000 }, async () => {
+  const portReservation = createServer();
+  portReservation.listen(0, "127.0.0.1"); await once(portReservation, "listening");
+  const bound = portReservation.address();
+  assert.ok(bound && typeof bound === "object");
+  const rpcUrl = `http://127.0.0.1:${bound.port}`;
+  await new Promise<void>((resolve, reject) => portReservation.close((error) => error ? reject(error) : resolve()));
+  const arch = process.arch === "x64" ? "amd64" : process.arch === "arm64" ? "arm64" : undefined;
+  if (!arch) throw new Error("Unsupported local EVM architecture");
+  const binary = require.resolve(`@foundry-rs/anvil-${process.platform}-${arch}/bin/${process.platform === "win32" ? "anvil.exe" : "anvil"}`);
+  const child = spawn(binary, ["--host", "127.0.0.1", "--port", String(bound.port), "--chain-id", "31337", "--silent", "--slots-in-an-epoch", "1", "--timestamp", String(Math.floor(Date.now() / 1000) - 600)], { stdio: "ignore" });
+  const exited = once(child, "exit").catch(() => undefined);
+  const schema = `base_evm_test_${randomUUID().replaceAll("-", "")}`;
+  const admin = new pg.Pool({ connectionString, max: 1 });
+  const url = new URL(databaseUrl); url.searchParams.set("options", `-c search_path=${schema}`);
+  const pool = new pg.Pool({ connectionString: url.toString(), max: 4 });
+  try {
+    const transport = http(rpcUrl, { retryCount: 0, timeout: 1000 });
+    const client = createPublicClient({ chain: foundry, transport, cacheTime: 0 });
+    const local = createTestClient({ chain: foundry, mode: "anvil", transport });
+    const wallet = createWalletClient({ chain: foundry, account: testSigner, transport });
+    let ready = false;
+    for (let attempt = 0; attempt < 50; attempt++) {
+      try { ready = await client.getChainId() === 31337; } catch { /* The disposable node is still starting. */ }
+      if (ready) break;
+      if (child.exitCode !== null) throw new Error("Local EVM exited during startup");
+      await sleep(100);
+    }
+    assert.ok(ready, "Pinned local EVM must start");
+    await admin.query(`CREATE SCHEMA ${schema}`);
+    const migrated = spawnSync(process.execPath, ["scripts/migrate-v2.mjs"], { env: { ...process.env, DATABASE_URL: url.toString() }, encoding: "utf8", timeout: 30000 });
+    assert.equal(migrated.status, 0, "Local acceptance migrations must succeed");
+    await local.setBalance({ address: testSigner.address, value: 10n ** 20n });
+    const tokenArtifact = artifact("contract-base/out/Fixtures.sol/TestUSDC.json");
+    const escrowArtifact = artifact("contract-base/out/LearningRewards.sol/LearningRewards.json");
+    const wait = (hash: Hex) => client.waitForTransactionReceipt({ hash, pollingInterval: 10, timeout: 5000 });
+    const tokenReceipt = await wait(await wallet.deployContract({ abi: tokenArtifact.abi, bytecode: tokenArtifact.bytecode.object }));
+    const token = tokenReceipt.contractAddress!;
+    const deploymentReceipt = await wait(await wallet.deployContract({ abi: escrowArtifact.abi, bytecode: escrowArtifact.bytecode.object, args: [token] }));
+    const escrow = deploymentReceipt.contractAddress!;
+    const write = async (address: Address, abi: Abi, functionName: string, args: unknown[]) => {
+      const receipt = await wait(await wallet.writeContract({ address, abi, functionName, args }));
+      assert.equal(receipt.status, "success"); return receipt;
+    };
+    await write(token, tokenArtifact.abi, "mint", [testSigner.address, 300000n]);
+    await write(token, tokenArtifact.abi, "approve", [escrow, 300000n]);
+    const startsAt = (await client.getBlock()).timestamp + 10n;
+    const terms = { rewardAtomic: 100000n, maxClaims: 3, startsAt, endsAt: startsAt + 30n, claimDeadline: startsAt + 60n, termsHash: testHash(777), eligibilitySigner: testSigner.address };
+    await write(escrow, escrowArtifact.abi, "createCampaign", [terms]);
+    await write(token, tokenArtifact.abi, "mint", [escrow, 17n]);
+    const anchor = await client.getBlock({ blockNumber: deploymentReceipt.blockNumber });
+    const code = await client.getCode({ address: escrow }); assert.ok(code);
+    const deployment = parseBaseDeployment({ chainId: 31337, rpcUrl, escrow, token, runtimeCodeHash: keccak256(code), deploymentBlock: anchor.number, deploymentBlockHash: anchor.hash, maxFinalizedLagSeconds: 3600 }, true);
+    const reader = new RpcBaseChainReader(deployment, { allowLocalChain: true });
+    const indexer = new BaseChainIndexer(pool, reader, { batchBlocks: 128 });
+    const guarded = new ReconciledBaseChainReader(pool, reader);
+    const binding = { chainId: 31337, escrow, onChainId: 1n };
+    async function reconcile() {
+      await local.mine({ blocks: 8, interval: 0 });
+      await indexer.sync();
+      return (await pool.query("SELECT * FROM base_chain_campaign_snapshots")).rows[0].accounting;
+    }
+    let accounting = await reconcile();
+    assert.equal(accounting.fundedAtomic, "300000"); assert.equal(accounting.paidCount, 0);
+    const funded = await guarded.readFinalizedCampaign(binding, AbortSignal.timeout(10000));
+    assert.equal(funded.outstandingAtomic, 300000n);
+    await local.setNextBlockTimestamp({ timestamp: startsAt + 1n });
+    const claim = { campaignId: 1n, slot: 0, participantId: participant, recipient, amount: 100000n, deadline: terms.claimDeadline, signerEpoch: 1n };
+    const signature = await testSigner.signTypedData(baseClaimTypedData(31337, escrow, claim));
+    await write(escrow, escrowArtifact.abi, "claim", [claim, signature]);
+    accounting = await reconcile(); assert.equal(accounting.paidCount, 1); assert.equal(accounting.outstandingAtomic, "200000");
+    const paid = await guarded.readFinalizedCampaign(binding, AbortSignal.timeout(10000));
+    assert.deepEqual(await guarded.readClaimUse(binding, claim, paid.blockHash, AbortSignal.timeout(10000)), { slotUsed: true, participantUsed: true });
+    await write(escrow, escrowArtifact.abi, "rotateSigner", [1n, recipient]);
+    await write(escrow, escrowArtifact.abi, "setPaused", [1n, true]);
+    accounting = await reconcile(); assert.equal(accounting.signerEpoch, "2"); assert.equal(accounting.paused, true);
+    await local.setNextBlockTimestamp({ timestamp: terms.claimDeadline + 1n });
+    await write(escrow, escrowArtifact.abi, "refundExpired", [1n]);
+    accounting = await reconcile(); assert.equal(accounting.refundedAtomic, "200000"); assert.equal(accounting.closed, true);
+    const ledger = (await pool.query("SELECT totals FROM base_chain_deployments")).rows[0].totals;
+    assert.equal(ledger.totalReserved, "0"); assert.equal(ledger.surplusAtomic, "17");
+    assert.equal((await indexer.sync()).events, 0);
+
+    const users = await pool.query("INSERT INTO users (email, email_verified) SELECT 'evm-participant-' || n || '@example.test', NOW() FROM generate_series(1, 4) n RETURNING id::TEXT");
+    const [owner, eoaUser, contractUser, freshUser] = users.rows.map((row) => row.id as string);
+    const smartArtifact = artifact("contract-base/out/Fixtures.sol/TestIssuer.json");
+    const smartReceipt = await wait(await wallet.deployContract({ abi: smartArtifact.abi, bytecode: smartArtifact.bytecode.object, args: [rotatedTestSigner.address] }));
+    const smartWallet = smartReceipt.contractAddress!;
+    const factoryArtifact = artifact("contract-base/out/Fixtures.sol/TestAccountFactory.json");
+    const factoryReceipt = await wait(await wallet.deployContract({ abi: factoryArtifact.abi, bytecode: factoryArtifact.bytecode.object, args: [smartWallet] }));
+    const factory = factoryReceipt.contractAddress!;
+    const owners = [encodeAbiParameters([{ type: "address" }], [rotatedTestSigner.address])];
+    const freshWallet = await client.readContract({ address: factory, abi: accountFactoryAbi, functionName: "getAddress", args: [owners, 0n] });
+    const creation = encodeFunctionData({ abi: accountFactoryAbi, functionName: "createAccount", args: [owners, 0n] });
+    const freshReader = new RpcBaseChainReader(deployment, { allowLocalChain: true, counterfactual: {
+      factory, factoryCodeHash: keccak256((await client.getCode({ address: factory }))!), implementationCodeHash: keccak256((await client.getCode({ address: smartWallet }))!),
+    } });
+    const submission = reviewFixture();
+    const now = Math.floor(Date.now() / 1000);
+    Object.assign(submission.terms, { escrow, token, sponsor: testSigner.address, startsAt: now - 5, endsAt: now + 3600, claimDeadline: now + 7200 });
+    const reviews = new PostgresReviewRepository(pool);
+    const draft = await reviews.create(owner, randomUUID(), submission);
+    const reviewed = await reviews.approve(owner, draft.id, 1, draft.reviewHash, draft.termsHash);
+    await write(token, tokenArtifact.abi, "mint", [testSigner.address, 300000n]);
+    await write(token, tokenArtifact.abi, "approve", [escrow, 300000n]);
+    await write(escrow, escrowArtifact.abi, "createCampaign", [{ rewardAtomic: 100000n, maxClaims: 3,
+      startsAt: BigInt(submission.terms.startsAt), endsAt: BigInt(submission.terms.endsAt), claimDeadline: BigInt(submission.terms.claimDeadline),
+      termsHash: reviewed.termsHash, eligibilitySigner: testSigner.address }]);
+    await local.setNextBlockTimestamp({ timestamp: BigInt(now - 4) });
+    await reconcile();
+    const participants = new PostgresParticipantRepository(pool, guarded, freshReader, "https://crossword.example.test", true);
+    const recovery = new ParticipantRecovery(pool, guarded);
+    const issuer = new BaseRewardIssuer(pool, guarded, participants, { address: testSigner.address, sign: (data) => testSigner.signTypedData(data) }, true);
+    const publication = new LearningPublication(pool, guarded);
+    const preview = await publication.preview(owner, reviewed.id);
+    await publication.approveLayout(owner, reviewed.id, preview);
+    await issuer.bindApprovedCampaign(owner, reviewed.id, 2n, preview);
+    await publication.publish(owner, reviewed.id, preview);
+    assert.equal((await publication.get(reviewed.id)).availability, "OPEN");
+    let smartProof: { message: string; signature: Hex } | undefined;
+    let freshProof: { message: string; signature: Hex } | undefined;
+    for (const [userId, to] of [[eoaUser, rotatedTestSigner.address], [contractUser, smartWallet], [freshUser, freshWallet]] as const) {
+      await participants.complete(userId, reviewed.id, { revision: 1, answers: ["WALLET", "LEDGER", "TRANSFER"] });
+      const challenge = await participants.challenge(userId, reviewed.id, { revision: 1, recipient: to });
+      let signed = await rotatedTestSigner.signMessage({ message: challenge.message });
+      if (to === freshWallet) {
+        signed = serializeErc6492Signature({ address: factory, data: creation, signature: signed });
+        freshProof = { message: challenge.message, signature: signed };
+        assert.equal(await client.getCode({ address: freshWallet }), undefined);
+        assert.equal(await reader.verifyWalletMessage({ recipient: freshWallet, message: challenge.message, signature: signed }, AbortSignal.timeout(10000)), false);
+        assert.equal(await freshReader.verifyWalletMessage({ recipient: freshWallet, message: challenge.message, signature: signed }, AbortSignal.timeout(10000)), true);
+        assert.equal(await client.getCode({ address: freshWallet }), undefined, "Verification must only simulate deployment");
+      }
+      if (to === smartWallet) smartProof = { message: challenge.message, signature: signed };
+      const input = { campaignId: reviewed.id, userId, recipient: to, proof: { challengeId: challenge.challengeId, signature: signed } };
+      const authorization = await issuer.issue(input);
+      assert.deepEqual(await issuer.issue(input), authorization);
+      assert.equal((await recovery.get(userId, reviewed.id)).status, "RECOVERABLE");
+      const message = authorization.typedData.message;
+      const reward = { ...message, campaignId: BigInt(message.campaignId), amount: BigInt(message.amount), deadline: BigInt(message.deadline), signerEpoch: BigInt(message.signerEpoch) };
+      const payment = await write(escrow, escrowArtifact.abi, "claim", [reward, authorization.signature]);
+      await reconcile();
+      const recovered = await recovery.get(userId, reviewed.id);
+      assert.equal(recovered.status, "PAID"); assert.ok("receipt" in recovered);
+      assert.equal(recovered.receipt?.transactionHash, payment.transactionHash);
+      assert.equal(recovered.receipt?.recipient, to.toLowerCase());
+      assert.equal((await pool.query("SELECT count(*)::INT AS n FROM base_reward_allocations WHERE campaign_id = $1 AND user_id = $2", [reviewed.id, userId])).rows[0].n, 1);
+    }
+    assert.ok(smartProof);
+    await write(smartWallet, smartArtifact.abi, "setRevoked", [true]); await reconcile();
+    assert.equal(await reader.verifyWalletMessage({ recipient: smartWallet, ...smartProof }, AbortSignal.timeout(10000)), false);
+    assert.equal((await recovery.get(contractUser, reviewed.id)).status, "PAID");
+    assert.ok(freshProof);
+    await write(factory, factoryArtifact.abi, "createAccount", [owners, 0n]); await reconcile();
+    assert.equal(await freshReader.verifyWalletMessage({ recipient: freshWallet, ...freshProof }, AbortSignal.timeout(10000)), true);
+    await write(freshWallet, smartArtifact.abi, "setRevoked", [true]); await reconcile();
+    assert.equal(await freshReader.verifyWalletMessage({ recipient: freshWallet, ...freshProof }, AbortSignal.timeout(10000)), false);
+    const finalLedger = (await pool.query("SELECT totals FROM base_chain_deployments")).rows[0].totals;
+    assert.equal(finalLedger.totalReserved, "0"); assert.equal(finalLedger.surplusAtomic, "17");
+    assert.equal((await publication.get(reviewed.id)).availability, "EXHAUSTED");
+  } finally {
+    child.kill("SIGTERM");
+    const forced = setTimeout(() => child.kill("SIGKILL"), 3000);
+    try { await exited; } finally { clearTimeout(forced); }
+    await pool.end();
+    try { await admin.query(`DROP SCHEMA IF EXISTS ${schema} CASCADE`); } finally { await admin.end(); }
+  }
+});

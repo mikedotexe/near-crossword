@@ -1,7 +1,7 @@
 :root {
-  --paper: #f3efe4;
-  --paper-bright: #fbf8f0;
-  --paper-deep: #e8e0d1;
+  --paper: #f1f4f0;
+  --paper-bright: #ffffff;
+  --paper-deep: #e3e9e5;
   --ink: #18201d;
   --ink-soft: #3f4843;
   --ink-muted: #68716c;
@@ -127,7 +127,7 @@ p {
   color: var(--ink-muted);
   font-size: 0.72rem;
   font-weight: 800;
-  letter-spacing: 0.15em;
+  letter-spacing: 0;
   line-height: 1.3;
   text-transform: uppercase;
 }
@@ -147,7 +147,7 @@ p {
   border-radius: var(--radius);
   font-size: 0.84rem;
   font-weight: 800;
-  letter-spacing: 0.02em;
+  letter-spacing: 0;
   line-height: 1;
   text-align: center;
   transition:
@@ -318,7 +318,7 @@ button.text-link {
   gap: 10px;
   font-size: 0.92rem;
   font-weight: 900;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
   line-height: 0.9;
 }
 
@@ -328,7 +328,7 @@ button.text-link {
   color: var(--blue);
   font-size: 0.6rem;
   font-weight: 800;
-  letter-spacing: 0.15em;
+  letter-spacing: 0;
   text-transform: uppercase;
 }
 
@@ -382,22 +382,12 @@ button.text-link {
 .hero {
   position: relative;
   overflow: hidden;
-  padding: 72px 0 86px;
+  padding: 30px 0 32px;
   border-bottom: 1px solid var(--line);
 }
 
 .hero::after {
-  position: absolute;
-  right: -60px;
-  bottom: -110px;
-  width: 350px;
-  height: 350px;
-  content: "";
-  border: 1px solid var(--line);
-  border-radius: 50%;
-  box-shadow:
-    0 0 0 40px rgba(36, 85, 214, 0.04),
-    0 0 0 80px rgba(36, 85, 214, 0.025);
+  display: none;
 }
 
 .hero__grid {
@@ -405,7 +395,7 @@ button.text-link {
   z-index: 1;
   display: grid;
   grid-template-columns: minmax(0, 1.04fr) minmax(390px, 0.82fr);
-  gap: 100px;
+  gap: 76px;
   align-items: center;
 }
 
@@ -420,13 +410,23 @@ button.text-link {
   margin: 0;
   font-family: var(--serif);
   font-weight: 500;
-  letter-spacing: -0.055em;
+  letter-spacing: 0;
   line-height: 0.94;
 }
 
 .hero__copy h1 {
   max-width: 720px;
   font-size: clamp(3.4rem, 6vw, 6.4rem);
+}
+
+.hero__statement {
+  max-width: 690px;
+  margin: 18px 0 0;
+  color: var(--blue);
+  font-family: var(--serif);
+  font-size: clamp(1.65rem, 3vw, 2.7rem);
+  font-weight: 600;
+  line-height: 1.05;
 }
 
 .hero__copy h1 em,
@@ -450,7 +450,7 @@ button.text-link {
 
 .hero__lede {
   max-width: 610px;
-  margin: 30px 0 28px;
+  margin: 24px 0 28px;
   color: var(--ink-soft);
   font-family: var(--serif);
   font-size: clamp(1.1rem, 1.8vw, 1.35rem);
@@ -465,7 +465,7 @@ button.text-link {
 
 .hero__proof {
   display: flex;
-  margin: 46px 0 0;
+  margin: 32px 0 0;
   padding: 0;
 }
 
@@ -497,6 +497,32 @@ button.text-link {
   justify-self: end;
   width: min(100%, 430px);
   transform: rotate(1.2deg);
+}
+
+.hero-ticket-wrap--learning {
+  width: min(100%, 400px);
+}
+
+.hero-ticket-wrap--learning .hero-ticket__top {
+  padding: 12px 20px 6px;
+}
+
+.hero-ticket-wrap--learning .hero-ticket__body {
+  padding: 14px 22px 16px;
+}
+
+.hero-ticket-wrap--learning .hero-ticket__body h2 {
+  margin-bottom: 8px;
+  font-size: 1.5rem;
+}
+
+.hero-ticket-wrap--learning .hero-ticket__prize {
+  margin-bottom: 10px;
+  padding: 6px 0;
+}
+
+.hero-ticket-wrap--learning .button {
+  min-height: 40px;
 }
 
 .hero-ticket-wrap::before {
@@ -558,7 +584,7 @@ button.text-link {
   font-family: var(--serif);
   font-size: 2rem;
   font-weight: 600;
-  letter-spacing: -0.035em;
+  letter-spacing: 0;
   line-height: 1.05;
 }
 
@@ -609,7 +635,7 @@ button.text-link {
   background: #fff3e7;
   font-size: 0.62rem;
   font-weight: 850;
-  letter-spacing: 0.09em;
+  letter-spacing: 0;
   text-transform: uppercase;
 }
 
@@ -639,7 +665,7 @@ button.text-link {
 }
 
 .rail-strip__inner strong {
-  letter-spacing: 0.02em;
+  letter-spacing: 0;
 }
 
 .rail-strip__inner i {
@@ -680,7 +706,7 @@ button.text-link {
   font-family: var(--serif);
   font-size: clamp(2.2rem, 4vw, 4rem);
   font-weight: 500;
-  letter-spacing: -0.045em;
+  letter-spacing: 0;
   line-height: 1;
 }
 
@@ -717,6 +743,48 @@ button.text-link {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 28px;
+}
+
+.sponsor-value-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-block: 1px solid var(--line-strong);
+}
+
+.sponsor-value-grid article {
+  min-width: 0;
+  padding: 30px 28px 34px;
+  border-left: 1px solid var(--line);
+}
+
+.sponsor-value-grid article:first-child {
+  border-left: 0;
+  padding-left: 0;
+}
+
+.sponsor-value-grid article:last-child {
+  padding-right: 0;
+}
+
+.sponsor-value-grid span {
+  color: var(--blue);
+  font-family: var(--serif);
+  font-size: 0.78rem;
+  font-style: italic;
+}
+
+.sponsor-value-grid h3 {
+  margin: 34px 0 12px;
+  font-family: var(--serif);
+  font-size: 1.55rem;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.sponsor-value-grid p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.79rem;
 }
 
 .campaign-grid--three {
@@ -771,7 +839,7 @@ button.text-link {
   font-family: var(--serif);
   font-size: clamp(1.45rem, 2.4vw, 2rem);
   font-weight: 600;
-  letter-spacing: -0.035em;
+  letter-spacing: 0;
   line-height: 1.05;
 }
 
@@ -856,7 +924,7 @@ button.text-link {
   background: rgba(255, 255, 255, 0.62);
   font-size: 0.66rem;
   font-weight: 850;
-  letter-spacing: 0.02em;
+  letter-spacing: 0;
 }
 
 .status-badge--funded {
@@ -991,11 +1059,48 @@ button.text-link {
   font-size: 0.79rem;
 }
 
+.section--proof {
+  border-bottom: 1px solid var(--line);
+  background: var(--aqua);
+}
+
+.proof-ledger {
+  border-top: 1px solid var(--ink);
+}
+
+.proof-ledger article {
+  display: grid;
+  grid-template-columns: minmax(210px, 0.7fr) minmax(280px, 1.25fr) auto;
+  gap: 32px;
+  align-items: center;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--line-strong);
+}
+
+.proof-ledger h3 {
+  margin: 6px 0 0;
+  font-family: var(--serif);
+  font-size: 1.4rem;
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.proof-ledger p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+}
+
+.proof-ledger__state {
+  color: var(--blue);
+  font-size: 0.65rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
 .section--workflows {
   overflow: hidden;
-  background:
-    radial-gradient(circle at 10% 20%, rgba(36, 85, 214, 0.12), transparent 28%),
-    var(--paper);
+  background: var(--paper);
 }
 
 .workflow-grid {
@@ -1036,7 +1141,7 @@ button.text-link {
   font-family: var(--serif);
   font-size: clamp(1.7rem, 3vw, 2.6rem);
   font-weight: 600;
-  letter-spacing: -0.04em;
+  letter-spacing: 0;
   line-height: 1;
 }
 
@@ -1085,7 +1190,7 @@ button.text-link {
   font-family: var(--serif);
   font-size: clamp(2.2rem, 4.7vw, 4.5rem);
   font-weight: 500;
-  letter-spacing: -0.05em;
+  letter-spacing: 0;
   line-height: 0.98;
 }
 
@@ -1352,7 +1457,7 @@ button.text-link {
   font-family: var(--serif);
   font-size: clamp(2rem, 3.8vw, 3.3rem);
   font-weight: 550;
-  letter-spacing: -0.04em;
+  letter-spacing: 0;
   line-height: 1;
 }
 
@@ -1767,7 +1872,7 @@ button.text-link {
 .clue-row__answer input {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0;
 }
 
 .icon-button {
@@ -1853,7 +1958,7 @@ button.text-link {
   color: var(--ink-muted);
   font-size: 0.66rem;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0;
   text-transform: uppercase;
 }
 
@@ -2228,7 +2333,7 @@ button.text-link {
   font-family: var(--serif);
   font-size: clamp(2.2rem, 5vw, 4.5rem);
   font-weight: 550;
-  letter-spacing: -0.045em;
+  letter-spacing: 0;
   line-height: 1;
 }
 
@@ -2414,7 +2519,7 @@ button.text-link {
   font-family: var(--serif);
   font-size: 2.6rem;
   font-weight: 550;
-  letter-spacing: -0.045em;
+  letter-spacing: 0;
   line-height: 1;
 }
 
@@ -2788,7 +2893,7 @@ button.text-link {
   color: #a44724;
   font-size: 0.65rem;
   font-weight: 900;
-  letter-spacing: 0.1em;
+  letter-spacing: 0;
   text-transform: uppercase;
   transform: rotate(-2deg);
 }
@@ -3140,8 +3245,34 @@ button.text-link {
 
   .campaign-grid,
   .campaign-grid--three,
-  .workflow-grid {
+  .workflow-grid,
+  .sponsor-value-grid {
     grid-template-columns: 1fr;
+  }
+
+  .sponsor-value-grid article,
+  .sponsor-value-grid article:first-child,
+  .sponsor-value-grid article:last-child {
+    padding: 26px 0;
+    border-top: 1px solid var(--line);
+    border-left: 0;
+  }
+
+  .sponsor-value-grid article:first-child {
+    border-top: 0;
+  }
+
+  .sponsor-value-grid h3 {
+    margin-top: 16px;
+  }
+
+  .proof-ledger article {
+    grid-template-columns: minmax(190px, 0.75fr) minmax(0, 1.25fr);
+  }
+
+  .proof-ledger .text-link {
+    grid-column: 2;
+    width: fit-content;
   }
 
   .how-it-works {
@@ -3282,7 +3413,7 @@ button.text-link {
   }
 
   .hero-ticket-wrap {
-    width: calc(100% - 18px);
+    display: none;
   }
 
   .hero-ticket__body {
@@ -3348,6 +3479,16 @@ button.text-link {
   .workflow-grid article {
     grid-template-columns: 1fr;
     padding: 25px;
+  }
+
+  .proof-ledger article {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 22px 0;
+  }
+
+  .proof-ledger .text-link {
+    grid-column: auto;
   }
 
   .final-cta__inner {
