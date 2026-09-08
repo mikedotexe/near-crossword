@@ -25,6 +25,11 @@ The original Crossword was inspired by Coinbase Earn: learn one useful thing,
 answer a question, and receive a small onchain reward. This version turns that
 idea into infrastructure any sponsor can use.
 
+That original NEAR product has real mainnet history: 160 distinct puzzles were
+solved and 157 rewards totaling 2,623 NEAR were successfully paid between June
+2022 and January 2024. The [repeatable chain audit](md-CLAUDE-chapters/12-near-mainnet-traction.md)
+keeps this historical proof separate from traction for the new Base product.
+
 A sponsor can turn one campaign budget into many small rewards without asking
 learners to acquire gas. Base provides the public accounting layer. Private
 source material, completion evidence, email, and optional contact consent stay

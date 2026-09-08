@@ -72,6 +72,7 @@ lead with a list of protocols.
 | Sponsor review and participant screens exist | Live public synthetic demos plus gated private review/publication implementation | Sponsor funding controls, export, and reporting are incomplete |
 | Source-grounded AI drafts work | Two bounded GLM 5.1 drafts passed validation with recorded billing | Representative sponsor quality and paid x402 orchestration remain open |
 | Sponsor spend is verifiable | Escrow events, canonical indexer, reconciliation, and finalized recovery are implemented/tested | Chain receipts prove money movement, not unique humans or learning |
+| The original learn-and-earn mechanic reached mainnet users | 160 distinct NEAR mainnet puzzles were solved; 157 payouts totaling 2,623 NEAR completed | Historical legacy-product usage, not current Base users, sponsor revenue, or unique humans |
 
 ## Submission posture
 
@@ -117,11 +118,11 @@ Before submission:
    `3`; its custom-paymaster outcome is durably unknown. Campaign `3` is parked
    as immutable acceptance evidence and must not be retried. A fresh reviewed
    allocation can prove the managed CDP payout after submission readiness.
-4. Completed September 7: record public founder facts, solo team, location,
-   project age, zero-traction baseline, contact details, capital history, and the
-   CronCat adversity answer.
-5. Record a 90-120 second founder video with the sponsor problem, product demo,
-   Base proof, and next milestone. Use a stable public URL.
+4. Completed September 8: record public founder facts, solo team, location,
+   project age, current sponsor-traction baseline, legacy NEAR usage, contact
+   details, capital history, and the CronCat adversity answer.
+5. Record a 2-3 minute founder video with the sponsor problem, product demo,
+   historical proof, Base proof, and next milestone. Use a stable public URL.
 6. Review every response in the offline draft, then submit once. The application
    page does not save drafts.
 
@@ -151,5 +152,9 @@ The compact founder fact and link packet lives in
 - 2026-09-07: Use CronCat's failure after angel and venture funding as the
   adversity story. The operating lesson is to stay small, test customer pull
   early, and let repeat sponsor demand earn a larger claim.
+- 2026-09-08: Reconstructed legacy mainnet usage from FastNear receipt history.
+  Use the verified 160 solves, 157 payouts, and 2,623 NEAR total as historical
+  product evidence, never as current Base traction or unique-user counts. See
+  [chapter 12](12-near-mainnet-traction.md).
 - Open: first design partner, sponsor pricing, video URL, mainnet timing, and
   exact production pilot scope.

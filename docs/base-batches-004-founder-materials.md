@@ -45,7 +45,9 @@ Sources:
 - Team: one
 - Revenue: zero
 - Paying sponsors: zero
-- External active users: zero
+- Current external active users on the Base product: zero
+- Historical NEAR usage: 160 distinct mainnet puzzles solved; 157 successful
+  payouts totaling 2,623 NEAR from June 2022 through January 2024
 - Test USDC is not revenue or TVL.
 - Current proof: live product, deployed escrow, finalized sponsored payout,
   email-first smart-account onboarding, sponsor workflow, and reconciliation.

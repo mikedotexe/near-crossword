@@ -73,8 +73,8 @@ problem; it was accepting that investor belief and ambitious infrastructure did
 not create enough customer pull. I learned that persistence can quietly become
 attachment, and that a founder has to test the plain commercial promise early.
 That lesson shapes Crossword. I am keeping the team and product small, being
-direct about having no traction yet, and making one paid sponsor campaign with
-repeat intent the next test before treating it as a large company.
+direct about having no paying sponsor traction yet, and making one paid sponsor
+campaign with repeat intent the next test before treating it as a large company.
 
 ### Contact and team facts
 
@@ -161,6 +161,8 @@ We have built a full Base campaign and participant path:
 - Managed CDP gas sponsorship with a claim-only provider allowlist, pre-send
   database budget reservation, one-use authorization and finalized recovery.
 - Source-grounded lesson generation through NEAR AI, with human review required.
+- A legacy NEAR mainnet product with 160 distinct puzzle solves and 157
+  successful payouts totaling 2,623 NEAR between June 2022 and January 2024.
 
 On Base Sepolia, the escrow is deployed and a fresh zero-ETH Coinbase Smart
 Account has received a finalized 1 test USDC reward with sponsored gas. A fresh
@@ -172,13 +174,14 @@ CDP User Wallet acceptance is an explicit next pilot milestone.
 
 ### Current traction
 
-Pre-revenue, with one founder, zero paying sponsors, and no external active users
-yet. Test USDC is not revenue or TVL. The current evidence is product velocity:
-a live Base-first product, a deployed Sepolia escrow, a finalized sponsored
-smart-account payout, and end-to-end sponsor and learner software built in days.
-The next validation is one design-partner campaign with multiple real recipients
-and a measured repeat-purchase decision. There are no sponsor conversations to
-report yet.
+Pre-revenue, with one founder, zero paying sponsors, and no current external
+active users on the new Base product. Test USDC is not revenue or TVL. The
+original NEAR version did reach real mainnet use: its contracts recorded 160
+distinct successful puzzle solves and 157 payouts totaling 2,623 NEAR between
+June 2022 and January 2024. Those are historical winner and payout events, not
+160 unique people or current Base users. The next validation is one Base design-
+partner campaign with multiple real recipients and a measured repeat-purchase
+decision. There are no sponsor conversations to report yet.
 
 ### Dune dashboard or public smart contracts
 
@@ -189,6 +192,10 @@ report yet.
   `0x35860a8044d025b6086acbacc02a3f173520b88410fc9338c6267117dc6f1255`
 - Exact app-committed pilot funding:
   `0x4c9199cfaa7f8c138bc64da55a2ab7cddbe7a8eab77e9f7adfff99b13a1cbd99`
+- NEAR mainnet contracts: `crossword.puzzle.near` and
+  `shitzu.crossword.puzzle.near`
+- Reproducible NEAR evidence:
+  `md-CLAUDE-chapters/12-near-mainnet-traction.md`
 
 Before submission: decide whether to include the implementation repository. Do
 not imply that testnet USDC is TVL or revenue.
@@ -273,8 +280,9 @@ Base website.
 
 ## Founder video script
 
-Target length: 90-120 seconds. Record the founder on camera, then share the
-screen for the product and Base proof. Do not spend time on a protocol inventory.
+Target length: 2-3 minutes. Record the founder on camera, then share the screen
+for the product, historical evidence, and Base proof. Do not spend time on a
+protocol inventory.
 
 ### 0:00-0:20 — Problem and product
 
@@ -306,13 +314,20 @@ zero-ETH Coinbase Smart Account with sponsored gas."
 ### 1:10-1:35 — Insight and why now
 
 "Crossword started years ago from the same insight as Coinbase Earn: learning
-and a first onchain reward belong together. The larger opportunity is giving any
-company that capability with transparent campaign accounting. Base and CDP now
-make the learner experience simple enough, while smart accounts and USDC make
-micropayment distribution practical. Base is the native product; another chain
-would be a paid custom integration, not an equal option in a network menu."
+and a first onchain reward belong together. That was not just a prototype. The
+original NEAR contracts recorded 160 distinct mainnet puzzle solves and 157
+successful payouts totaling 2,623 NEAR. Now the larger opportunity is giving any
+company that capability with transparent campaign accounting."
 
-### 1:35-1:55 — Ask and next milestone
+### 1:35-1:55 — Why Base and supporting rails
+
+"Base and CDP now make the learner experience simple enough, while smart accounts
+and USDC make micropayment distribution practical. Base is the native reward
+product. NEAR AI helps turn sponsor source material into drafts for human review,
+and x402 gives us a clean way to meter campaign intelligence without touching
+the reward principal."
+
+### 1:55-2:15 — Ask and next milestone
 
 "We're applying to Base Batches to turn this working payment path into a
 repeatable sponsor product. Our next milestone is one paid design partner, one
@@ -329,7 +344,7 @@ quality, fraud, cost per useful user, and whether the sponsor buys again."
   submission claim depends on recovering its unknown payout attempt.
 - [x] Contract and transaction links open without authentication. Public-facing
   links use Base Sepolia Blockscout to avoid BaseScan's embedded-browser check.
-- [ ] Product stage and traction agree with the dated launch register.
+- [x] Product stage and traction agree with the dated launch register.
 - [ ] Video is 1-5 minutes, publicly viewable, audible, and demonstrates product.
 - [ ] Financing and program investment acknowledgements are reviewed carefully.
 - [ ] No secret, private sponsor material, learner data, or crossword answer set
