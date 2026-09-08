@@ -4,8 +4,8 @@ Status: prepared offline on 2026-09-07; not submitted. Applications close
 September 9, 2026. The [application](https://www.base.org/batches/apply) requires
 written and video material and does not save drafts.
 
-Recheck every `VERIFY:` field before submission. Keep the testnet qualifiers
-unless stronger evidence is recorded in the launch register.
+The founder video is the only required material still missing. Keep the testnet
+qualifiers unless stronger evidence is recorded in the launch register.
 
 ## Recommended application settings
 
@@ -35,9 +35,9 @@ do not need a seed phrase or ETH. Sponsors can reconcile deposits, payouts, and
 refunds against onchain escrow while completion data and optional contact
 consent stay private.
 
-Think of it as the next generation of Coinbase Earn, offered as infrastructure
-that any company can use. The crossword is our first learning format; the core
-product is understandable onboarding plus accountable micropayment distribution.
+Think of it as a small, reusable successor to Coinbase Earn that any company can
+use. The crossword is our first learning format; the core product is
+understandable onboarding plus accountable micropayment distribution.
 
 ### Website/Product URL
 
@@ -67,21 +67,19 @@ cloud systems for organizations ranging from startups to Fortune 500 teams.
 
 ### Hardest problem or adversity; how you navigated it and what you learned
 
-`VERIFY: Use this product-grounded answer or replace it with a more personal one.`
-
-During Crossword's Base Sepolia acceptance work, one hosted wallet path rejected
-the target chain and a later sponsored transaction returned an unknown outcome.
-The tempting response was to keep retrying. Instead, I stopped, separated the
-wallet and payment proofs, preserved the uncertain campaign as audit evidence,
-and built reconciliation that fails closed. That produced a finalized payout to
-a fresh zero-ETH smart account without risking a duplicate reward. I learned to
-treat ambiguity in payment systems as a state to model, not an error message to
-wish away.
+My previous startup, CronCat, raised money from angel investors and a venture
+fund, but ultimately failed. The difficult part was not a single technical
+problem; it was accepting that investor belief and ambitious infrastructure did
+not create enough customer pull. I learned that persistence can quietly become
+attachment, and that a founder has to test the plain commercial promise early.
+That lesson shapes Crossword. I am keeping the team and product small, being
+direct about having no traction yet, and making one paid sponsor campaign with
+repeat intent the next test before treating it as a large company.
 
 ### Contact and team facts
 
-- Email: `mikedotexe@gmail.com` (`VERIFY: preferred application email`)
-- Telegram: `VERIFY: handle or URL`
+- Email: `mikedotexe@gmail.com`
+- Telegram: `@mikedotexe`
 - X: `https://x.com/mikedotexe`
 - LinkedIn: `https://www.linkedin.com/in/mikerobertpurvis`
 - Team size: **1**
@@ -179,8 +177,8 @@ yet. Test USDC is not revenue or TVL. The current evidence is product velocity:
 a live Base-first product, a deployed Sepolia escrow, a finalized sponsored
 smart-account payout, and end-to-end sponsor and learner software built in days.
 The next validation is one design-partner campaign with multiple real recipients
-and a measured repeat-purchase decision. `VERIFY: add any real sponsor
-conversations that happen before submission.`
+and a measured repeat-purchase decision. There are no sponsor conversations to
+report yet.
 
 ### Dune dashboard or public smart contracts
 
@@ -197,11 +195,11 @@ not imply that testnet USDC is TVL or revenue.
 
 ### Capital raised and runway
 
-`VERIFY: confirm whether Crossword has raised any capital or received a grant.`
-
-Suggested answer if accurate: Crossword is bootstrapped and has raised no outside
-capital. It is a solo project with low current cash burn; the primary investment
-has been founder time and the existing infrastructure used to ship the MVP.
+Crossword is bootstrapped and has raised no outside capital. It is a solo project
+with low current cash burn; the primary investment has been founder time and the
+existing infrastructure used to ship the MVP. I previously raised money from a
+couple of angel investors and a venture fund for CronCat, a separate web3 startup
+that ultimately failed. None of that capital belongs to Crossword.
 
 ### Fundraising goals and VC plans
 
@@ -256,12 +254,18 @@ around Base: any sponsor can fund a useful learning campaign; any learner can
 receive an onchain dollar without first becoming a wallet expert; and anyone can
 inspect how the reward budget moved.
 
+This is intentionally a small, legible product. We are not claiming to reinvent
+education or prove that somebody learned. We think sponsor-funded lessons plus
+accountable micropayments are useful, and the next job is to prove that modest
+claim with one real sponsor and a group of real learners.
+
 The technology is already beyond a mockup, but we are early enough for Batches
 to matter. Our next eight-week shape is concrete: ship the first mainnet design-
 partner campaigns, add sponsor reporting and private opt-in export, measure
 fraud and repeat intent, and turn campaign setup into a paid, repeatable motion.
 
-Pitch deck URL: `VERIFY: optional public deck URL`
+Pitch deck URL: none. The live product, sponsor demo, and public transaction proof
+are the current application materials.
 
 ### Referral
 
@@ -317,7 +321,7 @@ quality, fraud, cost per useful user, and whether the sponsor buys again."
 
 ## Final submission checklist
 
-- [ ] Every `VERIFY:` field is resolved with a factual answer.
+- [ ] Founder video URL is added.
 - [x] `crossword.xyz` shows the Base-first product and both demo URLs return 200.
 - [x] CDP production domain and Base Sepolia managed Paymaster are configured;
   the production participant and sponsorship gates remain disabled.

@@ -1,7 +1,7 @@
 # Base Batches 004 founder materials
 
 Prepared September 7, 2026. This is the compact fact and link packet for the
-application and founder video. Verify personal details before submission.
+application and founder video.
 
 ## Founder snapshot
 
@@ -12,8 +12,8 @@ application and founder video. Verify personal details before submission.
 - GitHub: https://github.com/mikedotexe
 - X: https://x.com/mikedotexe
 - LinkedIn: https://www.linkedin.com/in/mikerobertpurvis
-- Application email: `mikedotexe@gmail.com` (verify preference)
-- Telegram: verify handle or URL
+- Application email: `mikedotexe@gmail.com`
+- Telegram: `@mikedotexe`
 
 Public profile material supports this short background:
 
@@ -68,6 +68,11 @@ https://docs.cdp.coinbase.com/paymaster/introduction/welcome
 
 ## Financing and outcome
 
+Crossword is bootstrapped and has raised no outside capital. Mike previously
+raised money from a couple of angel investors and a venture fund for CronCat, a
+separate web3 startup that ultimately failed. None of that capital belongs to
+Crossword.
+
 Near-term plan: stay lean, prove paid sponsor demand, and finance development
 through campaign revenue. Consider strategic capital when it materially speeds
 up Base distribution.
@@ -82,8 +87,5 @@ It is the candid best-case destination for a Base-native learn-and-earn product.
 
 ## Final human checks
 
-1. Confirm the application email and Telegram handle.
-2. Confirm whether Crossword ever received outside capital or a grant.
-3. Approve the product-grounded adversity answer or replace it personally.
-4. Record and publish the 90-120 second founder video.
-5. Add only sponsor conversations that actually occur before submission.
+1. Record and publish the 90-120 second founder video.
+2. Add a sponsor conversation only if one actually occurs before submission.
