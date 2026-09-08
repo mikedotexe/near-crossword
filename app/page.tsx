@@ -24,7 +24,8 @@ export default function HomePage() {
             <p className="hero__lede">
               Sponsors publish a short, source-grounded lesson and fund a pool
               of small USDC rewards. Learners read, solve, and receive their
-              reward through an account that feels like email.
+              full advertised reward through an account that feels like email.
+              On Base, they never need ETH for gas.
             </p>
             <div className="hero__actions">
               <Link className="button button--blue" href="/learn/practice">
@@ -125,10 +126,11 @@ export default function HomePage() {
             </article>
             <article>
               <span>02</span>
-              <h3>Distribute at campaign scale</h3>
+              <h3>Keep every reward whole</h3>
               <p>
-                A $10,000 sponsor budget can become thousands of fixed USDC
-                rewards without asking each learner to acquire gas.
+                On Base, learners receive the full advertised USDC amount.
+                Sponsored gas and Crossword fees stay outside the prefunded
+                reward pool.
               </p>
             </article>
             <article>
@@ -245,17 +247,18 @@ export default function HomePage() {
         <div className="shell">
           <SectionHeading
             eyebrow="Made for the open internet"
-            title="Base is the reward rail. The rest of the stack earns its place."
+            title="Base is the product rail. Other networks would be integrations."
           />
           <div className="workflow-grid">
             <article>
               <span className="workflow-grid__number">A</span>
               <div>
-                <p className="eyebrow">Base-native distribution</p>
-                <h3>Stable rewards without wallet homework.</h3>
+                <p className="eyebrow">Base-first economics</p>
+                <h3>The best experience belongs on Base.</h3>
                 <p>
-                  USDC settles on Base, CDP supplies familiar onboarding, and a
-                  narrowly scoped paymaster sponsors only valid reward claims.
+                  Base campaigns have no network integration fee. Learners
+                  receive the full USDC reward, while a narrowly scoped CDP
+                  paymaster sponsors only valid claims.
                 </p>
                 <div className="mini-route">
                   <span>Email</span>

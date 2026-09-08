@@ -19,7 +19,7 @@ reporting for sponsors.
 
 ## Why Base is central
 
-Base is the default reward and accounting network for the new product:
+Base is the native reward and accounting network for the new product:
 
 - Sponsor principal is USDC on Base.
 - `LearningRewards` enforces funded campaign terms, one-time reward slots,
@@ -28,6 +28,16 @@ Base is the default reward and accounting network for the new product:
   accounts. A narrowly scoped paymaster sponsors only an approved escrow claim.
 - Public contract events provide the independently inspectable part of a
   sponsor report. Completion, email, and optional contact consent remain private.
+- Learners receive the full advertised USDC reward. Sponsored gas and product
+  fees never reduce the prefunded reward pool.
+- Base campaigns carry no chain-integration surcharge. A sponsor-requested
+  network expansion is a paid custom integration with separate settlement and
+  gas requirements.
+
+This is the durable Base-first product rule: Base receives the simplest and least
+expensive experience. Coinbase Developer Platform's managed paymaster currently
+supports Base and Base Sepolia, which makes gas sponsorship a real Base product
+advantage rather than a marketing claim.
 
 NEAR AI and x402 support the product without competing with this story. NEAR AI
 creates source-grounded drafts for human review. x402 is the intended metering
@@ -107,8 +117,9 @@ Before submission:
    `3`; its custom-paymaster outcome is durably unknown. Campaign `3` is parked
    as immutable acceptance evidence and must not be retried. A fresh reviewed
    allocation can prove the managed CDP payout after submission readiness.
-4. Record real stage, team, traction, financing, location, and contact facts from
-   Mike. Never infer them from the repository.
+4. Completed in draft September 7: record public founder facts, solo team,
+   location, project age, and zero-traction baseline. Mike must still verify the
+   application email, Telegram, capital history, and adversity answer.
 5. Record a 90-120 second founder video with the sponsor problem, product demo,
    Base proof, and next milestone. Use a stable public URL.
 6. Review every response in the offline draft, then submit once. The application
@@ -116,6 +127,8 @@ Before submission:
 
 The prepared responses and video script live in
 [`docs/base-batches-004-application-draft.md`](../docs/base-batches-004-application-draft.md).
+The compact founder fact and link packet lives in
+[`docs/base-batches-004-founder-materials.md`](../docs/base-batches-004-founder-materials.md).
 
 ## Decision log
 
@@ -130,5 +143,10 @@ The prepared responses and video script live in
   honest MVP demo, application, and founder video before another live campaign.
 - 2026-09-07: Replace the cross-like pixel mark with a four-stroke crossword
   grid and tighten sponsor-form density for desktop submission demos.
-- Open: first design partner, pricing, traction, company/founder facts, financing,
-  video URL, mainnet timing, and exact production pilot scope.
+- 2026-09-07: Make Base structurally preferential. Learners receive the entire
+  advertised reward, campaign fees stay outside escrow principal, Base carries
+  no chain-integration surcharge, and other networks are paid custom work.
+- 2026-09-07: Treat strategic acquisition by Coinbase as a candid long-term
+  ambition inspired by Earn.com, not as a substitute for financing or revenue.
+- Open: first design partner, sponsor pricing, verified capital history,
+  Telegram, video URL, mainnet timing, and exact production pilot scope.

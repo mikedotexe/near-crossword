@@ -14,6 +14,15 @@ test("Base-first home leads to both public product demos", async ({
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Crossword", level: 1 })).toBeVisible();
   await expect(page.getByText("Sponsor-funded learning / Base")).toBeVisible();
+  await expect(
+    page.getByRole("heading", {
+      name: "The best experience belongs on Base.",
+      level: 3,
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(/Base campaigns have no network integration fee/),
+  ).toBeVisible();
   await expect(page.getByRole("link", { name: "Try a lesson", exact: true }).first()).toHaveAttribute("href", "/learn/practice");
   await expect(page.getByRole("link", { name: "See the sponsor workflow", exact: true })).toHaveAttribute("href", "/learn/sponsor-demo");
   const rail = await page.locator(".rail-strip").boundingBox();
