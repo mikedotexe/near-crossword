@@ -104,9 +104,9 @@ Before submission:
    reviewed server settings in Render only when intentionally staging the pilot;
    production sponsorship remains disabled.
 3. Completed September 7: finalize, bind and allocate exact-commitment campaign
-   `3`; its custom-paymaster outcome is durably unknown. Use a fresh reviewed
-   allocation to prove the new managed CDP payout or preserve the current
-   qualifier in the submission.
+   `3`; its custom-paymaster outcome is durably unknown. Campaign `3` is parked
+   as immutable acceptance evidence and must not be retried. A fresh reviewed
+   allocation can prove the managed CDP payout after submission readiness.
 4. Record real stage, team, traction, financing, location, and contact facts from
    Mike. Never infer them from the repository.
 5. Record a 90-120 second founder video with the sponsor problem, product demo,
@@ -125,5 +125,10 @@ The prepared responses and video script live in
   network. Present x402 and NEAR AI as supporting infrastructure.
 - 2026-09-07: Keep Crossword as the product name and describe the commercial
   surface as verifiable sponsor-funded learning rewards.
+- 2026-09-07: Park Campaign `3`. The unknown custom-paymaster attempt is useful
+  evidence for fail-closed operations, not a submission blocker. Prioritize the
+  honest MVP demo, application, and founder video before another live campaign.
+- 2026-09-07: Replace the cross-like pixel mark with a four-stroke crossword
+  grid and tighten sponsor-form density for desktop submission demos.
 - Open: first design partner, pricing, traction, company/founder facts, financing,
   video URL, mainnet timing, and exact production pilot scope.

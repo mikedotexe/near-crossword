@@ -18,11 +18,11 @@ evidence is recorded in the launch register.
 - Public Base Sepolia contract:
   `0x77fdCEF7d08c54eD2a87FD54fBf24a660fa2A304`
 - Contract explorer:
-  `https://sepolia.basescan.org/address/0x77fdCEF7d08c54eD2a87FD54fBf24a660fa2A304`
+  `https://base-sepolia.blockscout.com/address/0x77fdCEF7d08c54eD2a87FD54fBf24a660fa2A304`
 - Finalized sponsored payout:
-  `https://sepolia.basescan.org/tx/0x35860a8044d025b6086acbacc02a3f173520b88410fc9338c6267117dc6f1255`
+  `https://base-sepolia.blockscout.com/tx/0x35860a8044d025b6086acbacc02a3f173520b88410fc9338c6267117dc6f1255`
 - Exact app-committed pilot funding:
-  `https://sepolia.basescan.org/tx/0x4c9199cfaa7f8c138bc64da55a2ab7cddbe7a8eab77e9f7adfff99b13a1cbd99`
+  `https://base-sepolia.blockscout.com/tx/0x4c9199cfaa7f8c138bc64da55a2ab7cddbe7a8eab77e9f7adfff99b13a1cbd99`
 
 ## Company
 
@@ -154,10 +154,11 @@ We have built a full Base campaign and participant path:
 
 On Base Sepolia, the escrow is deployed and a fresh zero-ETH Coinbase Smart
 Account has received a finalized 1 test USDC reward with sponsored gas. A fresh
-CDP email account also created its participant smart account locally. A new
+CDP email account also created its participant smart account locally. A separate
 one-slot campaign commits to the exact sponsor-approved application revision and
-is funded, finalized, and locally bound for the final combined CDP User Wallet
-reward acceptance, which remains in progress.
+is funded, finalized, and locally bound. Its first payout attempt returned an
+unknown outcome and was not retried. It remains audit evidence; full combined
+CDP User Wallet acceptance is an explicit next pilot milestone.
 
 ### Current traction
 
@@ -293,7 +294,10 @@ user, and whether the sponsor buys again."
 - [x] `crossword.xyz` shows the Base-first product and both demo URLs return 200.
 - [x] CDP production domain and Base Sepolia managed Paymaster are configured;
   the production participant and sponsorship gates remain disabled.
-- [ ] Contract and transaction links open without authentication.
+- [x] Campaign `3` is parked as immutable acceptance evidence; no retry or
+  submission claim depends on recovering its unknown payout attempt.
+- [x] Contract and transaction links open without authentication. Public-facing
+  links use Base Sepolia Blockscout to avoid BaseScan's embedded-browser check.
 - [ ] Product stage and traction agree with the dated launch register.
 - [ ] Video is 1-5 minutes, publicly viewable, audible, and demonstrates product.
 - [ ] Financing and program investment acknowledgements are reviewed carefully.
