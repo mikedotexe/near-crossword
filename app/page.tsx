@@ -296,8 +296,8 @@ export default function HomePage() {
         <div className="shell final-cta__inner">
           <PixelMark inverse />
           <div>
-            <p className="eyebrow">The next generation of learn and earn</p>
-            <h2>Make every reward easy to receive and easy to account for.</h2>
+            <p className="eyebrow">A practical take on learn and earn</p>
+            <h2>Make a small reward easy to receive and easy to account for.</h2>
           </div>
           <Link className="button button--paper" href="/learn/sponsor-demo">
             Explore the pilot

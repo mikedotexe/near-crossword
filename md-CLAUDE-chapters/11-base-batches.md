@@ -117,9 +117,9 @@ Before submission:
    `3`; its custom-paymaster outcome is durably unknown. Campaign `3` is parked
    as immutable acceptance evidence and must not be retried. A fresh reviewed
    allocation can prove the managed CDP payout after submission readiness.
-4. Completed in draft September 7: record public founder facts, solo team,
-   location, project age, and zero-traction baseline. Mike must still verify the
-   application email, Telegram, capital history, and adversity answer.
+4. Completed September 7: record public founder facts, solo team, location,
+   project age, zero-traction baseline, contact details, capital history, and the
+   CronCat adversity answer.
 5. Record a 90-120 second founder video with the sponsor problem, product demo,
    Base proof, and next milestone. Use a stable public URL.
 6. Review every response in the offline draft, then submit once. The application
@@ -148,5 +148,8 @@ The compact founder fact and link packet lives in
   no chain-integration surcharge, and other networks are paid custom work.
 - 2026-09-07: Treat strategic acquisition by Coinbase as a candid long-term
   ambition inspired by Earn.com, not as a substitute for financing or revenue.
-- Open: first design partner, sponsor pricing, verified capital history,
-  Telegram, video URL, mainnet timing, and exact production pilot scope.
+- 2026-09-07: Use CronCat's failure after angel and venture funding as the
+  adversity story. The operating lesson is to stay small, test customer pull
+  early, and let repeat sponsor demand earn a larger claim.
+- Open: first design partner, sponsor pricing, video URL, mainnet timing, and
+  exact production pilot scope.
