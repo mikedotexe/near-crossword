@@ -4,9 +4,8 @@ Status: prepared offline on 2026-09-07; not submitted. Applications close
 September 9, 2026. The [application](https://www.base.org/batches/apply) requires
 written and video material and does not save drafts.
 
-Replace every `MIKE:` field with a verified answer before submission. Recheck
-product URLs after deployment and keep the testnet qualifiers unless stronger
-evidence is recorded in the launch register.
+Recheck every `VERIFY:` field before submission. Keep the testnet qualifiers
+unless stronger evidence is recorded in the launch register.
 
 ## Recommended application settings
 
@@ -50,34 +49,44 @@ passed the launch-candidate browser suite before deployment.
 
 ### X URL
 
-`MIKE: company or product X URL`
+`https://x.com/mikedotexe`
 
 ## Team
 
 ### Founder name and role
 
-`MIKE: full name — Founder / role wording`
+Mike Purvis, solo founder and engineer.
 
 ### Brief previous professional experiences
 
-`MIKE: 2-4 concise sentences. Prioritize shipped payment, crypto, protocol,
-developer-tool, founder, or distribution work that explains why you can win.`
+I was an early NEAR Protocol engineer, joining nine months before mainnet, and
+have spent roughly six years building blockchain infrastructure and developer
+products. I now work with FastNear and independently operate an x402 facilitator
+across Base and NEAR. Before crypto, I shipped web, mobile, payment-adjacent, and
+cloud systems for organizations ranging from startups to Fortune 500 teams.
 
 ### Hardest problem or adversity; how you navigated it and what you learned
 
-`MIKE: personal factual answer. Aim for one specific situation, the decision you
-made, the measurable result, and the operating lesson you still use. Do not use
-the recent wallet compromise unless you genuinely want that to represent you.`
+`VERIFY: Use this product-grounded answer or replace it with a more personal one.`
+
+During Crossword's Base Sepolia acceptance work, one hosted wallet path rejected
+the target chain and a later sponsored transaction returned an unknown outcome.
+The tempting response was to keep retrying. Instead, I stopped, separated the
+wallet and payment proofs, preserved the uncertain campaign as audit evidence,
+and built reconciliation that fails closed. That produced a finalized payout to
+a fresh zero-ETH smart account without risking a duplicate reward. I learned to
+treat ambiguity in payment systems as a state to model, not an error message to
+wish away.
 
 ### Contact and team facts
 
-- Email: `MIKE: email`
-- Telegram: `MIKE: handle or URL`
-- X: `MIKE: personal X URL`
-- LinkedIn: `MIKE: LinkedIn URL`
-- Team size: `MIKE: confirm number`
-- Primary location: `MIKE: city, region, country`
-- Founder video URL: `MIKE: public Loom/YouTube/other URL`
+- Email: `mikedotexe@gmail.com` (`VERIFY: preferred application email`)
+- Telegram: `VERIFY: handle or URL`
+- X: `https://x.com/mikedotexe`
+- LinkedIn: `https://www.linkedin.com/in/mikerobertpurvis`
+- Team size: **1**
+- Primary location: **Portland, Oregon, United States**
+- Founder video URL: `VERIFY: public Loom/YouTube/other URL`
 
 ## Product And Traction
 
@@ -116,8 +125,11 @@ from the reward pool that was promised to learners.
 
 ### How long have you been working on it?
 
-`MIKE: choose the form's accurate range and add one sentence distinguishing the
-original Crossword project from the current sponsor-learning pivot.`
+Recommended selection: **4+ years**.
+
+The original NEAR Crossword repository dates to May 2021. The current
+sponsor-funded, Base-first product is a new September 2026 pivot that reused the
+original learn-and-earn insight while replacing the product and payment model.
 
 ### Current stage
 
@@ -162,17 +174,13 @@ CDP User Wallet acceptance is an explicit next pilot milestone.
 
 ### Current traction
 
-`MIKE: supply exact active users, paying users, revenue, TVL/reward volume, and
-sponsor conversations. Use zero or pre-revenue where accurate. Do not count
-automated tests, the developer, or test USDC as user/revenue traction.`
-
-Suggested honest opening if still accurate:
-
-> Pre-revenue and entering design-partner pilots. The current evidence is product
-> velocity rather than market traction: a working Base Sepolia contract, a
-> finalized sponsored smart-account payout, and end-to-end sponsor/learner
-> software built in several days. Our next validation is one sponsor campaign
-> with multiple real recipients and a measured repeat-purchase decision.
+Pre-revenue, with one founder, zero paying sponsors, and no external active users
+yet. Test USDC is not revenue or TVL. The current evidence is product velocity:
+a live Base-first product, a deployed Sepolia escrow, a finalized sponsored
+smart-account payout, and end-to-end sponsor and learner software built in days.
+The next validation is one design-partner campaign with multiple real recipients
+and a measured repeat-purchase decision. `VERIFY: add any real sponsor
+conversations that happen before submission.`
 
 ### Dune dashboard or public smart contracts
 
@@ -189,30 +197,47 @@ not imply that testnet USDC is TVL or revenue.
 
 ### Capital raised and runway
 
-`MIKE: exact capital raised, source/type, monthly burn if comfortable, and runway.
-If bootstrapped, say so plainly.`
+`VERIFY: confirm whether Crossword has raised any capital or received a grant.`
+
+Suggested answer if accurate: Crossword is bootstrapped and has raised no outside
+capital. It is a solo project with low current cash burn; the primary investment
+has been founder time and the existing infrastructure used to ship the MVP.
 
 ### Fundraising goals and VC plans
 
-`MIKE: confirm intended raise and timing. Suggested structure: amount, 12-18
-month milestones, and why accelerator timing helps. Do not invent a target.`
+I am not currently running a conventional VC process. The immediate goal is to
+prove sponsor demand, run paid Base campaigns, and finance the product through
+campaign revenue. I would consider strategic capital that materially accelerates
+distribution on Base. The long-term dream is for Crossword to become useful
+enough to Coinbase that acquisition is a natural outcome, echoing Coinbase's
+acquisition of Earn.com. That is an ambition, not a dependency in the operating
+plan.
 
 ## Why Base
 
 ### Why do you want to join Base Batches?
 
-Base Batches is unusually aligned with the problem we are solving: making small
-onchain payments useful to ordinary people. We want Base's product and go-to-
-market support to turn a technically working reward rail into a repeatable
-sponsor business, then prove it with design partners and measurable campaigns.
+Crossword is built around a product truth that Base makes possible: a person's
+first onchain reward can feel like email and arrive whole, without gas or wallet
+homework. We want Base's product and go-to-market support to turn that working
+payment rail into a repeatable sponsor business with measurable campaigns.
 
 ### What part of the product is onchain or uses Base?
 
-Base is the default reward and accounting network. Sponsors prefund USDC into a
-Base escrow whose terms fix the reward amount, claim cap, campaign window,
-eligibility signer, and refund deadline. Every payout and refund emits a public
-record that can be reconciled to the sponsor's budget. Participants receive USDC
-in CDP smart accounts, and a scoped paymaster covers only valid reward claims.
+Base is the native reward and accounting network, not one option in a chain
+selector. Sponsors prefund USDC into a Base escrow whose terms fix the reward
+amount, claim cap, campaign window, eligibility signer, and refund deadline.
+Every payout and refund emits a public record that can be reconciled to the
+sponsor's budget. Participants receive USDC in CDP smart accounts, and a scoped
+paymaster covers only valid reward claims.
+
+That choice also defines the economics. A learner on Base receives the full
+advertised reward and never pays gas. Crossword's campaign and reporting fee is
+separate from sponsor principal, and Base campaigns carry no chain-integration
+surcharge. A future sponsor that insists on another network would pay for a
+custom integration and provide its settlement and gas infrastructure. Base gets
+the simplest and least expensive product because CDP's managed paymaster and
+smart-account stack make that experience possible.
 
 Source material, completion evidence, email, and optional contact consent remain
 offchain for privacy. The application authorizes eligibility; the contract
@@ -236,11 +261,11 @@ to matter. Our next eight-week shape is concrete: ship the first mainnet design-
 partner campaigns, add sponsor reporting and private opt-in export, measure
 fraud and repeat intent, and turn campaign setup into a paid, repeatable motion.
 
-Pitch deck URL: `MIKE: optional public deck URL`
+Pitch deck URL: `VERIFY: optional public deck URL`
 
 ### Referral
 
-`MIKE: exact person/source or "Base website" if that is accurate.`
+Base website.
 
 ## Founder video script
 
@@ -249,7 +274,7 @@ screen for the product and Base proof. Do not spend time on a protocol inventory
 
 ### 0:00-0:20 — Problem and product
 
-"I'm `MIKE: name`, founder of Crossword. Companies spend real money teaching and
+"I'm Mike Purvis, the solo founder of Crossword. Companies spend real money teaching and
 acquiring users, but reward distribution is opaque and crypto onboarding often
 asks people to manage a wallet and gas before they understand the product.
 Crossword turns one sponsor budget into many small, verifiable learning rewards."
@@ -261,7 +286,8 @@ Show `crossword.xyz/learn/practice`.
 "A learner reads a two-minute, source-grounded lesson and solves a small
 crossword. In a funded campaign, email verification creates their CDP smart
 account behind the scenes. They never need a seed phrase or ETH, and the reward
-is USDC on Base."
+is USDC on Base. They receive the full advertised amount because gas and our
+campaign fee stay outside the reward pool."
 
 ### 0:45-1:10 — Sponsor and proof
 
@@ -279,18 +305,19 @@ zero-ETH Coinbase Smart Account with sponsored gas."
 and a first onchain reward belong together. The larger opportunity is giving any
 company that capability with transparent campaign accounting. Base and CDP now
 make the learner experience simple enough, while smart accounts and USDC make
-micropayment distribution practical."
+micropayment distribution practical. Base is the native product; another chain
+would be a paid custom integration, not an equal option in a network menu."
 
 ### 1:35-1:55 — Ask and next milestone
 
 "We're applying to Base Batches to turn this working payment path into a
-repeatable sponsor product. Our next milestone is `MIKE: precise design-partner
-and campaign target`, then measuring completion quality, fraud, cost per useful
-user, and whether the sponsor buys again."
+repeatable sponsor product. Our next milestone is one paid design partner, one
+mainnet campaign, and at least 100 real completions, then measuring completion
+quality, fraud, cost per useful user, and whether the sponsor buys again."
 
 ## Final submission checklist
 
-- [ ] Every `MIKE:` field is resolved with a factual answer.
+- [ ] Every `VERIFY:` field is resolved with a factual answer.
 - [x] `crossword.xyz` shows the Base-first product and both demo URLs return 200.
 - [x] CDP production domain and Base Sepolia managed Paymaster are configured;
   the production participant and sponsorship gates remain disabled.
