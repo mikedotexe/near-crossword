@@ -39,7 +39,7 @@ before(async () => {
   for (let pass = 0; pass < 2; pass++) {
     const migrated = spawnSync(process.execPath, ["scripts/migrate-v2.mjs"], { env: { ...process.env, DATABASE_URL: url.toString() }, encoding: "utf8", timeout: 30000 });
     assert.equal(migrated.status, 0, "Participant migrations must succeed");
-    assert.equal(migrated.stdout.split(pass ? "Already applied " : "Applied ").length - 1, 13);
+    assert.equal(migrated.stdout.split(pass ? "Already applied " : "Applied ").length - 1, 15);
   }
   Object.assign(process.env, { DATABASE_URL: url.toString(), NEXTAUTH_URL: origin, BASE_PARTICIPANT_ENABLED: "true", BASE_CLAIM_ISSUANCE_ENABLED: "false",
     V2_DATABASE_SSL: "disable", V2_TRUSTED_CLIENT_IP_HEADER: "x-real-ip", V2_FUNDING_MODE: "direct", NODE_ENV: "test" });
@@ -152,6 +152,25 @@ test("wallet expiry or failed verification allocates nothing; lost signing respo
 
 test("only finalized matching RewardPaid events recover as paid; HTTP retries return the receipt without signing", async () => {
   const ctx = await setup(); const authorized = await ctx.issue(); const claim = authorized.typedData.message;
+  await pool.query(
+    `INSERT INTO base_gas_sponsorships
+       (allocation_id, signer_epoch, digest, policy_hash, token_hash, expires_at,
+        operation_identity, reserved_wei, attempts, sponsorship_mode,
+        managed_attempt_id, managed_state, managed_user_operation_hash,
+        managed_updated_at)
+     VALUES ($1, $2, $3, $4, $5, NOW() + INTERVAL '10 minutes', $6, 1000,
+             1, 'CDP_MANAGED', $7, 'SUBMITTED', $8, NOW())`,
+    [
+      authorized.allocationId,
+      claim.signerEpoch,
+      authorized.digest,
+      "a".repeat(64),
+      "b".repeat(64),
+      "c".repeat(64),
+      randomUUID(),
+      `0x${"d".repeat(64)}`,
+    ],
+  );
   const block = ctx.blocks.get(11n)!;
   // Reorg the previously empty unfinalized block to introduce the synthetic payment.
   block.hash = testHash(1011); ctx.blocks.get(12n)!.parentHash = block.hash; ctx.blocks.get(12n)!.hash = testHash(1012);
@@ -164,6 +183,13 @@ test("only finalized matching RewardPaid events recover as paid; HTTP retries re
   ctx.control.finalized = 11n; await ctx.indexer.sync();
   const paid = await ctx.recovery.get(learner, ctx.review.id);
   assert.equal(paid.status, "PAID"); assert.ok("receipt" in paid); assert.equal(paid.receipt?.blockHash, block.hash);
+  const managed = await pool.query(
+    `SELECT managed_state, managed_transaction_hash
+     FROM base_gas_sponsorships WHERE allocation_id = $1`,
+    [authorized.allocationId],
+  );
+  assert.equal(managed.rows[0].managed_state, "FINALIZED");
+  assert.equal(managed.rows[0].managed_transaction_hash, paid.receipt?.transactionHash);
   const privateGet = await ctx.handlers.recovery(request("GET"), ctx.context);
   assert.equal(privateGet.status, 200); assert.equal(privateGet.headers.get("cache-control"), "no-store");
   const body = await privateGet.json(); assert.equal(body.status, "PAID");

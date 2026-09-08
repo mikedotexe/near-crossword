@@ -248,44 +248,52 @@ button.text-link {
 }
 
 .pixel-mark {
-  display: inline-grid;
+  position: relative;
+  display: inline-block;
   width: 86px;
   height: 86px;
-  grid-template: repeat(4, 1fr) / repeat(4, 1fr);
   flex: 0 0 auto;
+  transform: rotate(-1deg);
 }
 
 .pixel-mark i {
+  position: absolute;
   display: block;
   background: var(--blue);
+  transform-origin: center;
 }
 
 .pixel-mark i:nth-child(1) {
-  grid-area: 1 / 2;
+  top: 1%;
+  bottom: 1%;
+  left: 25%;
+  width: 11%;
+  transform: rotate(1.5deg);
 }
 
 .pixel-mark i:nth-child(2) {
-  grid-area: 2 / 1;
+  top: 0;
+  bottom: 0;
+  right: 24%;
+  width: 11%;
+  transform: rotate(-2deg);
 }
 
 .pixel-mark i:nth-child(3) {
-  grid-area: 2 / 2;
+  top: 25%;
+  right: 1%;
+  left: 1%;
+  height: 11%;
+  background: var(--orange);
+  transform: rotate(-1.5deg);
 }
 
 .pixel-mark i:nth-child(4) {
-  grid-area: 2 / 3;
-}
-
-.pixel-mark i:nth-child(5) {
-  grid-area: 3 / 2;
-}
-
-.pixel-mark i:nth-child(6) {
-  grid-area: 3 / 4;
-}
-
-.pixel-mark i:nth-child(7) {
-  grid-area: 4 / 2;
+  right: 0;
+  bottom: 24%;
+  left: 0;
+  height: 11%;
+  transform: rotate(1deg);
 }
 
 .pixel-mark--compact {
@@ -295,6 +303,10 @@ button.text-link {
 
 .pixel-mark--inverse i {
   background: var(--acid);
+}
+
+.pixel-mark--inverse i:nth-child(3) {
+  background: var(--orange);
 }
 
 .site-header {

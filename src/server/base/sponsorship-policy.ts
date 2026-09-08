@@ -262,10 +262,9 @@ export function validatePaymasterResult(
   };
 }
 
-export function sponsorshipConfigurationFromEnvironment() {
+export function sponsorshipPolicyFromEnvironment() {
   if (
-    process.env.BASE_SPONSORED_GAS_ENABLED !== "true" ||
-    process.env.BASE_PAYMASTER_PROXY_ENABLED !== "true"
+    process.env.BASE_SPONSORED_GAS_ENABLED !== "true"
   )
     sponsorshipUnavailable();
   try {
@@ -313,6 +312,17 @@ export function sponsorshipConfigurationFromEnvironment() {
       ),
     };
     if (policy.maxOperationWei > policy.totalBudgetWei) throw new Error();
+    return policy;
+  } catch {
+    sponsorshipUnavailable();
+  }
+}
+
+export function sponsorshipConfigurationFromEnvironment() {
+  if (process.env.BASE_PAYMASTER_PROXY_ENABLED !== "true")
+    sponsorshipUnavailable();
+  try {
+    const policy = sponsorshipPolicyFromEnvironment();
     const url = new URL(process.env.BASE_PAYMASTER_UPSTREAM_URL || "");
     if (
       url.protocol !== "https:" ||

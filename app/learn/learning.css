@@ -696,6 +696,30 @@ body:has(.learning) .skip-link:not(:focus) {
   margin-top: 18px;
   font-size: 14px;
 }
+@media (min-width: 851px) {
+  .learn-editor {
+    width: min(100%, 980px);
+  }
+  .learn-editor input,
+  .learn-editor textarea,
+  .learn-editor select {
+    padding: 8px 10px;
+    font-size: 14px;
+  }
+  .learn-editor select {
+    min-height: 40px;
+  }
+  .learn-form-pair {
+    grid-template-columns: repeat(2, minmax(260px, 420px));
+    justify-content: start;
+  }
+  .learn-editor-row > label {
+    max-width: 760px;
+  }
+  .learn-review .learn-form-section label {
+    max-width: 360px;
+  }
+}
 @media (max-width: 850px) {
   .learn-shell {
     width: calc(100% - 40px);

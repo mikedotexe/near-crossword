@@ -24,7 +24,7 @@ before(async () => {
       env: { ...process.env, DATABASE_URL: url.toString() }, encoding: "utf8", timeout: 30000,
     });
     assert.equal(migrated.status, 0, "Isolated migrations must succeed");
-    assert.equal(migrated.stdout.split(pass === 0 ? "Applied " : "Already applied ").length - 1, 13);
+    assert.equal(migrated.stdout.split(pass === 0 ? "Applied " : "Already applied ").length - 1, 15);
   }
 });
 beforeEach(async () => { await pool.query("TRUNCATE base_chain_deployments CASCADE"); });
@@ -159,6 +159,30 @@ test("issuance reader requires a fresh healthy ledger at the exact finalized sna
   await ctx.indexer.sync(); ctx.blocks.get(11n)!.hash = testHash(9911);
   await assert.rejects(ctx.indexer.sync(), { code: "BASE_FINALITY_CONFLICT" });
   await assert.rejects(guarded.readFinalizedCampaign(ctx.base, AbortSignal.timeout(1000)), { code: "BASE_ACCOUNTING_NOT_READY" });
+});
+
+test("issuance reader tolerates an unfinalized tip update during a finalized read", async () => {
+  const ctx = setup();
+  await ctx.indexer.sync();
+  const guarded = new ReconciledBaseChainReader(pool, ctx.reader);
+  const read = ctx.reader.readFinalizedCampaign.bind(ctx.reader);
+  let advanced = false;
+  ctx.reader.readFinalizedCampaign = async (binding, signal) => {
+    if (!advanced) {
+      advanced = true;
+      ctx.control.latest = 13n;
+      await ctx.indexer.sync();
+    }
+    return read(binding, signal);
+  };
+  const state = await guarded.readFinalizedCampaign(
+    ctx.base,
+    AbortSignal.timeout(1000),
+  );
+  assert.equal(state.blockNumber, 10n);
+  const result = await saved();
+  assert.equal(result.deployment.tip_number, "13");
+  assert.equal(result.deployment.finalized_number, "10");
 });
 
 test("a previously orphaned block can return without duplicating its immutable logs", async () => {

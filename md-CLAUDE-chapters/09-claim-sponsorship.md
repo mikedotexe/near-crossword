@@ -75,6 +75,27 @@ an operator-reviewed recovery procedure are required before a new sponsorship
 attempt. The reward allocation itself remains privately recoverable. This is a
 conservative pilot boundary, not the final self-service gas recovery experience.
 
+Migration 014 implements the first narrow recovery procedure for an expired
+`READY`, non-final, stub-only attempt. It preserves old requests under numbered
+permit epochs and adds an append-only review containing the exact operation
+identity, old expiry, maximum provider validity and a finalized unused-claim
+checkpoint. `base:sponsorship-recovery:preflight` is read-only;
+`base:sponsorship-recovery:commit` records review, and the participant's next
+permit consumes it once. The next proxy request must retain the same sender,
+nonce, factory creation and claim bytes. `UNKNOWN`, `IN_FLIGHT`, final requests,
+unexpired provider data, changed nonces and used claims remain ineligible.
+
+Migration 015 adds `CDP_MANAGED` as a separate, one-shot sponsorship mode for
+CDP User Wallets. Before the browser calls the SDK, the authenticated participant
+API revalidates the exact signed claim against finalized accounting, acquires the
+same deployment-wide budget lock, reserves the maximum operation allowance and
+stores a random attempt ID. That ID is also the CDP idempotency key. A second
+reservation for the allocation is always denied. The browser may report exactly
+one UserOperation hash or mark the result `UNKNOWN`; conflicting hashes and a
+late success after `UNKNOWN` fail closed. A matching finalized `RewardPaid` event
+can close any managed state as `FINALIZED`, including a lost browser response.
+Managed mode has no public or private paymaster URL in browser configuration.
+
 The upstream URL is server-only, fixed to CDP Base Sepolia. Redirects, automatic
 retry and caller-selected destinations are forbidden; time/output are bounded.
 The permit/cookies are stripped, and the provider receives empty context. Its
@@ -173,6 +194,33 @@ and smart account with zero ETH, signed challenge compatibility, database-backed
 issuance/recovery, cancellation/lost-response recovery, and independently observed
 provider cost. The backend already has one finalized test payout.
 
+Session 24 exercised the database-backed CDP participant on campaign `3`.
+Completion, smart-account proof, slot allocation and signed authorization all
+passed. Permit epoch `0` returned only a `READY` non-final stub and no final
+request; no account deployment, nonce or reward followed. After expiry and
+finality, migration 014's dry run and committed review admitted the same operation
+into epoch `1`. Three Cloudflare callback requests were canceled by the hosted
+CDP caller and the epoch-1 stub became `UNKNOWN`; no further custom-proxy retry is
+allowed. Chain reads at latest `46526744` and finalized `46526083` still showed
+the account undeployed, nonce zero, zero ETH/USDC and unused claim markers.
+
+The CDP embedded-wallet project's Paymaster tab had no network configuration.
+Current Coinbase guidance supports storing the Base Sepolia paymaster URL there
+and using managed `useCdpPaymaster`, avoiding the hosted wallet's callback through
+the temporary tunnel. Treat that as a separate reviewed mode: retain the CDP
+contract/function allowlist and provider limits, add local gas reservation and
+finalized recovery evidence, and do not silently bypass this allocation's
+`UNKNOWN` record.
+
+Session 25 saved the existing Base Sepolia endpoint in the CDP User Wallet
+project's Paymaster configuration with blank context. The portal masks it after
+save. The application now supports the documented managed `useCdpPaymaster`
+option, guarded by mutually exclusive `BASE_CDP_MANAGED_PAYMASTER_ENABLED` and
+proxy switches. Migration 015 is applied to the local acceptance database, and
+the ignored local profile selects managed mode. Render and production gates were
+not changed. Campaign `3` remains blocked by its earlier proxy `UNKNOWN`; live
+managed acceptance requires a fresh reviewed allocation.
+
 Session 15 adds a live Base Sepolia acceptance harness at
 `scripts/base-sepolia-sponsored-claim-acceptance.ts`. It starts a local-only
 page, exposes only a randomized HTTPS paymaster path through Cloudflare Tunnel,
@@ -204,6 +252,8 @@ not production DB-backed claim issuance.
 - [ERC-7677 context and methods](https://eips.ethereum.org/EIPS/eip-7677)
 - [Base sponsorship capability](https://docs.base.org/sdks/base-account/improve-ux/sponsor-gas/paymasters)
 - [CDP proxy and private endpoint](https://docs.cdp.coinbase.com/paymaster/guides/paymaster-proxy)
+- [CDP managed paymaster quickstart](https://docs.cdp.coinbase.com/paymaster/introduction/quickstart)
+- [CDP end-user Smart Account send API](https://docs.cdp.coinbase.com/api-reference/v2/rest-api/end-user-accounts/send-user-operation-for-end-user-smart-account)
 - [CDP security and policies](https://docs.cdp.coinbase.com/paymaster/reference-troubleshooting/security)
 - [Coinbase Smart Wallet source](https://github.com/coinbase/smart-wallet/blob/main/src/CoinbaseSmartWallet.sol)
 - [Coinbase paymaster v1.0.0 format](https://github.com/coinbase/verifying-paymaster/blob/ca356bb0ff674c2000087f0a1cb06c41db6fb688/src/VerifyingPaymaster.sol)

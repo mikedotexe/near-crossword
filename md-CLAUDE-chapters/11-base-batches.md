@@ -57,8 +57,8 @@ lead with a list of protocols.
 | --- | --- | --- |
 | Base-native reward accounting exists | Base Sepolia escrow at `0x77fdCEF7d08c54eD2a87FD54fBf24a660fa2A304` | Testnet; independent review and mainnet deployment remain open |
 | A gasless USDC reward can reach a fresh account | Finalized transaction `0x35860a8044d025b6086acbacc02a3f173520b88410fc9338c6267117dc6f1255` | Backend acceptance used a throwaway local Coinbase Smart Account |
-| Approved sponsor terms bind to escrow funding | Campaign `3` stores the exact canonical hash for application revision `2` and is finalized/local-bound | Testnet; the returning CDP participant claim remains pending |
-| Email-first CDP onboarding works | Fresh email OTP and CDP smart-account creation accepted locally on 2026-09-06 | The same CDP User Wallet has not yet completed the funded claim journey |
+| Approved sponsor terms bind to escrow funding | Campaign `3` stores the exact canonical hash for application revision `2`, finalized/local-bound, and issued its one reward | Testnet; its custom-paymaster attempt is unknown and cannot be retried |
+| Email-first CDP onboarding works | Fresh email OTP, CDP smart-account creation, wallet proof, completion and reward authorization passed locally | A fresh managed-Paymaster allocation has not yet produced a funded payout |
 | Sponsor review and participant screens exist | Live public synthetic demos plus gated private review/publication implementation | Sponsor funding controls, export, and reporting are incomplete |
 | Source-grounded AI drafts work | Two bounded GLM 5.1 drafts passed validation with recorded billing | Representative sponsor quality and paid x402 orchestration remain open |
 | Sponsor spend is verifiable | Escrow events, canonical indexer, reconciliation, and finalized recovery are implemented/tested | Chain receipts prove money movement, not unique humans or learning |
@@ -99,13 +99,14 @@ Before submission:
 1. Completed September 7: deploy the Base-first public home, practice lesson,
    and non-persisting sponsor demo to `crossword.xyz`; verify desktop/mobile and
    public metadata.
-2. Add `https://crossword.xyz` to the intended CDP project's allowed domains and
-   configure same-project public/server credentials in Render without enabling
-   production sponsorship.
-3. Completed September 7: finalize and locally bind exact-commitment campaign
-   `3`. Next, complete its one-slot Base Sepolia reward through the CDP User
-   Wallet participant path or preserve the current qualifier if that participant
-   is unavailable.
+2. Completed locally September 7: add `https://crossword.xyz` to the CDP project
+   and save its Base Sepolia managed-Paymaster configuration. Configure the
+   reviewed server settings in Render only when intentionally staging the pilot;
+   production sponsorship remains disabled.
+3. Completed September 7: finalize, bind and allocate exact-commitment campaign
+   `3`; its custom-paymaster outcome is durably unknown. Campaign `3` is parked
+   as immutable acceptance evidence and must not be retried. A fresh reviewed
+   allocation can prove the managed CDP payout after submission readiness.
 4. Record real stage, team, traction, financing, location, and contact facts from
    Mike. Never infer them from the repository.
 5. Record a 90-120 second founder video with the sponsor problem, product demo,
@@ -124,5 +125,10 @@ The prepared responses and video script live in
   network. Present x402 and NEAR AI as supporting infrastructure.
 - 2026-09-07: Keep Crossword as the product name and describe the commercial
   surface as verifiable sponsor-funded learning rewards.
+- 2026-09-07: Park Campaign `3`. The unknown custom-paymaster attempt is useful
+  evidence for fail-closed operations, not a submission blocker. Prioritize the
+  honest MVP demo, application, and founder video before another live campaign.
+- 2026-09-07: Replace the cross-like pixel mark with a four-stroke crossword
+  grid and tighten sponsor-form density for desktop submission demos.
 - Open: first design partner, pricing, traction, company/founder facts, financing,
   video URL, mainnet timing, and exact production pilot scope.

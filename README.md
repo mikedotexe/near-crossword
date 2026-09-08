@@ -55,13 +55,14 @@ human.
 The Base Sepolia pilot includes:
 
 - `LearningRewards` escrow at
-  [`0x77fd...A304`](https://sepolia.basescan.org/address/0x77fdCEF7d08c54eD2a87FD54fBf24a660fa2A304)
+  [`0x77fd...A304`](https://base-sepolia.blockscout.com/address/0x77fdCEF7d08c54eD2a87FD54fBf24a660fa2A304)
 - A
-  [finalized sponsored payout](https://sepolia.basescan.org/tx/0x35860a8044d025b6086acbacc02a3f173520b88410fc9338c6267117dc6f1255)
+  [finalized sponsored payout](https://base-sepolia.blockscout.com/tx/0x35860a8044d025b6086acbacc02a3f173520b88410fc9338c6267117dc6f1255)
   of 1 test USDC to a fresh, zero-ETH Coinbase Smart Account
 - Tested EOA, deployed ERC-1271, and undeployed ERC-6492 authorization paths
 - Durable publication, claim issuance, chain reconciliation, and recovery
 - Local email OTP and CDP smart-account creation
+- CDP-managed Paymaster integration with pre-send database gas reservation
 
 The combined email-backed CDP account plus funded sponsored claim is still an
 open acceptance item. Testnet USDC is not revenue, TVL, or user traction.
@@ -162,6 +163,7 @@ Base capabilities fail closed. Their settings are documented in
 - `BASE_PARTICIPANT_ENABLED`
 - `BASE_CLAIM_ISSUANCE_ENABLED`
 - `BASE_SPONSORED_GAS_ENABLED`
+- `BASE_CDP_MANAGED_PAYMASTER_ENABLED`
 - `BASE_PAYMASTER_PROXY_ENABLED`
 - `BASE_INDEXER_ENABLED`
 

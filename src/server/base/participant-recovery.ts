@@ -5,6 +5,7 @@ import { transaction } from "./database";
 import { matchingState } from "./issuer";
 import { participantCampaign } from "./participant-repository";
 import type { ReconciledBaseChainReader } from "./reconciled-chain-reader";
+import { chainFailure } from "./chain-reader";
 import { realUserId, sha256, validId } from "./review";
 
 export class ParticipantRecovery {
@@ -38,6 +39,29 @@ export class ParticipantRecovery {
     const claim: BaseClaim = { campaignId: loaded.binding.onChainId, slot: Number(allocation.slot), participantId: allocation.participant_id,
       recipient: allocation.recipient, amount: BigInt(allocation.amount), deadline: BigInt(allocation.deadline), signerEpoch: state.signerEpoch };
     const receipt = await bounded((signal) => this.chain.readRewardReceipt(loaded.binding, claim, state.blockHash, signal), 10000);
+    if (receipt) {
+      await transaction(this.pool, async (client) => {
+        const managed = await client.query(
+          `SELECT managed_state, managed_transaction_hash FROM base_gas_sponsorships
+           WHERE allocation_id = $1 AND sponsorship_mode = 'CDP_MANAGED'
+           FOR UPDATE`,
+          [allocation.id],
+        );
+        if (
+          managed.rows[0]?.managed_transaction_hash &&
+          managed.rows[0].managed_transaction_hash !== receipt.transactionHash
+        )
+          chainFailure("BASE_ACCOUNTING_NOT_READY");
+        if (managed.rowCount && managed.rows[0].managed_state !== "FINALIZED")
+          await client.query(
+            `UPDATE base_gas_sponsorships
+             SET managed_state = 'FINALIZED', managed_transaction_hash = $2,
+                 managed_updated_at = NOW()
+             WHERE allocation_id = $1`,
+            [allocation.id, receipt.transactionHash],
+          );
+      });
+    }
     return { ...common, allocationId: allocation.id as string, recipient: claim.recipient, amountAtomic: claim.amount.toString(),
       deadline: claim.deadline.toString(), status: receipt ? "PAID" : unavailable || "RECOVERABLE", ...(receipt ? { receipt } : {}) };
   }

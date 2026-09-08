@@ -16,9 +16,6 @@ export function PixelMark({
       <i />
       <i />
       <i />
-      <i />
-      <i />
-      <i />
     </span>
   );
 }

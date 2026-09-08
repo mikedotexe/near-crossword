@@ -1,15 +1,14 @@
 # Base Sepolia sponsorship acceptance
 
 Status: Base Sepolia escrow, paymaster and one-slot sponsored claim are finalized,
-updated 2026-09-06. Hosted Base Account onboarding was rejected upstream, so the
+updated 2026-09-07. Hosted Base Account onboarding was rejected upstream, so the
 selected participant path is now CDP User Wallet email OTP plus smart accounts.
 CDP faucet transfers funded the test deployer on Base Sepolia. Local proofs are in
 [QA](../QA.md); architecture is in [chapter 09](../md-CLAUDE-chapters/09-claim-sponsorship.md).
 Session 9 adds an encrypted test-deployer wallet and disabled local env profile;
 see [local setup and recovery](base-sepolia-local-setup.md). Session 10 confirms
-0.0001 test ETH and 1 native test USDC balances. CDP sign-in is complete, but the
-local endpoint slot is now present and read-only checked as Base Sepolia. Actual
-provider wire acceptance remains pending. Session 12 deployed the escrow and
+0.0001 test ETH and 1 native test USDC balances. CDP sign-in is complete and the
+private endpoint was read-only checked as Base Sepolia. Session 12 deployed the escrow and
 saved a claim-only CDP allowlist. Session 13 configured a separate eligibility
 signer and sent the exact 1-test-USDC approval after explicit approval. Session
 14 verified approval finality, recomputed the stale campaign schedule and created
@@ -245,10 +244,63 @@ creation, ERC-6492 wallet proof compatibility, database issuance, sponsored
 submission, finalized receipt recovery, duplicate handling and provider cost.
 Production gates remain disabled until that pass is recorded.
 
+## Session 24 database-backed CDP User Wallet result
+
+Campaign `3` completed the participant path through email OTP, smart-account
+ownership proof, lesson completion, optional contact consent, slot allocation and
+signed reward authorization. The consent checkbox briefly displayed a Base
+accounting error because the browser immediately replaced its successful write
+with an unrelated recovery read; the UI now applies the successful consent
+response directly. Consent remains optional and private.
+
+The first claim attempt reserved the local gas allowance and received one
+`READY`, non-final `pm_getPaymasterStubData` response. It never requested final
+paymaster data, produced a UserOperation hash, deployed the account or changed
+the claim. After both the permit and provider stub expired beyond finalized
+history, migration 014 recorded an operator-reviewed recovery and allowed one
+exact-identity retry in permit epoch `1` without deleting the old attempt or
+releasing its reserved allowance.
+
+The retry ended `UNKNOWN` after the hosted CDP caller canceled three requests
+through the temporary Cloudflare callback. There was no final request hash or
+transaction. At latest block `46526744` and finalized block `46526083`, the
+recipient remained undeployed with zero ETH, zero test USDC and EntryPoint nonce
+zero; the slot and participant markers remained unused. Do not retry this
+allocation again: `UNKNOWN` is intentionally ineligible for recovery.
+
+The embedded-wallet project had no Paymaster network configuration. The next
+test should save the existing private Base Sepolia endpoint in that CDP project
+and use managed `useCdpPaymaster`, avoiding the hosted caller's callback through
+the tunnel. Keep the strict contract/function policy, local reservation and
+finalized receipt recovery; use a fresh allocation for acceptance. Production
+sponsorship and every mainnet gate remain disabled.
+
+## Session 25 managed Paymaster setup
+
+The CDP User Wallet project now lists a masked Base Sepolia Paymaster
+configuration using the existing private endpoint and blank context. The URL was
+transferred from ignored local environment directly into the portal and was not
+added to browser configuration or source control.
+
+Migration 015 and the application implement managed sponsorship as a separate
+mode. The participant server reserves one bounded allowance against the exact
+signed claim before `useCdpPaymaster: true` can run. The random reservation ID is
+the SDK idempotency key. A returned UserOperation hash is recorded once;
+ambiguous results become `UNKNOWN`, never automatic retries. Finalized
+`RewardPaid` evidence closes the database attempt and remains the only paid
+status. The local acceptance database is migrated and the ignored local profile
+selects managed mode with the custom proxy disabled. No Render setting changed.
+
+Campaign `3` remains ineligible because its prior proxy epoch is `UNKNOWN`. The
+next live acceptance must use a newly reviewed allocation, then record provider
+logs/cost, UserOperation, transaction, finalized event, recipient delta and
+duplicate recovery behavior.
+
 ## References
 
 [CDP setup](https://docs.cdp.coinbase.com/paymaster/introduction/quickstart),
 [proxy](https://docs.cdp.coinbase.com/paymaster/guides/paymaster-proxy),
+[end-user Smart Account send API](https://docs.cdp.coinbase.com/api-reference/v2/rest-api/end-user-accounts/send-user-operation-for-end-user-smart-account),
 [security](https://docs.cdp.coinbase.com/paymaster/reference-troubleshooting/security),
 [paymaster FAQ](https://docs.cdp.coinbase.com/paymaster/faqs),
 [Coinbase v0.6 paymaster](https://github.com/coinbase/verifying-paymaster/tree/v1.0.0),

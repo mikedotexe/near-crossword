@@ -18,6 +18,7 @@ export type WalletConfiguration = {
   proxyUrl: string | null;
 };
 export type SponsorshipPermit = { token: string; expiresAt: number; digest: Hex };
+export type ManagedSponsorship = { attemptId: string; digest: Hex };
 export type AuthorizedReward = {
   status: "AUTHORIZED";
   digest: Hex;
@@ -100,42 +101,65 @@ export async function sendSponsoredClaim(
   reward: AuthorizedReward,
   expected: Parameters<typeof claimCall>[1],
   configuration: WalletConfiguration,
-  permit: SponsorshipPermit,
+  sponsorship: SponsorshipPermit | ManagedSponsorship,
   beforeSubmission?: () => void,
 ) {
-  if (
-    !configuration.enabled ||
-    !configuration.sponsoredGas ||
-    !configuration.proxyUrl
-  )
+  if (!configuration.enabled || !configuration.sponsoredGas)
     throw new Error("Sponsored claims are not enabled");
-  const proxy = new URL(configuration.proxyUrl);
-  if (
-    proxy.protocol !== "https:" ||
-    proxy.username ||
-    proxy.password ||
-    proxy.search ||
-    proxy.hash ||
-    proxy.hostname === "api.developer.coinbase.com"
-  )
-    throw new Error("A reviewed sponsorship proxy is required");
   const call = claimCall(reward, expected);
-  if (!permit || !/^[0-9a-f]{64}$/.test(permit.token) || permit.digest !== reward.digest ||
-      !Number.isSafeInteger(permit.expiresAt) || permit.expiresAt <= Math.floor(Date.now() / 1000) + 15)
-    throw new Error("A fresh claim-specific gas permit is required");
   const network = expected.chainId === 84532
     ? "base-sepolia"
     : expected.chainId === 8453
       ? "base"
       : null;
   if (!network) throw new Error("CDP Wallet is unavailable on this network");
+  let paymaster: Pick<
+    SendUserOperationOptions,
+    "idempotencyKey" | "paymasterContext" | "paymasterUrl" | "useCdpPaymaster"
+  >;
+  if (configuration.proxyUrl) {
+    const proxy = new URL(configuration.proxyUrl);
+    if (
+      proxy.protocol !== "https:" ||
+      proxy.username ||
+      proxy.password ||
+      proxy.search ||
+      proxy.hash ||
+      proxy.hostname === "api.developer.coinbase.com"
+    )
+      throw new Error("A reviewed sponsorship proxy is required");
+    if (
+      !("token" in sponsorship) ||
+      !/^[0-9a-f]{64}$/.test(sponsorship.token) ||
+      sponsorship.digest !== reward.digest ||
+      !Number.isSafeInteger(sponsorship.expiresAt) ||
+      sponsorship.expiresAt <= Math.floor(Date.now() / 1000) + 15
+    )
+      throw new Error("A fresh claim-specific gas permit is required");
+    paymaster = {
+      paymasterUrl: proxy.href,
+      paymasterContext: { token: sponsorship.token },
+    };
+  } else {
+    if (
+      !("attemptId" in sponsorship) ||
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(
+        sponsorship.attemptId,
+      ) ||
+      sponsorship.digest !== reward.digest
+    )
+      throw new Error("A managed sponsorship reservation is required");
+    paymaster = {
+      useCdpPaymaster: true,
+      idempotencyKey: sponsorship.attemptId,
+    };
+  }
   beforeSubmission?.();
   const result = await sendUserOperation({
     evmSmartAccount: getAddress(expected.recipient),
     network,
     calls: [{ ...call, value: 0n }],
-    paymasterUrl: proxy.href,
-    paymasterContext: { token: permit.token },
+    ...paymaster,
   });
   const id = result?.userOperationHash;
   if (typeof id !== "string" || !/^0x[0-9a-fA-F]{64}$/.test(id))

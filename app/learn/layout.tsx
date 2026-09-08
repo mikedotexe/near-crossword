@@ -12,6 +12,8 @@ export default function LearningLayout({ children }: { children: ReactNode }) {
   return (
     <ParticipantAccountProvider
       projectId={process.env.NEXT_PUBLIC_CDP_PROJECT_ID || null}
+      chainId={Number(process.env.BASE_CHAIN_ID) || null}
+      factory={process.env.BASE_ACCOUNT_FACTORY_ADDRESS || null}
     >
       <div className="learning">
         <div className="learn-shell">{children}</div>

@@ -49,11 +49,12 @@ challenge with the CDP smart account. The server's counterfactual verifier and
 finalized accounting remain responsible for wallet control and claim issuance.
 
 `src/lib/base/account.ts` accepts CDP's `sendUserOperation` function only after it
-rechecks chain, escrow, recipient, campaign, slot, amount, nonce, deadline,
-signature digest, public proxy URL and fresh claim-specific gas permit. It sends
-one zero-value claim on `base-sepolia` or `base`, using the reviewed proxy as
-`paymasterUrl` and the private permit as `paymasterContext`. There is no user-paid
-gas or ordinary transaction fallback. Only finalized server recovery marks paid.
+rechecks chain, escrow, recipient, campaign, slot, amount, deadline and signature
+digest. Proxy mode additionally requires a reviewed public URL and fresh
+claim-specific permit. Managed mode requires the server's one-shot reservation
+ID, passes it as the CDP idempotency key and sets only `useCdpPaymaster: true`.
+Both modes send one zero-value escrow claim; there is no user-paid gas or ordinary
+transaction fallback. Only finalized server recovery marks paid.
 
 ## Configuration and acceptance
 
@@ -63,6 +64,9 @@ All are required before the participant UI is enabled:
 - `CDP_API_KEY_ID` and `CDP_API_KEY_SECRET`: server-only Secret API Key from that
   same project, authorized to validate end-user access tokens.
 - `CDP_PARTICIPANT_AUTH_ENABLED=true` and `BASE_ACCOUNT_ENABLED=true`.
+- Exactly one of `BASE_CDP_MANAGED_PAYMASTER_ENABLED` or
+  `BASE_PAYMASTER_PROXY_ENABLED`; managed mode also requires the project's saved
+  per-network Paymaster configuration.
 - The exact local/staging/production origins allowed in CDP, plus the existing
   participant, counterfactual, issuance, scanner and sponsorship gates.
 
@@ -105,3 +109,37 @@ It is bound only to application campaign
 acceptance database. The idempotent recheck preserved its unused slot for the
 email-backed CDP participant flow described above. See the
 [campaign 3 record](../docs/base-sepolia-campaign-3-2026-09-07.md).
+
+Session 23 added both `http://localhost:3125` and `https://crossword.xyz` to the
+same CDP Web client. The returning email participant again passed OTP, smart
+account creation and server token validation. At finalized block `46523842`,
+recipient `0xFB5766CAa773F1711C876a5d0489084563e56F7c` had no deployed code,
+ETH, USDC or EntryPoint nonce. Optional sponsor-contact consent persisted as
+version 1; an unrelated post-save accounting refresh then failed against the
+public RPC. The UI now applies the successful consent response directly, and a
+browser regression proves consent does not initiate a reward recovery read.
+No completion, allocation, wallet signature, sponsorship request or payout had
+occurred at that checkpoint.
+
+Session 24 completed the puzzle and corrected wallet proof semantics. CDP's plain
+EVM signer controls the smart account's owner EOA, so message ownership now uses
+Coinbase replay-safe typed data, wraps the owner signature for the Smart Wallet's
+ERC-1271 validator, and adds the pinned factory ERC-6492 envelope while the account
+is counterfactual. The server accepted that proof and issued the one immutable
+campaign-3 allocation. Successful consent and authorization mutations now update
+their local panel state directly; redundant recovery reads can no longer turn a
+saved mutation into a red error. The server permit remains the authoritative
+pre-send chain check.
+
+The subsequent custom-paymaster callback did not reach a final paymaster request
+or UserOperation. After one append-only reviewed retry, the second stub was
+durably `UNKNOWN` and chain state remained untouched.
+
+Session 25 saved Base Sepolia in the embedded-wallet project's Paymaster tab with
+the existing private endpoint and blank context. The SDK path now uses
+`useCdpPaymaster: true`, never the URL, after a database-backed one-shot gas
+reservation. Its reservation ID is the provider idempotency key; submitted and
+unknown outcomes are durable, and finalized claim evidence closes the attempt.
+The local acceptance database and ignored local profile are ready. The earlier
+campaign-3 allocation cannot move to this mode because its proxy attempt is
+already `UNKNOWN`; use a fresh reviewed allocation for the live proof.

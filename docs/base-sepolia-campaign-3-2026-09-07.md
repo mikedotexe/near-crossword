@@ -145,13 +145,57 @@ A second dry run reported `alreadyBound: true` and `alreadyPublished: true` with
 the same finalized state. No private source, answer, email, or participant data
 was emitted.
 
-## Remaining acceptance
+## Participant allocation
 
-1. Add `https://crossword.xyz` to the CDP project's allowed domains when the
-   authenticated dashboard is available.
-2. Use the returning email-backed CDP participant to complete wallet challenge,
-   claim issuance, sponsored submission, finalized recovery, and duplicate
-   behavior checks.
+The returning participant
+`0xFB5766CAa773F1711C876a5d0489084563e56F7c` passed email OTP and the
+server session bridge. At finalized block `46523842` the account was undeployed
+with zero ETH, zero USDC and EntryPoint nonce zero. Optional sponsor-contact
+consent saved as version 1 and remains private.
 
-No participant claim, provider sponsorship request, production setting, mainnet
-transfer, credential print, or Batches submission occurred in this funding step.
+The correct crossword completion was committed at 2026-09-07 15:03:02 PDT for
+revision `2`. A replay-safe Coinbase Smart Wallet message proof then verified
+the CDP owner through ERC-1271/ERC-6492 without deploying the account. The server
+allocated slot `0` once:
+
+| Field | Value |
+| --- | --- |
+| Allocation | `f92e25ea-6efb-411e-8629-d00f0aef8272` |
+| Recipient | `0xFB5766CAa773F1711C876a5d0489084563e56F7c` |
+| Amount | `1000000` atomic units / 1 test USDC |
+| Authorization digest | `0x8e437c02634ba2fc022967fcd0b30190f848610043fce16a8cbfd3428bd34733` |
+| Signed at | 2026-09-07 15:20:46 PDT |
+
+No answer, email, wallet proof or claim signature is reproduced here.
+
+## Sponsored-wallet result
+
+The first CDP User Wallet call reached the public claim-only proxy three times.
+Only `pm_getPaymasterStubData` completed, with `isFinal=false`; no final
+paymaster request, UserOperation hash, transaction or nonce change appeared.
+The stub was recorded `READY` under permit epoch `0`. Its provider validity ended
+at 15:26:02 PDT and its permit ended at 15:33:50 PDT. A 90-second bounded watch
+found the account undeployed with nonce and balances zero and both claim markers
+unused.
+
+Migration 014 added append-only operator review and numbered permit epochs. A
+dry run and committed review at finalized block `46525957` proved the old stub
+and permit expired before finality and the reward remained unused. The exact
+operation was admitted into permit epoch `1`; no old row or gas reservation was
+deleted or released.
+
+The reviewed call again received three public-proxy requests, while Cloudflare
+reported that the CDP caller canceled each request. The epoch-1 stub became
+`UNKNOWN` before any final request. At latest block `46526744` and finalized
+block `46526083`, the account was still undeployed with EntryPoint nonce `0`,
+zero ETH, zero USDC, and unused slot/participant markers. No further retry is
+authorized from this state.
+
+The CDP embedded-wallet project was then configured with a masked Base Sepolia
+Paymaster endpoint and blank context. Migration 015 plus the browser/server flow
+now implement managed `useCdpPaymaster` with a pre-send gas reservation,
+provider idempotency key, immutable submitted/unknown state and finalized-event
+closure. That mode cannot be substituted into this allocation: its prior proxy
+attempt remains `UNKNOWN`. Use a fresh reviewed allocation for managed
+acceptance. Production sponsorship, mainnet transfers and Batches submission
+remain disabled.

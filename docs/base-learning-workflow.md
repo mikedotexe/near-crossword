@@ -151,7 +151,7 @@ are sanitized before HTTP logging; do not log private proofs or authorizations.
 Run `yarn test:integration:base` with `TEST_DATABASE_URL` explicitly pointing to a
 disposable local Postgres database. The harness refuses remote hosts and never
 falls back to `DATABASE_URL`. It creates/drops only its own random schema, runs
-all eleven migrations twice, and exercises actual constraints, concurrent
+all fifteen migrations twice, and exercises actual constraints, concurrent
 connections, durable replay, and session-authenticated route handlers. CI uses
 its existing Postgres 16 service for this additional test step.
 

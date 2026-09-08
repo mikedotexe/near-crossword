@@ -5,14 +5,26 @@ export function walletConfiguration(): WalletConfiguration {
     process.env.BASE_ACCOUNT_ENABLED === "true" &&
     process.env.CDP_PARTICIPANT_AUTH_ENABLED === "true" &&
     Boolean(process.env.NEXT_PUBLIC_CDP_PROJECT_ID);
+  const sponsored =
+    enabled &&
+    process.env.BASE_SPONSORED_GAS_ENABLED === "true" &&
+    process.env.BASE_PAYMASTER_POLICY_REVIEWED === "true" &&
+    process.env.BASE_CHAIN_ID === "84532";
+  if (
+    sponsored &&
+    process.env.BASE_CDP_MANAGED_PAYMASTER_ENABLED === "true" &&
+    process.env.BASE_PAYMASTER_PROXY_ENABLED !== "true"
+  ) {
+    return { enabled, sponsoredGas: true, proxyUrl: null };
+  }
   // This is a public, independently reviewed proxy URL, NEVER the keyed CDP endpoint.
   // The proxy must enforce claim-only sponsorship and provider budget/allowlist policy.
   try {
     const url = new URL(process.env.BASE_SPONSORED_CLAIM_PROXY_URL || "");
     if (
-      !enabled ||
-      process.env.BASE_SPONSORED_GAS_ENABLED !== "true" ||
+      !sponsored ||
       process.env.BASE_PAYMASTER_PROXY_ENABLED !== "true" ||
+      process.env.BASE_CDP_MANAGED_PAYMASTER_ENABLED === "true" ||
       url.protocol !== "https:" ||
       url.username ||
       url.password ||

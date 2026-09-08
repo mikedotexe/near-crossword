@@ -7,6 +7,7 @@ import {
   claimCall,
   sendSponsoredClaim,
   type AuthorizedReward,
+  type WalletConfiguration,
 } from "./account";
 import { learningRewardsAbi } from "./escrow-abi";
 
@@ -52,7 +53,7 @@ function fixture() {
     rewardAtomic: "100000",
     claimDeadline,
   };
-  const config = {
+  const config: WalletConfiguration = {
     enabled: true,
     sponsoredGas: true,
     proxyUrl: "https://sponsorship.example.test/claim",
@@ -90,6 +91,28 @@ test("CDP sponsored claim sends one committed zero-value escrow call through the
   assert.equal(request.useCdpPaymaster, undefined);
 });
 
+test("CDP managed sponsorship uses the project paymaster and reservation idempotency key", async () => {
+  const f = fixture();
+  f.config.proxyUrl = null;
+  const attemptId = "123e4567-e89b-42d3-a456-426614174000";
+  assert.equal(
+    await sendSponsoredClaim(
+      f.send,
+      f.reward,
+      f.expected,
+      f.config,
+      { attemptId, digest: f.reward.digest },
+    ),
+    `0x${"ab".repeat(32)}`,
+  );
+  assert.equal(f.requests.length, 1);
+  const request = f.requests[0];
+  assert.equal(request.useCdpPaymaster, true);
+  assert.equal(request.idempotencyKey, attemptId);
+  assert.equal(request.paymasterUrl, undefined);
+  assert.equal(request.paymasterContext, undefined);
+});
+
 test("wrong network, commitment, gate or raw provider endpoint cannot send", async () => {
   for (const mutate of [
     (f: ReturnType<typeof fixture>) => {
@@ -104,6 +127,9 @@ test("wrong network, commitment, gate or raw provider endpoint cannot send", asy
     (f: ReturnType<typeof fixture>) => {
       f.config.proxyUrl =
         "https://api.developer.coinbase.com/rpc/v1/base/KEY";
+    },
+    (f: ReturnType<typeof fixture>) => {
+      f.config.proxyUrl = null;
     },
   ]) {
     const f = fixture();

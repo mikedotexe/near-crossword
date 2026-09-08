@@ -53,6 +53,12 @@ include transactions sent by any relayer, not only our application.
 Preparation happens outside the write transaction. A deployment version check
 serializes publication of new blocks, events, snapshots and cursor together;
 concurrent/stale scanners must retry. A failed or ambiguous run is safe to replay.
+Application reads compare the finalized block number/hash and campaign snapshot
+before and after direct verification. They do not reject a concurrent scanner
+write that changes only the unfinalized tip. This distinction prevents routine
+tip ingestion from surfacing as participant failure without weakening the exact
+finalized-state requirement. A regression advances the tip during the guarded
+read while holding finality fixed.
 The current bounded rebuild supports at most 100,000 canonical events and 1,000
 campaigns; exceeding capacity fails closed. This is not a throughput promise.
 Benchmark/paginate incremental projections before large-scale deployment.
@@ -91,6 +97,16 @@ receipts or raise the rewind limit merely to make an error disappear.
 only the accounting database and is gated by `BASE_INDEXER_ENABLED=true`.
 No scheduler, production reader composition, public receipts API, signer, relayer
 or transaction broadcast is activated by this command.
+
+For a new database that did not scan from deployment time, `yarn base:bootstrap`
+reconstructs history without walking every empty Base block. It discovers logs in
+bounded 10,000-block ranges, reloads every discovered event by canonical block
+hash, replays and reconciles every campaign against finalized getters, and keeps
+the complete bounded unfinalized window so ordinary reorg handling can continue.
+It is dry-run only unless `BASE_ACCOUNTING_BOOTSTRAP_COMMIT=true`. Replacing an
+existing projection additionally requires `BASE_ACCOUNTING_BOOTSTRAP_REPLACE=true`
+and refuses to proceed after any participant allocation or gas-sponsorship record
+exists. This is initial projection recovery, not an unhalt command.
 
 Required configuration: `DATABASE_URL`, `BASE_CHAIN_ID` (8453 or 84532),
 `BASE_RPC_URL`, `BASE_ESCROW_ADDRESS`, `BASE_ESCROW_RUNTIME_CODE_HASH`,

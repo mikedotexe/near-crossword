@@ -199,7 +199,7 @@ export default function HomePage() {
               </p>
               <a
                 className="text-link"
-                href={`https://sepolia.basescan.org/address/${escrowAddress}`}
+                href={`https://base-sepolia.blockscout.com/address/${escrowAddress}`}
                 target="_blank"
                 rel="noreferrer"
               >
@@ -217,7 +217,7 @@ export default function HomePage() {
               </p>
               <a
                 className="text-link"
-                href={`https://sepolia.basescan.org/tx/${acceptanceTransaction}`}
+                href={`https://base-sepolia.blockscout.com/tx/${acceptanceTransaction}`}
                 target="_blank"
                 rel="noreferrer"
               >

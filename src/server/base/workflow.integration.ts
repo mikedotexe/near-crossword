@@ -91,7 +91,7 @@ let outsider: string;
 let learners: string[];
 let unverified: string;
 let onChainSequence = 1n;
-const previousEnv = Object.fromEntries(["DATABASE_URL", "BASE_REVIEW_ENABLED", "BASE_PARTICIPANT_ENABLED", "BASE_PAYMASTER_PROXY_ENABLED", "BASE_SPONSORED_GAS_ENABLED", "NEXTAUTH_URL", "V2_DATABASE_SSL", "V2_TRUSTED_CLIENT_IP_HEADER"].map((key) => [key, process.env[key]]));
+const previousEnv = Object.fromEntries(["DATABASE_URL", "BASE_REVIEW_ENABLED", "BASE_PARTICIPANT_ENABLED", "BASE_PAYMASTER_PROXY_ENABLED", "BASE_CDP_MANAGED_PAYMASTER_ENABLED", "BASE_SPONSORED_GAS_ENABLED", "NEXTAUTH_URL", "V2_DATABASE_SSL", "V2_TRUSTED_CLIENT_IP_HEADER"].map((key) => [key, process.env[key]]));
 let httpPoolOpened = false;
 
 before(async () => {
@@ -101,7 +101,7 @@ before(async () => {
       env: { ...process.env, DATABASE_URL: url.toString() }, encoding: "utf8", timeout: 30000,
     });
     assert.equal(migrated.status, 0, "Isolated migration run must succeed");
-    assert.equal(migrated.stdout.split(pass === 0 ? "Applied " : "Already applied ").length - 1, 13);
+    assert.equal(migrated.stdout.split(pass === 0 ? "Applied " : "Already applied ").length - 1, 15);
   }
   const result = await pool.query(
     `INSERT INTO users (email, email_verified)
@@ -477,6 +477,27 @@ async function sponsorshipSetup() {
   return { ...ctx, policy, controls, service, issued, permit, request };
 }
 
+async function managedSponsorshipSetup() {
+  const input = reviewFixture();
+  input.terms.escrow = `0x${(1000n + onChainSequence).toString(16).padStart(40, "0")}`;
+  const ctx = await setup(input);
+  await ctx.bind();
+  const issued = await ctx.issue();
+  const policy = gasPolicy(ctx.state.escrow);
+  policy.chainId = ctx.state.chainId;
+  const service = () =>
+    new ClaimSponsorship(
+      pool,
+      ctx.reader,
+      { verifySponsorshipAccount: async () => {} },
+      policy,
+      async () => {
+        throw new Error("Managed sponsorship cannot call the proxy upstream");
+      },
+    );
+  return { ...ctx, policy, service, issued };
+}
+
 test("gas permit is private, claim bound and refreshed without extending a possibly signed operation", async () => {
   const ctx = await sponsorshipSetup();
   await assert.rejects(ctx.service().permit(outsider, ctx.review.id, ctx.issued.digest), { status: 403 });
@@ -525,7 +546,227 @@ test("unknown provider outcomes survive restarts, cannot bypass by changing esti
   assert.equal(ctx.controls.calls, 1);
   const saved = await pool.query("SELECT * FROM base_gas_requests WHERE allocation_id = $1", [ctx.issued.allocationId]);
   assert.equal(saved.rows[0].state, "UNKNOWN"); assert.equal(saved.rows[0].result, null);
+  await assert.rejects(
+    ctx.service().reviewExpiredStubOnlyRecovery(
+      ctx.issued.allocationId,
+      "test-operator",
+    ),
+    { status: 403 },
+  );
   assert.doesNotMatch(JSON.stringify(saved.rows), /SECRET/);
+});
+
+test("expired stub-only sponsorship requires append-only operator review before exact retry", async () => {
+  const ctx = await sponsorshipSetup();
+  await ctx.service().proxy(ctx.request);
+  const now = Math.floor(Date.now() / 1000);
+  const expiredStub = {
+    ...gasResult(ctx.policy, now - 30),
+    isFinal: false,
+  };
+  await pool.query(
+    `UPDATE base_gas_requests SET result = $2
+     WHERE allocation_id = $1 AND permit_epoch = 0`,
+    [ctx.issued.allocationId, expiredStub],
+  );
+  await pool.query(
+    `UPDATE base_gas_sponsorships SET expires_at = to_timestamp($2)
+     WHERE allocation_id = $1`,
+    [ctx.issued.allocationId, now - 20],
+  );
+  ctx.state.blockTimestamp = now;
+  await assert.rejects(
+    ctx.service().permit(learners[0], ctx.review.id, ctx.issued.digest),
+    { status: 403 },
+  );
+  const dryRun = await ctx.service().reviewExpiredStubOnlyRecovery(
+    ctx.issued.allocationId,
+    "test-operator",
+  );
+  assert.equal(dryRun.committed, false);
+  assert.equal(
+    (await pool.query("SELECT count(*)::INTEGER AS n FROM base_gas_recovery_reviews"))
+      .rows[0].n,
+    0,
+  );
+  const review = await ctx.service().reviewExpiredStubOnlyRecovery(
+    ctx.issued.allocationId,
+    "test-operator",
+    true,
+  );
+  assert.equal(review.committed, true);
+  const repeatedReview = await ctx.service().reviewExpiredStubOnlyRecovery(
+    ctx.issued.allocationId,
+    "test-operator",
+    true,
+  );
+  assert.deepEqual(repeatedReview, review);
+  const renewed = await ctx
+    .service()
+    .permit(learners[0], ctx.review.id, ctx.issued.digest);
+  ctx.request.params[3].token = renewed.token;
+  await ctx.service().proxy(ctx.request);
+  const sponsorship = await pool.query(
+    `SELECT permit_epoch, reserved_wei, attempts
+     FROM base_gas_sponsorships WHERE allocation_id = $1`,
+    [ctx.issued.allocationId],
+  );
+  assert.equal(sponsorship.rows[0].permit_epoch, 1);
+  assert.equal(
+    sponsorship.rows[0].reserved_wei,
+    ctx.policy.maxOperationWei.toString(),
+  );
+  assert.equal(sponsorship.rows[0].attempts, 2);
+  const requests = await pool.query(
+    `SELECT permit_epoch, state FROM base_gas_requests
+     WHERE allocation_id = $1 ORDER BY permit_epoch`,
+    [ctx.issued.allocationId],
+  );
+  assert.deepEqual(
+    requests.rows,
+    [
+      { permit_epoch: 0, state: "READY" },
+      { permit_epoch: 1, state: "READY" },
+    ],
+  );
+  const recovery = await pool.query(
+    "SELECT consumed_at FROM base_gas_recovery_reviews WHERE allocation_id = $1",
+    [ctx.issued.allocationId],
+  );
+  assert.ok(recovery.rows[0].consumed_at);
+});
+
+test("managed sponsorship reserves once and records one immutable provider operation", async () => {
+  const ctx = await managedSponsorshipSetup();
+  await assert.rejects(
+    ctx.service().reserveManaged(outsider, ctx.review.id, ctx.issued.digest),
+    { status: 403 },
+  );
+  const reservation = await ctx
+    .service()
+    .reserveManaged(learners[0], ctx.review.id, ctx.issued.digest);
+  await assert.rejects(
+    ctx.service().reserveManaged(learners[0], ctx.review.id, ctx.issued.digest),
+    { status: 403 },
+  );
+  const saved = await pool.query(
+    `SELECT sponsorship_mode, managed_state, managed_attempt_id,
+            managed_user_operation_hash, reserved_wei, attempts
+     FROM base_gas_sponsorships WHERE allocation_id = $1`,
+    [ctx.issued.allocationId],
+  );
+  assert.deepEqual(saved.rows[0], {
+    sponsorship_mode: "CDP_MANAGED",
+    managed_state: "RESERVED",
+    managed_attempt_id: reservation.attemptId,
+    managed_user_operation_hash: null,
+    reserved_wei: ctx.policy.maxOperationWei.toString(),
+    attempts: 1,
+  });
+  assert.equal(
+    (
+      await pool.query(
+        `SELECT count(*)::INTEGER AS n FROM base_gas_requests
+         WHERE allocation_id = $1`,
+        [ctx.issued.allocationId],
+      )
+    ).rows[0].n,
+    0,
+  );
+  const operation = `0x${"c1".repeat(32)}`;
+  await assert.rejects(
+    ctx.service().reportManaged(
+      outsider,
+      ctx.review.id,
+      ctx.issued.digest,
+      reservation.attemptId,
+      "SUBMITTED",
+      operation,
+    ),
+    { status: 403 },
+  );
+  const submitted = await ctx.service().reportManaged(
+    learners[0],
+    ctx.review.id,
+    ctx.issued.digest,
+    reservation.attemptId,
+    "SUBMITTED",
+    operation,
+  );
+  assert.equal(submitted.state, "SUBMITTED");
+  assert.deepEqual(
+    await ctx.service().reportManaged(
+      learners[0],
+      ctx.review.id,
+      ctx.issued.digest,
+      reservation.attemptId,
+      "SUBMITTED",
+      operation,
+    ),
+    submitted,
+  );
+  await assert.rejects(
+    ctx.service().reportManaged(
+      learners[0],
+      ctx.review.id,
+      ctx.issued.digest,
+      reservation.attemptId,
+      "SUBMITTED",
+      `0x${"c2".repeat(32)}`,
+    ),
+    { status: 403 },
+  );
+  assert.equal(
+    (
+      await ctx.service().reportManaged(
+        learners[0],
+        ctx.review.id,
+        ctx.issued.digest,
+        reservation.attemptId,
+        "UNKNOWN",
+      )
+    ).state,
+    "SUBMITTED",
+  );
+});
+
+test("an unknown managed result blocks later success and every replacement reservation", async () => {
+  const ctx = await managedSponsorshipSetup();
+  const reservation = await ctx
+    .service()
+    .reserveManaged(learners[0], ctx.review.id, ctx.issued.digest);
+  const unknown = await ctx.service().reportManaged(
+    learners[0],
+    ctx.review.id,
+    ctx.issued.digest,
+    reservation.attemptId,
+    "UNKNOWN",
+  );
+  assert.equal(unknown.state, "UNKNOWN");
+  await assert.rejects(
+    ctx.service().reportManaged(
+      learners[0],
+      ctx.review.id,
+      ctx.issued.digest,
+      reservation.attemptId,
+      "SUBMITTED",
+      `0x${"d1".repeat(32)}`,
+    ),
+    { status: 403 },
+  );
+  await assert.rejects(
+    ctx.service().reserveManaged(learners[0], ctx.review.id, ctx.issued.digest),
+    { status: 403 },
+  );
+  assert.equal(
+    (
+      await pool.query(
+        "SELECT reserved_wei FROM base_gas_sponsorships WHERE allocation_id = $1",
+        [ctx.issued.allocationId],
+      )
+    ).rows[0].reserved_wei,
+    ctx.policy.maxOperationWei.toString(),
+  );
 });
 
 test("expired, nonce-replaced, rotated, paused, paid and unpinned accounts cannot obtain sponsorship", async () => {
@@ -615,4 +856,46 @@ test("permit HTTP requires real owner session and origin; proxy uses scoped cont
   process.env.BASE_PAYMASTER_PROXY_ENABLED = "false";
   assert.equal((await handlers.proxy(request(ctx.request))).status, 404);
   assert.equal((await handlers.options()).status, 404);
+  const managed = await managedSponsorshipSetup();
+  process.env.BASE_CDP_MANAGED_PAYMASTER_ENABLED = "true";
+  const managedHandlers = createSponsorshipHandlers(() => managed.service());
+  const reserved = await managedHandlers.permit(
+    request(
+      {
+        digest: managed.issued.digest,
+        mode: "CDP_MANAGED",
+        action: "RESERVE",
+      },
+      cookie,
+    ),
+    { params: Promise.resolve({ id: managed.review.id }) },
+  );
+  assert.equal(reserved.status, 200);
+  const reservation = await reserved.json();
+  const report = await managedHandlers.permit(
+    request(
+      {
+        digest: managed.issued.digest,
+        mode: "CDP_MANAGED",
+        action: "REPORT",
+        attemptId: reservation.attemptId,
+        outcome: "SUBMITTED",
+        userOperationHash: `0x${"e1".repeat(32)}`,
+      },
+      cookie,
+    ),
+    { params: Promise.resolve({ id: managed.review.id }) },
+  );
+  assert.equal(report.status, 200);
+  assert.equal((await report.json()).state, "SUBMITTED");
+  process.env.BASE_CDP_MANAGED_PAYMASTER_ENABLED = "false";
+  assert.equal(
+    (
+      await managedHandlers.permit(
+        request({ digest: managed.issued.digest }),
+        { params: Promise.resolve({ id: managed.review.id }) },
+      )
+    ).status,
+    404,
+  );
 });

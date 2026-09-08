@@ -7,7 +7,7 @@ import {
   useIsInitialized,
   useIsSignedIn,
   useSendUserOperation,
-  useSignEvmMessage,
+  useSignEvmTypedData,
   useSignInWithEmail,
   useSignOut,
   useVerifyEmailOTP,
@@ -28,6 +28,7 @@ import {
   type ReactNode,
 } from "react";
 import { getAddress, type Address, type Hex } from "viem";
+import { signSmartWalletMessage } from "../../src/lib/base/wallet-proof";
 
 type SessionState = "disabled" | "initializing" | "signed-out" | "syncing" | "ready" | "error";
 
@@ -66,24 +67,42 @@ const disabledValue: ParticipantAccountValue = {
 const ParticipantAccountContext =
   createContext<ParticipantAccountValue>(disabledValue);
 
-function smartAccount(user: User | null): Address | null {
-  const raw = user?.evmSmartAccountObjects?.[0]?.address;
-  if (!raw) return null;
+function smartAccount(user: User | null): {
+  recipient: Address;
+  owner: Address;
+} | null {
+  const account = user?.evmSmartAccountObjects?.[0];
+  const rawOwner = account?.ownerAddresses?.[0];
+  if (!account?.address || account.ownerAddresses.length !== 1 || !rawOwner)
+    return null;
   try {
-    return getAddress(raw).toLowerCase() as Address;
+    const recipient = getAddress(account.address).toLowerCase() as Address;
+    const owner = getAddress(rawOwner).toLowerCase() as Address;
+    const controlsOwner = user?.evmAccountObjects?.some(
+      (candidate) => candidate.address.toLowerCase() === owner,
+    );
+    return controlsOwner ? { recipient, owner } : null;
   } catch {
     return null;
   }
 }
 
-function CdpParticipantBridge({ children }: { children: ReactNode }) {
+function CdpParticipantBridge({
+  chainId,
+  factory,
+  children,
+}: {
+  chainId: number;
+  factory: Address;
+  children: ReactNode;
+}) {
   const { currentUser } = useCurrentUser();
   const { isInitialized } = useIsInitialized();
   const { isSignedIn } = useIsSignedIn();
   const { getAccessToken } = useGetAccessToken();
   const { signInWithEmail } = useSignInWithEmail();
   const { verifyEmailOTP } = useVerifyEmailOTP();
-  const { signEvmMessage } = useSignEvmMessage();
+  const { signEvmTypedData } = useSignEvmTypedData();
   const { sendUserOperation } = useSendUserOperation();
   const { signOut } = useSignOut();
   const [state, setState] = useState<SessionState>("initializing");
@@ -91,15 +110,17 @@ function CdpParticipantBridge({ children }: { children: ReactNode }) {
   const [sessionVersion, setSessionVersion] = useState(0);
   const [expiresAt, setExpiresAt] = useState(0);
   const inFlight = useRef<Promise<void> | null>(null);
-  const recipient = smartAccount(currentUser);
+  const account = smartAccount(currentUser);
+  const recipient = account?.recipient ?? null;
+  const owner = account?.owner ?? null;
   const email = currentUser?.authenticationMethods.email?.email ?? null;
 
   const syncSession = useCallback(
     async (user: User) => {
       if (inFlight.current) return inFlight.current;
       const run = (async () => {
-        const account = smartAccount(user);
-        if (!account) {
+        const participant = smartAccount(user);
+        if (!participant) {
           throw new Error("Coinbase did not create a smart account");
         }
         setState("syncing");
@@ -114,7 +135,7 @@ function CdpParticipantBridge({ children }: { children: ReactNode }) {
             accept: "application/json",
             "content-type": "application/json",
           },
-          body: JSON.stringify({ accessToken, recipient: account }),
+          body: JSON.stringify({ accessToken, recipient: participant.recipient }),
         });
         const body = await response.json();
         if (!response.ok) {
@@ -199,17 +220,30 @@ function CdpParticipantBridge({ children }: { children: ReactNode }) {
         if (!recipient || state !== "ready") {
           throw new Error("Finish Coinbase sign-in before verifying the reward");
         }
-        const result = await signEvmMessage({
-          evmAccount: recipient,
+        if (!recipient || !owner) {
+          throw new Error("Coinbase account ownership is unavailable");
+        }
+        const signature = await signSmartWalletMessage({
           message,
+          chainId,
+          smartAccount: recipient,
+          owner,
+          factory,
+          signTypedData: async (typedData) =>
+            (
+              await signEvmTypedData({
+                evmAccount: owner,
+                typedData,
+              })
+            ).signature,
         });
         if (
-          !/^0x(?:[0-9a-fA-F]{2})+$/.test(result.signature) ||
-          result.signature.length > 8194
+          !/^0x(?:[0-9a-fA-F]{2})+$/.test(signature) ||
+          signature.length > 8194
         ) {
           throw new Error("Coinbase returned an unsupported wallet proof");
         }
-        return result.signature;
+        return signature;
       },
       sendUserOperation,
       async signOut() {
@@ -227,10 +261,13 @@ function CdpParticipantBridge({ children }: { children: ReactNode }) {
     [
       email,
       error,
+      factory,
+      chainId,
+      owner,
       recipient,
       sendUserOperation,
       sessionVersion,
-      signEvmMessage,
+      signEvmTypedData,
       signInWithEmail,
       signOut,
       state,
@@ -247,12 +284,22 @@ function CdpParticipantBridge({ children }: { children: ReactNode }) {
 
 export function ParticipantAccountProvider({
   projectId,
+  chainId,
+  factory,
   children,
 }: {
   projectId: string | null;
+  chainId: number | null;
+  factory: string | null;
   children: ReactNode;
 }) {
-  if (!projectId) {
+  let checkedFactory: Address | null = null;
+  try {
+    checkedFactory = factory ? getAddress(factory) : null;
+  } catch {
+    checkedFactory = null;
+  }
+  if (!projectId || !chainId || !checkedFactory) {
     return (
       <ParticipantAccountContext.Provider value={disabledValue}>
         {children}
@@ -267,7 +314,9 @@ export function ParticipantAccountProvider({
         disableAnalytics: true,
       }}
     >
-      <CdpParticipantBridge>{children}</CdpParticipantBridge>
+      <CdpParticipantBridge chainId={chainId} factory={checkedFactory}>
+        {children}
+      </CdpParticipantBridge>
     </CDPHooksProvider>
   );
 }
